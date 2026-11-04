@@ -1,0 +1,12 @@
+{
+  "before": "C:\\Users\\rv010\\Desktop\\Atlas AI\\docs\\baselines\\baseline_20261104T074059Z_before_confirmed_retest_repair.json",
+  "after": "C:\\Users\\rv010\\Desktop\\Atlas AI\\docs\\baselines\\baseline_20261104T074803Z_after_confirmed_retest_repair.json",
+  "fixed_input_bars": 460,
+  "raw_strategy_frames_compared": 460,
+  "raw_strategy_outputs_equal": true,
+  "backtest_metrics_equal": true,
+  "before_trade_count": 192,
+  "after_trade_count": 192,
+  "timing_adapter_exercised_by_backtest": false,
+  "note": "Backtester does not call the live timing adapter. Its intentional acceptance change is covered by ordered-retest adapter/trader-step tests."
+}

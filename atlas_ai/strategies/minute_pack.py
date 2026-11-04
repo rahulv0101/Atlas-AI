@@ -348,6 +348,48 @@ class GoldBreakoutRetestStrategy(Strategy):
             confidence = min(0.72, 0.30 + body_ratio * 0.34 + follow_through + volume_factor)
         return TradeSignal(self.name, side, confidence, max(vol * 1.45, 100), max(vol * 2.15, 145))
 
+    def confirmed_entry_evidence(self, df: pd.DataFrame, side: str) -> dict | None:
+        """Explain a current signal's ordered retest without changing its rules."""
+        if side not in {"buy", "sell"} or self.confirmation_window < 2 or "time" not in df:
+            return None
+        if not df["time"].is_monotonic_increasing or not df["time"].is_unique or df["time"].isna().any():
+            return None
+        signal = self.generate_signal(df)
+        if signal.side != side or signal.confidence <= 0:
+            return None
+        recent = df.tail(self.lookback + self.confirmation_window)
+        base, confirm = recent.iloc[:self.lookback], recent.iloc[self.lookback:]
+        level = float(base["high"].max() if side == "buy" else base["low"].min())
+        tolerance = max(_safe_vol(df) * 0.28, 0.8)
+        closes = [float(x) for x in confirm["close"]]
+        extremes = [float(x) for x in confirm["low" if side == "buy" else "high"]]
+        pairs = []
+        for breakout in range(len(confirm) - 1):
+            broke = (closes[breakout] > level + tolerance * 0.15 if side == "buy"
+                     else closes[breakout] < level - tolerance * 0.15)
+            if not broke:
+                continue
+            for retest in range(breakout + 1, len(confirm)):
+                held = (extremes[retest] <= level + tolerance and closes[retest] >= level - tolerance * 0.45
+                        if side == "buy" else
+                        extremes[retest] >= level - tolerance and closes[retest] <= level + tolerance * 0.45)
+                if held:
+                    pairs.append((breakout, retest))
+        if not pairs:
+            return None
+        breakout, retest = max(pairs, key=lambda pair: (pair[1], pair[0]))
+        return {
+            "schema": "atlas_confirmed_retest_v1", "strategy": self.name, "side": side,
+            "signal_bar_time": str(confirm["time"].iloc[-1]),
+            "breakout_bar_time": str(confirm["time"].iloc[breakout]),
+            "retest_bar_time": str(confirm["time"].iloc[retest]),
+            "breakout_index": breakout, "retest_index": retest,
+            "bars_since_retest": len(confirm) - retest - 1,
+            "confirmation_window": self.confirmation_window,
+            "level": level, "tolerance": tolerance,
+            "signal_recomputed_from_current_frame": True,
+        }
+
 
 @dataclass
 class GoldLiquiditySweepStrategy(Strategy):

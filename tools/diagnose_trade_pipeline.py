@@ -43,9 +43,23 @@ def main():
     examples = {}
     executions = []
     first = last = ""
+    first_decision = last_decision = ""
     errors = []
+    source_issues = []
     for path in files:
+        if not path.exists():
+            source_issues.append({"path": str(path.relative_to(root)), "kind": "missing_file"})
+            continue
         with path.open("rb") as stream:
+            prefix = stream.read(512).removeprefix(b"\xef\xbb\xbf")
+            if prefix.startswith(b"version https://git-lfs.github.com/spec/v1"):
+                pointer = {"path": str(path.relative_to(root)), "kind": "git_lfs_pointer"}
+                for part in prefix.splitlines()[1:3]:
+                    key, _, value = part.decode("ascii", errors="replace").partition(" ")
+                    if key in {"oid", "size"}:
+                        pointer[key] = value
+                source_issues.append(pointer)
+            stream.seek(0)
             for line in stream:
                 key = hashlib.sha256(line.strip()).digest()
                 if key in seen:
@@ -70,6 +84,8 @@ def main():
                     executions.append({"time": stamp, "type": event.get("type"), "message": msg, "chosen": chosen, "execution": meta.get("execution"), "strategy": meta.get("strategy")})
                 if event.get("type") not in {"decision", "risk", "paper", "execution"} or not chosen or meta.get("timeframe", "M1") != "M1":
                     continue
+                first_decision = min(first_decision, stamp) if first_decision else stamp
+                last_decision = max(last_decision, stamp)
                 directional = chosen.get("side") in {"buy", "sell"}
                 reason = category(msg)
                 for name in ["all_retained", "since_cutoff" if stamp >= args.since else "before_cutoff"]:
@@ -94,13 +110,33 @@ def main():
                         group["pre_gate_over_120s"] += int(duration > 120000)
     for group in groups.values():
         group["directional_messages"] = group["directional_messages"].most_common(15)
-    state = json.loads((store / "learning_state.json").read_text(encoding="utf-8"))
+    try:
+        state = json.loads((store / "learning_state.json").read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        state = {}
+        source_issues.append({"path": "storage/learning_state.json", "kind": "unavailable_learning_state"})
     learning = state.get("state", {})
     learning_summary = {"updated_at": state.get("updated_at"), "keys": list(learning)}
     for key in ["loss_memory", "win_memory", "allocator", "meta_model", "training", "online_learning"]:
         value = learning.get(key, {})
         learning_summary[key] = {k: (len(v) if isinstance(v, (list, dict)) else v) for k, v in value.items()} if isinstance(value, dict) else str(value)[:200]
     result = {"captured_at": datetime.now(timezone.utc).isoformat(), "cutoff": args.since, "files": len(files), "deduplication": "SHA256 of stripped JSONL records; cycles are logged chosen-status decision/risk/paper/execution records, not distinct market opportunities. Confidence may be raw or conviction depending on the stage reached; do not compare stages as the same score.", "first": first, "last": last, "event_types": types, "groups": groups, "examples": examples, "execution_records": sorted(executions, key=lambda x: x["time"])[-30:], "recent_errors": sorted(errors, key=lambda x: x["time"])[-15:], "learning": learning_summary}
+    gap_path = store / "event_history_gap.json"
+    try:
+        gap = json.loads(gap_path.read_text(encoding="utf-8-sig")) if gap_path.exists() else {}
+    except (OSError, ValueError):
+        gap = {"recovered": False, "reason": "invalid_history_gap_manifest"}
+    since_available = bool(groups.get("since_cutoff", {}).get("cycles", 0))
+    result["source_coverage"] = {
+        "source_issues": source_issues,
+        "history_gap": gap,
+        "latest_parseable_event_time": last,
+        "first_parseable_decision_time": first_decision,
+        "latest_parseable_decision_time": last_decision,
+        "since_cutoff_decisions_available": since_available,
+        "partial_history": bool(source_issues or (gap and not gap.get("recovered", False)) or not since_available),
+        "warning": "Counts describe parseable records only. Missing history is not proof of zero trades; archive filenames are not event timestamps.",
+    }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps({k:v for k,v in result.items() if k not in {"examples", "learning"}}, indent=2))

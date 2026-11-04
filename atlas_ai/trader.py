@@ -22,6 +22,7 @@ from atlas_ai.analysis.trader_cognition import build_trader_cognition
 from atlas_ai.decision_support import build_decision_explanation, build_decision_trace
 from atlas_ai.execution.comment_codec import parse_broker_comment
 from atlas_ai.execution.execution_gate import ExecutionGate
+from atlas_ai.analysis.entry_confirmation import resolve_retest_timing_context
 from atlas_ai.execution.mt5_broker_adapter import MT5BrokerAdapter
 from atlas_ai.execution.trade_executor import TradeExecutor
 from atlas_ai.learning.edge_building import score_live_forward_safe_setup
@@ -4076,7 +4077,9 @@ class AtlasTrader:
     ) -> dict[str, Any]:
         reason_code = None if passed else cls._timing_reason_code(missing)
         missing_text = cls._format_timing_missing(missing)
-        if passed:
+        if passed and side not in {"buy", "sell"}:
+            detail = "Timing check not applicable: no directional signal was selected; this is not an entry approval."
+        elif passed:
             detail = (
                 "Timing discipline passed: clean entry timing is present enough for existing gates "
                 f"(location={observed.get('location', 'unknown')}, momentum={observed.get('momentum', 'unknown')})."
@@ -5278,7 +5281,13 @@ class AtlasTrader:
             ):
                 status["visual_chart_read"] = dict(latest_visual)
                 status["visual_chart_read"]["visual_watch_used_for_decision"] = True
-        status["timing_discipline"] = self._timing_discipline_snapshot(chosen, context_snapshot, status)
+        timing_context = context_snapshot
+        if chosen.strategy == "gold_breakout_retest":
+            timing_context, resolution = resolve_retest_timing_context(
+                chosen, df, context_snapshot, getattr(self, "strategies", ()),
+            )
+            status["entry_location_resolution"] = resolution
+        status["timing_discipline"] = self._timing_discipline_snapshot(chosen, timing_context, status)
         safety_lock_was_active = bool(guard_state.get("safety_lock_active", False))
         safety_layer = self._evaluate_safety_layer(
             snapshot=snapshot,

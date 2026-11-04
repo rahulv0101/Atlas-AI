@@ -1,0 +1,21 @@
+{
+  "baseline_commit": "55b9e40",
+  "tests": {
+    "tests": 1402,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "verification_workspace": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-entry-repair-0ad69920d5e7400da8d60c95fd56a596",
+  "raw_strategy_outputs_equal": true,
+  "backtest_metrics_equal": true,
+  "simulated_trades_before": 192,
+  "simulated_trades_after": 192,
+  "live_timing_admission_change": "Only current-frame verified ordered retests resolve breakout to retest for gold_breakout_retest.",
+  "risk_execution_files_changed": [],
+  "journal_history_recovered": false,
+  "forward_journal_valid": true,
+  "production_atlas_started": false,
+  "real_orders_submitted": false,
+  "final_test_broker_io": "Unmocked MT5 initialize/login/order_send raise immediately."
+}

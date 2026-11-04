@@ -321,6 +321,8 @@ def _build_trader(scenario: ReplayScenario) -> tuple[AtlasTrader, _ReplayStore]:
     trader._last_runtime_flags = {}
 
     trader._sync_closed_trade_learning = lambda runtime_flags=None: {}
+    # Replays must never fetch today's macro data into a historical scenario.
+    trader._maybe_refresh_external_macro_context = lambda: None
     trader._apply_open_position_feedback = lambda runtime_flags=None: None
     trader._maybe_emit_drift_alert = lambda loss_memory, runtime_flags=None: None
     trader._drift_state = lambda loss_memory: {
@@ -490,7 +492,8 @@ def project_behavior(status: dict[str, Any], store: _ReplayStore) -> dict[str, A
 def run_replay_scenario(scenario: ReplayScenario) -> dict[str, Any]:
     trader, store = _build_trader(scenario)
     fake_symbol_info = SimpleNamespace(trade_tick_value=1.0)
-    with patch.object(trader_module.mt5, "account_info", return_value=SimpleNamespace(login=123456)):
+    with patch("atlas_ai.market_context._fresh_external_context_fields", return_value={}), \
+         patch.object(trader_module.mt5, "account_info", return_value=SimpleNamespace(login=123456)):
         with patch.object(trader_module.mt5, "symbol_info", return_value=fake_symbol_info):
             with patch("atlas_ai.trader.uuid4", return_value=SimpleNamespace(hex="deadbeefcafebabe")):
                 with patch("atlas_ai.trader.evaluate_heartbeat_state", return_value={"is_stale": False, "reason": "ok"}):

@@ -1,0 +1,21 @@
+{
+  "protected_files_unchanged": [
+    ".env",
+    "storage\\runtime_flags.json",
+    "storage\\automation_state.json",
+    "storage\\status.json",
+    "storage\\heartbeat.json"
+  ],
+  "journal_repair": {
+    "status": "reinitialized",
+    "reason": "missing_lfs_object",
+    "recovered": false,
+    "oid": "sha256:3f7499dc2862cfe2ec86b0025b8fb43c12cc0a173161ccb5fccd020eef556f71",
+    "expected_bytes": 261418685,
+    "pointer_backup": "archive\\missing_events_lfs_wqj9py9q.pointer",
+    "recorded_at": "2026-11-04T07:51:37.053897+00:00",
+    "repair_state": "initialized"
+  },
+  "production_started": false,
+  "orders_sent": 0
+}

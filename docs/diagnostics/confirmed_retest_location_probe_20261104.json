@@ -1,0 +1,805 @@
+{
+  "scope": "Location-only probe on fixed historical bars. Strong momentum is supplied to isolate label resolution; counts are not executable trades.",
+  "directional_signal_frames": 31,
+  "verified_ordered_retests": 22,
+  "before_timing_passes": 0,
+  "after_timing_passes": 22,
+  "cases": [
+    {
+      "bar": 60,
+      "side": "sell",
+      "time": "2026-08-03 16:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "sell",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "sell",
+          "signal_bar_time": "2026-08-03 16:00:00",
+          "breakout_bar_time": "2026-08-03 15:30:00",
+          "retest_bar_time": "2026-08-03 16:00:00",
+          "breakout_index": 3,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4045.52,
+          "tolerance": 1.9619999999999984,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 61,
+      "side": "sell",
+      "time": "2026-08-03 16:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "sell",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "sell",
+          "signal_bar_time": "2026-08-03 16:15:00",
+          "breakout_bar_time": "2026-08-03 15:30:00",
+          "retest_bar_time": "2026-08-03 16:00:00",
+          "breakout_index": 2,
+          "retest_index": 4,
+          "bars_since_retest": 1,
+          "confirmation_window": 6,
+          "level": 4045.52,
+          "tolerance": 2.0507999999999997,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 150,
+      "side": "buy",
+      "time": "2026-08-04 15:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-04 15:30:00",
+          "breakout_bar_time": "2026-08-04 14:45:00",
+          "retest_bar_time": "2026-08-04 15:30:00",
+          "breakout_index": 2,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4072.94,
+          "tolerance": 2.3015999999999988,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 189,
+      "side": "sell",
+      "time": "2026-08-05 02:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "sell",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "sell",
+          "signal_bar_time": "2026-08-05 02:15:00",
+          "breakout_bar_time": "2026-08-05 02:00:00",
+          "retest_bar_time": "2026-08-05 02:15:00",
+          "breakout_index": 4,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4074.5,
+          "tolerance": 1.4811999999999992,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 202,
+      "side": "buy",
+      "time": "2026-08-05 05:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-05 05:30:00",
+          "breakout_bar_time": "2026-08-05 05:15:00",
+          "retest_bar_time": "2026-08-05 05:30:00",
+          "breakout_index": 4,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4101.06,
+          "tolerance": 2.5185999999999513,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 204,
+      "side": "buy",
+      "time": "2026-08-05 06:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-05 06:00:00",
+          "breakout_bar_time": "2026-08-05 05:00:00",
+          "retest_bar_time": "2026-08-05 05:15:00",
+          "breakout_index": 1,
+          "retest_index": 2,
+          "bars_since_retest": 3,
+          "confirmation_window": 6,
+          "level": 4096.44,
+          "tolerance": 2.638199999999961,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 208,
+      "side": "buy",
+      "time": "2026-08-05 07:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-05 07:00:00",
+          "breakout_bar_time": "2026-08-05 06:15:00",
+          "retest_bar_time": "2026-08-05 07:00:00",
+          "breakout_index": 2,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4128.69,
+          "tolerance": 2.7273999999999705,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 212,
+      "side": "buy",
+      "time": "2026-08-05 08:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-05 08:00:00",
+          "breakout_bar_time": "2026-08-05 07:15:00",
+          "retest_bar_time": "2026-08-05 08:00:00",
+          "breakout_index": 2,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4136.38,
+          "tolerance": 2.3579999999999384,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 216,
+      "side": "buy",
+      "time": "2026-08-05 09:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 218,
+      "side": "buy",
+      "time": "2026-08-05 09:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 239,
+      "side": "buy",
+      "time": "2026-08-05 14:45:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 240,
+      "side": "buy",
+      "time": "2026-08-05 15:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 241,
+      "side": "buy",
+      "time": "2026-08-05 15:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 245,
+      "side": "buy",
+      "time": "2026-08-05 16:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-05 16:15:00",
+          "breakout_bar_time": "2026-08-05 15:30:00",
+          "retest_bar_time": "2026-08-05 16:15:00",
+          "breakout_index": 2,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4192.49,
+          "tolerance": 3.124800000000032,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 249,
+      "side": "buy",
+      "time": "2026-08-05 17:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 250,
+      "side": "buy",
+      "time": "2026-08-05 17:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 252,
+      "side": "buy",
+      "time": "2026-08-05 18:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    },
+    {
+      "bar": 286,
+      "side": "buy",
+      "time": "2026-08-06 03:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-06 03:30:00",
+          "breakout_bar_time": "2026-08-06 02:45:00",
+          "retest_bar_time": "2026-08-06 03:00:00",
+          "breakout_index": 2,
+          "retest_index": 3,
+          "bars_since_retest": 2,
+          "confirmation_window": 6,
+          "level": 4267.74,
+          "tolerance": 2.4685999999999515,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 287,
+      "side": "buy",
+      "time": "2026-08-06 03:45:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-06 03:45:00",
+          "breakout_bar_time": "2026-08-06 02:45:00",
+          "retest_bar_time": "2026-08-06 03:00:00",
+          "breakout_index": 1,
+          "retest_index": 2,
+          "bars_since_retest": 3,
+          "confirmation_window": 6,
+          "level": 4267.74,
+          "tolerance": 2.670999999999949,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 290,
+      "side": "buy",
+      "time": "2026-08-06 04:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-06 04:30:00",
+          "breakout_bar_time": "2026-08-06 04:00:00",
+          "retest_bar_time": "2026-08-06 04:30:00",
+          "breakout_index": 3,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4282.15,
+          "tolerance": 3.4915999999999627,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 292,
+      "side": "buy",
+      "time": "2026-08-06 05:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-06 05:00:00",
+          "breakout_bar_time": "2026-08-06 03:45:00",
+          "retest_bar_time": "2026-08-06 05:00:00",
+          "breakout_index": 0,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4291.19,
+          "tolerance": 4.094599999999974,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 385,
+      "side": "buy",
+      "time": "2026-08-07 05:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 05:15:00",
+          "breakout_bar_time": "2026-08-07 04:30:00",
+          "retest_bar_time": "2026-08-07 04:45:00",
+          "breakout_index": 2,
+          "retest_index": 3,
+          "bars_since_retest": 2,
+          "confirmation_window": 6,
+          "level": 4253.32,
+          "tolerance": 2.381200000000008,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 396,
+      "side": "buy",
+      "time": "2026-08-07 08:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 08:00:00",
+          "breakout_bar_time": "2026-08-07 07:45:00",
+          "retest_bar_time": "2026-08-07 08:00:00",
+          "breakout_index": 4,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4261.6,
+          "tolerance": 2.0278000000000067,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 399,
+      "side": "buy",
+      "time": "2026-08-07 08:45:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 08:45:00",
+          "breakout_bar_time": "2026-08-07 08:30:00",
+          "retest_bar_time": "2026-08-07 08:45:00",
+          "breakout_index": 4,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4269.17,
+          "tolerance": 2.2271999999999936,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 400,
+      "side": "buy",
+      "time": "2026-08-07 09:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 09:00:00",
+          "breakout_bar_time": "2026-08-07 08:30:00",
+          "retest_bar_time": "2026-08-07 08:45:00",
+          "breakout_index": 3,
+          "retest_index": 4,
+          "bars_since_retest": 1,
+          "confirmation_window": 6,
+          "level": 4269.17,
+          "tolerance": 2.249799999999978,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 402,
+      "side": "buy",
+      "time": "2026-08-07 09:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 09:30:00",
+          "breakout_bar_time": "2026-08-07 08:30:00",
+          "retest_bar_time": "2026-08-07 08:45:00",
+          "breakout_index": 1,
+          "retest_index": 2,
+          "bars_since_retest": 3,
+          "confirmation_window": 6,
+          "level": 4270.95,
+          "tolerance": 2.341199999999972,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 403,
+      "side": "buy",
+      "time": "2026-08-07 09:45:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 09:45:00",
+          "breakout_bar_time": "2026-08-07 08:30:00",
+          "retest_bar_time": "2026-08-07 08:45:00",
+          "breakout_index": 0,
+          "retest_index": 1,
+          "bars_since_retest": 4,
+          "confirmation_window": 6,
+          "level": 4270.95,
+          "tolerance": 2.4003999999999905,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 408,
+      "side": "buy",
+      "time": "2026-08-07 11:00:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 11:00:00",
+          "breakout_bar_time": "2026-08-07 09:45:00",
+          "retest_bar_time": "2026-08-07 11:00:00",
+          "breakout_index": 0,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4294.88,
+          "tolerance": 2.565200000000005,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 410,
+      "side": "buy",
+      "time": "2026-08-07 11:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 11:30:00",
+          "breakout_bar_time": "2026-08-07 11:00:00",
+          "retest_bar_time": "2026-08-07 11:30:00",
+          "breakout_index": 3,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4298.71,
+          "tolerance": 2.8852000000000046,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 414,
+      "side": "buy",
+      "time": "2026-08-07 12:30:00",
+      "before_timing_passed": false,
+      "after_timing_passed": true,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "retest",
+        "applied": true,
+        "reason": "ordered_retest_verified_from_current_strategy_frame",
+        "evidence": {
+          "schema": "atlas_confirmed_retest_v1",
+          "strategy": "gold_breakout_retest",
+          "side": "buy",
+          "signal_bar_time": "2026-08-07 12:30:00",
+          "breakout_bar_time": "2026-08-07 12:15:00",
+          "retest_bar_time": "2026-08-07 12:30:00",
+          "breakout_index": 4,
+          "retest_index": 5,
+          "bars_since_retest": 0,
+          "confirmation_window": 6,
+          "level": 4300.36,
+          "tolerance": 2.761400000000031,
+          "signal_recomputed_from_current_frame": true
+        }
+      }
+    },
+    {
+      "bar": 429,
+      "side": "buy",
+      "time": "2026-08-07 16:15:00",
+      "before_timing_passed": false,
+      "after_timing_passed": false,
+      "resolution": {
+        "strategy": "gold_breakout_retest",
+        "side": "buy",
+        "original_location": "breakout",
+        "resolved_location": "breakout",
+        "applied": false,
+        "reason": "no_verified_strategy_retest"
+      }
+    }
+  ],
+  "risk_or_pilot_guards_bypassed": false
+}

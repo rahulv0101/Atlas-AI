@@ -44,3 +44,40 @@ def test_report_refuses_to_overwrite_previous_evidence(tmp_path, monkeypatch):
     with pytest.raises(SystemExit):
         diagnostic.main()
     assert output.read_text() == "original evidence"
+
+
+def test_report_exposes_missing_lfs_history_and_retains_appended_events(tmp_path, monkeypatch):
+    storage = tmp_path / "storage"
+    storage.mkdir()
+    record = {"type": "decision", "time": "2026-11-04T08:00:00+00:00", "message": "No directional signal.",
+              "meta": {"chosen": {"side": "flat"}, "action": "hold"}}
+    (storage / "events.jsonl").write_text(
+        "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 12345\n" + json.dumps(record) + "\n"
+    )
+    output = tmp_path / "report.json"
+    monkeypatch.setattr(diagnostic, "__file__", str(tmp_path / "tools" / "diagnose_trade_pipeline.py"))
+    monkeypatch.setattr(sys, "argv", ["diagnostic", "--since", "2026-11-04", "--output", str(output)])
+    diagnostic.main()
+    report = json.loads(output.read_text())
+    coverage = report["source_coverage"]
+    assert coverage["partial_history"] is True
+    assert coverage["source_issues"][0]["kind"] == "git_lfs_pointer"
+    assert coverage["source_issues"][0]["size"] == "12345"
+    assert coverage["since_cutoff_decisions_available"] is True
+    assert report["groups"]["since_cutoff"]["cycles"] == 1
+
+
+def test_report_preserves_a_declared_gap_after_journal_repair(tmp_path, monkeypatch):
+    storage = tmp_path / "storage"
+    storage.mkdir()
+    (storage / "events.jsonl").write_text("")
+    (storage / "learning_state.json").write_text('{"state":{}}')
+    (storage / "event_history_gap.json").write_text('{"recovered":false,"reason":"missing_lfs_object"}')
+    output = tmp_path / "report.json"
+    monkeypatch.setattr(diagnostic, "__file__", str(tmp_path / "tools" / "diagnose_trade_pipeline.py"))
+    monkeypatch.setattr(sys, "argv", ["diagnostic", "--since", "2026-11-04", "--output", str(output)])
+    diagnostic.main()
+    coverage = json.loads(output.read_text())["source_coverage"]
+    assert coverage["partial_history"] is True
+    assert coverage["history_gap"]["recovered"] is False
+    assert coverage["since_cutoff_decisions_available"] is False
