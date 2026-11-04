@@ -53,21 +53,6 @@
       "summary": "Analysis confidence does not authorize execution; ExecutionGate remains final authority."
     },
     {
-      "name": "regime_label",
-      "summary": "Atlas tags each cycle with one simple observational regime label: trending, ranging, high_volatility, or low_volatility.",
-      "signals": [
-        "trending: close-to-close slope exceeds the trend threshold and is strong relative to ATR proxy",
-        "ranging: slope and ATR proxy do not confirm trend or volatility extremes",
-        "high_volatility: ATR proxy exceeds the high-volatility threshold",
-        "low_volatility: ATR proxy is low and slope is muted"
-      ],
-      "implications": [
-        "The label is for evidence and later review only",
-        "It does not change ranking weights or execution policy automatically",
-        "Raw metrics are persisted with the label so operators can verify it against price data"
-      ]
-    },
-    {
       "name": "missed_trade_review",
       "summary": "A missed trade is only a useful teaching label when Atlas had a clean playbook, aligned context, acceptable execution conditions, and still held.",
       "signals": [
@@ -110,6 +95,21 @@
         "Prefer observation or smaller confidence adjustments",
         "Avoid labeling transition noise as a clean missed trade",
         "Require persistence before fast-path learning"
+      ]
+    },
+    {
+      "name": "regime_label",
+      "summary": "Atlas tags each cycle with one simple observational regime label: trending, ranging, high_volatility, or low_volatility.",
+      "signals": [
+        "trending: close-to-close slope exceeds the trend threshold and is strong relative to ATR proxy",
+        "ranging: slope and ATR proxy do not confirm trend or volatility extremes",
+        "high_volatility: ATR proxy exceeds the high-volatility threshold",
+        "low_volatility: ATR proxy is low and slope is muted"
+      ],
+      "implications": [
+        "The label is for evidence and later review only",
+        "It does not change ranking weights or execution policy automatically",
+        "Raw metrics are persisted with the label so operators can verify it against price data"
       ]
     }
   ],

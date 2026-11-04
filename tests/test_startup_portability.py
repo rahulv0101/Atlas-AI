@@ -1,17 +1,20 @@
 from pathlib import Path
 from types import SimpleNamespace
+import json
 
 import pytest
 
 import atlas_ai.atlas_wake_config as wake_config
 
 
-@pytest.mark.parametrize("filename", ["atlas_wake_config.json", "atlas_wake_config.json.example"])
-def test_shipped_wake_config_resolves_local_paths_from_another_directory(tmp_path, monkeypatch, filename):
-    source = Path(__file__).resolve().parents[1] / filename
+@pytest.mark.parametrize("profile", ["guarded_demo", "paper_compare"])
+def test_shipped_wake_config_resolves_local_paths_from_another_directory(tmp_path, monkeypatch, profile):
+    source = Path(__file__).resolve().parents[1] / "atlas_wake_config.json.example"
     project = tmp_path / "Atlas AI"
     project.mkdir()
-    (project / "atlas_wake_config.json").write_bytes(source.read_bytes())
+    config_data = json.loads(source.read_text(encoding="utf-8"))
+    config_data["launch_profile"] = profile
+    (project / "atlas_wake_config.json").write_text(json.dumps(config_data), encoding="utf-8")
     executable = project / ".venv" / "Scripts" / "python.exe"
     executable.parent.mkdir(parents=True)
     executable.touch()
@@ -30,7 +33,7 @@ def test_shipped_wake_config_resolves_local_paths_from_another_directory(tmp_pat
     assert Path(config.comparison_root) == project / "storage_compare_runs"
     assert config.backend_launch_command[0] == str(executable)
     assert config.frontend_launch_command[0] == str(executable)
-    assert config.launch_profile == ("guarded_demo" if filename.endswith(".json") else "paper_compare")
+    assert config.launch_profile == profile
 
 
 def test_quoted_windows_launch_command_keeps_executable_and_arguments_intact():

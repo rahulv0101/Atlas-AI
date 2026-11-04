@@ -24,6 +24,10 @@ from atlas_ai.decision_support import build_evidence_separation
 
 
 class AnswerEngine:
+    def finalize_adapter_response(self, question, payload, context, mode="standard"):
+        from atlas_ai.brain.response_validation import finalize_adapter_response
+        return finalize_adapter_response(question, payload, context, mode=mode, regenerate=self.answer)
+
     def __init__(self, knowledge: BrainKnowledge | None = None) -> None:
         self.knowledge = knowledge or BrainKnowledge()
         self.recommendation_engine = RecommendationEngine()

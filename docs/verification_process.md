@@ -2,10 +2,12 @@
 
 ## Current Baseline Mechanism
 
-Git is not currently usable in this workspace: `git --version` is not available on
-`PATH`, and the workspace does not contain a `.git` directory. Until Git is installed
-and this folder is initialized safely, behavior-sensitive changes must use the
-file-based baseline mechanism below.
+Git is available and the repaired source has a committed baseline (`68d86ce`,
+4 November 2026). Use commits to review and roll back source changes. Keep machine
+configuration, secrets, and generated trading state outside commits.
+
+Behavior-sensitive trading changes must also use the fixed-window baseline
+mechanism below. A source commit does not establish equivalent trading outcomes.
 
 ## When To Capture A Baseline
 
@@ -63,20 +65,12 @@ baseline behavior matches and `1` when metrics or the trade list changed.
 For observability-only tasks, an empty diff is the expected result. If the diff is not
 empty, stop and inspect the changed metrics/trades before continuing.
 
-## Moving To Git Later
+## Source Baselines
 
-When Git becomes available, initialize the repository only after confirming it will not
-discard or overwrite existing files:
-
-```powershell
-git init
-git add .
-git commit -m "Baseline current Atlas workspace"
-```
-
-After that, Git commits should become the primary baseline mechanism, but the JSON
-baseline process should still be used for trading-behavior validation because it captures
-domain-specific outputs that a source diff alone cannot prove.
+Use `git status`, `git diff`, and `git log` to inspect the source baseline and pending
+changes. Stage the intended source files and review the staged diff before committing.
+The JSON baseline process remains required for trading-behavior validation because
+it captures domain outputs that a source diff alone cannot prove.
 
 ## Journal Memory Changes
 

@@ -3,6 +3,8 @@
 Follow-up: local startup and several confirmed bugs were subsequently repaired.
 See [the repair and verification report](LOCAL_REPAIR_20261104.md) for the current
 environment, changes, and complete test results. Findings below describe the initial audit.
+The [knowledge/routing follow-up](KNOWLEDGE_AND_ROUTING_REPAIR_20261104.md) records
+subsequent consolidation, Git baselines, and integration checks.
 
 ## Assessment
 

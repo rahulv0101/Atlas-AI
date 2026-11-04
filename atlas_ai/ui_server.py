@@ -18,6 +18,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.serving import WSGIRequestHandler, make_server
 
 from atlas_ai.config.settings import load_settings
+from atlas_ai.knowledge_paths import knowledge_root
 from atlas_ai.memory.knowledge_store import KnowledgeStore
 from atlas_ai.memory.jsonl_tail import tail_text_lines
 from atlas_ai.execution.execution_gate import ExecutionGate
@@ -1868,7 +1869,7 @@ def _refresh_macro_context_if_needed(store: KnowledgeStore, *, max_age_seconds: 
     global _MACRO_REFRESH_IN_FLIGHT, _MACRO_REFRESH_LAST_STARTED
     if os.getenv("PYTEST_CURRENT_TEST"):
         return
-    path = Path(__file__).resolve().parent / "knowledge" / "external_context.json"
+    path = knowledge_root() / "external_context.json"
     age = _external_context_age_seconds(path)
     if age is not None and age <= max_age_seconds:
         return

@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-04",
+  "baseline_commit": "68d86ce",
+  "canonical_knowledge": "knowledge",
+  "risk_policy_payload_preserved": true,
+  "macro_snapshot_bytes_preserved": true,
+  "core_files_compared": 37,
+  "core_files_changed": [],
+  "syntax_files_checked": 343,
+  "tests": {
+    "full-tests": {
+      "tests": 1379,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final-integration-tests": {
+      "tests": 78,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "verification_workspace": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-consolidation-359f578364ac426fbc2e16143088a767",
+  "installed_wheel_smoke": {
+    "wheel_ui_routes": 4,
+    "capability_answer_validated": true,
+    "knowledge_root": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-consolidation-359f578364ac426fbc2e16143088a767\\installed-wheel\\knowledge",
+    "real_broker_operations": 0
+  },
+  "desktop_backend": "winforms / edgechromium initialized without a window",
+  "audio_device_resolution": {
+    "device_index": 1,
+    "sample_rate": 16000,
+    "captured_audio": false
+  },
+  "production_atlas_started": false,
+  "broker_login_attempted": false,
+  "real_orders_submitted": false,
+  "limits": [
+    "Broker authentication, fills and audio capture require a separately requested live startup.",
+    "Three final microphone tests and the updated startup fixture are covered by final-integration-tests after full-suite collection."
+  ]
+}

@@ -4,6 +4,9 @@
 !.env.example
 *.pem
 *.key
+atlas_wake_config.json
+knowledge/control_queue_state.json
+knowledge/external_context.json
 
 # Python environments and caches
 .venv/

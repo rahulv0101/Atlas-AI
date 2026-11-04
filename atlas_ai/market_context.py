@@ -1,4 +1,5 @@
 from __future__ import annotations
+from atlas_ai.knowledge_paths import knowledge_root
 
 import json
 from datetime import datetime, timezone
@@ -132,12 +133,8 @@ def _liquidity_state_from_spread(spread_points: float) -> str:
 
 
 def _fresh_external_context_fields() -> dict[str, str]:
-    paths = [
-        Path(__file__).resolve().parent / "knowledge" / "external_context.json",
-        Path(__file__).resolve().parent.parent / "knowledge" / "external_context.json",
-    ]
-    path = next((candidate for candidate in paths if candidate.exists()), None)
-    if path is None:
+    path = knowledge_root() / "external_context.json"
+    if not path.exists():
         return {}
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))

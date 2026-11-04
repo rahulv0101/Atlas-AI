@@ -14,6 +14,15 @@
     "Guarded execution only (no free autonomy)",
     "No target-chasing or forced-trade behavior"
   ],
+  "evolved_strategy_promotion": {
+    "shadow_drawdown_policy_default": "raw_peak",
+    "shadow_drawdown_policy_options": [
+      "raw_peak",
+      "gross_normalized"
+    ],
+    "shadow_drawdown_policy_note": "Gross-normalized drawdown may be selected explicitly for demo-review gating when raw peak drawdown is judged metric-sensitive, but it must remain visible in settings, diagnostics, and review records.",
+    "live_boundary": "Demo review eligibility does not authorize live promotion. Live promotion still requires demo evidence, human approval, and ExecutionGate protection."
+  },
   "institutional_hard_blocks": [
     "xauusd_only_scope",
     "high_impact_news_window",

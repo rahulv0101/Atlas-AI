@@ -4,10 +4,11 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any
+from atlas_ai.knowledge_paths import knowledge_root
 
 
 def load_external_context() -> dict[str, Any]:
-    path = Path(__file__).resolve().parent.parent / "knowledge" / "external_context.json"
+    path = knowledge_root() / "external_context.json"
     if not path.exists():
         return {
             "enabled": False,

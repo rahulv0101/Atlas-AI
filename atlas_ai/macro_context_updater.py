@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+from atlas_ai.knowledge_paths import knowledge_root
 
 
 SYMBOLS = {
@@ -114,7 +115,7 @@ def build_macro_context() -> dict[str, Any]:
 
 
 def write_external_context(path: Path | None = None) -> dict[str, Any]:
-    target = path or (Path(__file__).resolve().parent / "knowledge" / "external_context.json")
+    target = path or (knowledge_root() / "external_context.json")
     payload = build_macro_context()
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(payload, indent=2), encoding="utf-8")

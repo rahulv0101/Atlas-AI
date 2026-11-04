@@ -89,6 +89,7 @@ def check_relevance(*, query: str, domain: str, answer: str) -> RelevanceCheckRe
         for p in (
             "recommended next step",
             "recommendation:",
+            "recommended action:",
             "main recommendation:",
             "safe experiment:",
             "next safe step:",

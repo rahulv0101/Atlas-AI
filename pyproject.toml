@@ -35,10 +35,14 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["atlas_ai*"]
+include = ["atlas_ai*", "knowledge"]
 
 [tool.setuptools.package-data]
-atlas_ai = ["ui/*.html", "ui/*.css", "ui/*.js", "knowledge/*.json", "prompts/*.txt"]
+atlas_ai = ["ui/*.html", "ui/*.css", "ui/*.js", "prompts/*.txt"]
+knowledge = ["*.json"]
+
+[tool.setuptools.exclude-package-data]
+knowledge = ["control_queue_state.json", "operator_teaching_reviews.json", "learned_insights.json", "proposal_queue.json", "rollout_registry.json", "active_rule_registry.json", "external_context.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

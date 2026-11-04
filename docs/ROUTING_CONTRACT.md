@@ -17,6 +17,16 @@ Atlas has one canonical informational answering route:
 - Conversation wrapper: `ConversationalAtlasInterface` defaults to `AskAtlasService`.
 - Brain v2 observability: every canonical answer should expose `answer_trace`.
 
+Specialist informational formatters are adapters to Brain v2 validation. Their
+responses must pass the shared evidence, plan, and relevance checks before return
+or conversational-memory storage. Direct-handler traces are not a substitute for
+validation. Rejected drafts regenerate through the main answer engine; twice-rejected
+drafts return an insufficient-evidence response.
+
+The canonical structured knowledge directory is root `knowledge`. Readers and
+macro writers use that same location, including in installed wheels. Cached reads
+must refresh when files change and must not expose mutable cached objects to callers.
+
 Voice and typed input share the same answer engine. Voice may shorten the response, but it must not use a separate brain.
 
 ## Trading And Execution Routes

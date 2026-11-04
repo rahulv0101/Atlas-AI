@@ -1,0 +1,68 @@
+{
+  "canonical_directory": "knowledge",
+  "precedence": "Preserve existing Brain v2 fields; retain non-conflicting root additions.",
+  "files": [
+    {
+      "name": "blockers_catalog.json",
+      "canonical": "knowledge/blockers_catalog.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "experiment_history.json",
+      "canonical": "knowledge/experiment_history.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "external_context.json",
+      "canonical": "knowledge/external_context.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "glossary.json",
+      "canonical": "knowledge/glossary.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "lessons_learned.json",
+      "canonical": "knowledge/lessons_learned.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "market_knowledge.json",
+      "canonical": "knowledge/market_knowledge.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "operator_teaching_examples.json",
+      "canonical": "knowledge/operator_teaching_examples.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "readiness_rules.json",
+      "canonical": "knowledge/readiness_rules.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "risk_policy.json",
+      "canonical": "knowledge/risk_policy.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "strategy_knowledge.json",
+      "canonical": "knowledge/strategy_knowledge.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "system_overview.json",
+      "canonical": "knowledge/system_overview.json",
+      "previous_brain_fields_preserved": true
+    },
+    {
+      "name": "worker_neurons.json",
+      "canonical": "knowledge/worker_neurons.json",
+      "previous_brain_fields_preserved": true
+    }
+  ],
+  "scalar_conflicts": [],
+  "trading_parameter_changes": false
+}

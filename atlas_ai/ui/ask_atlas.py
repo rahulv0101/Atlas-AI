@@ -109,6 +109,36 @@ class AskAtlasService:
 
     def answer(self, query: str, mode: str = "standard") -> dict[str, Any]:
         q = " ".join(str(query or "").strip().split())
+        payload = self._dispatch_answer(q, mode=mode)
+        if payload.get("handled_as") == "command":
+            return payload
+        trace = dict(payload.get("answer_trace", {}) or {})
+        if "relevance_passed" not in trace:
+            status = dict(self.source.load_status() or {})
+            runtime = dict(self.source.load_runtime_flags() or {})
+            context = {
+                "status": status, "runtime": runtime,
+                "events": list(self.source.load_events(limit=160) or []),
+                "comparison": dict(getattr(self.source, "load_comparison", lambda: {})() or {}),
+                "knowledge_payload": {
+                    name: self.knowledge.load(name) for name in
+                    ("system_overview", "market_knowledge", "strategy_knowledge", "risk_policy", "readiness_rules", "glossary")
+                },
+            }
+            payload = self.answer_engine.finalize_adapter_response(q, payload, context, mode=mode)
+            if payload["answer_trace"]["relevance_passed"]:
+                self._remember_direct_payload(q, payload)
+        nlu = parse_user_language(q)
+        payload["nlu"] = nlu.to_dict()
+        payload.setdefault("debug", {}).update({
+            "detected_intent": nlu.intent, "intent_confidence": nlu.confidence,
+            "entities": dict(nlu.entities), "routed_handler": payload.get("handled_as"),
+            "clarification_needed": bool(nlu.ambiguity_detected), "safety_required": bool(nlu.safety_required),
+        })
+        return payload
+
+    def _dispatch_answer(self, query: str, mode: str = "standard") -> dict[str, Any]:
+        q = " ".join(str(query or "").strip().split())
         nlu = parse_user_language(q)
         handled_as = self._classify_handling_mode(q)
         nlu_route_map = {
@@ -198,21 +228,15 @@ class AskAtlasService:
             return self._with_handling(self._handle_control_command(control_cmd), "command")
         if self._is_structured_trading_analysis_query(q):
             payload = self._with_handling(self._build_structured_trading_analysis_reply(q), "trading")
-            self._remember_direct_payload(q, payload)
             return payload
         if self._is_volatility_query(q):
             return self._with_handling(self._build_volatility_reply(q, mode=mode), "trading")
         if self._is_safety_lock_query(q):
             payload = self._build_safety_lock_reply(q, mode=mode)
-            self._remember_direct_payload(q, payload)
             return self._with_handling(payload, "system")
         exec_query = self._handle_execution_query(q)
         if exec_query is not None:
             return self._with_handling(exec_query, "system" if str(exec_query.get("response_kind", "")) == "control" else handled_as)
-        if handled_as == "trading" and self._is_structured_trading_analysis_query(q):
-            payload = self._with_handling(self._build_structured_trading_analysis_reply(q), "trading")
-            self._remember_direct_payload(q, payload)
-            return payload
         if self._is_operator_guidance_query(q):
             return self._with_handling(self._build_operator_guidance_reply(q), "general")
         if not q:
@@ -226,21 +250,8 @@ class AskAtlasService:
                 result="Ask a direct question like: What state are you in? What is holding you back?",
                 approval="Read-only assistant. No runtime or trading changes are executed here.",
             ).to_dict(), "general")
-        if self._is_structured_trading_analysis_query(q):
-            payload = self._with_handling(self._build_structured_trading_analysis_reply(q), "trading")
-            self._remember_direct_payload(q, payload)
-            return payload
-
         if handled_as == "system":
             payload = self._build_system_status_reply(q, mode=mode)
-            self.memory.add(
-                query=q,
-                intent=str(payload.get("intent", "status") or "status"),
-                domain=str(payload.get("selected_domain", "runtime_status") or "runtime_status"),
-                plan="status_overview",
-                answer=str(payload.get("result", "") or ""),
-                confidence=0.9,
-            )
             return self._with_handling(payload, "system")
         if handled_as == "explanation" and self._should_use_direct_explanation_reply(q):
             return self._with_handling(self._build_explanation_reply(q), "explanation")
@@ -248,7 +259,6 @@ class AskAtlasService:
             return self._with_handling(self._build_general_question_reply(q, mode=mode), "general")
         if self._is_learning_lanes_query(q):
             payload = self._build_learning_lanes_reply(q, mode=mode)
-            self._remember_direct_payload(q, payload)
             return self._with_handling(payload, "brain")
 
         response = self._with_handling(self._answer_via_brain(q, mode=mode), handled_as)

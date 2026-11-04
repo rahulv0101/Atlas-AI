@@ -5,6 +5,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+from atlas_ai.knowledge_paths import knowledge_root
 
 
 @dataclass
@@ -31,13 +32,20 @@ def _has_any(text: str, words: set[str]) -> bool:
 
 
 _EXAMPLE_CACHE: list[dict[str, str]] | None = None
+_EXAMPLE_CACHE_SIGNATURE: tuple[str, int, int] | None = None
 
 
 def _load_examples() -> list[dict[str, str]]:
-    global _EXAMPLE_CACHE
-    if _EXAMPLE_CACHE is not None:
+    global _EXAMPLE_CACHE, _EXAMPLE_CACHE_SIGNATURE
+    path = knowledge_root() / "nlu_examples.json"
+    try:
+        stat = path.stat()
+        signature = (str(path), stat.st_mtime_ns, stat.st_size)
+    except FileNotFoundError:
+        signature = None
+    if _EXAMPLE_CACHE is not None and signature == _EXAMPLE_CACHE_SIGNATURE:
         return _EXAMPLE_CACHE
-    path = Path("knowledge/nlu_examples.json")
+    _EXAMPLE_CACHE_SIGNATURE = signature
     try:
         rows = json.loads(path.read_text(encoding="utf-8"))
         _EXAMPLE_CACHE = [r for r in rows if isinstance(r, dict) and "text" in r and "intent" in r]

@@ -1,5 +1,9 @@
 # Local startup repair and system checks — 4 November 2026
 
+Follow-up: the remaining knowledge/routing issues and the missing Git baseline were
+subsequently addressed. See [the consolidation and integration report](KNOWLEDGE_AND_ROUTING_REPAIR_20261104.md)
+for current validation and operational limits.
+
 ## Outcome
 
 The local environment and launcher paths are repaired. Atlas remains stopped;

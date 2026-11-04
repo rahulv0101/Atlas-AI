@@ -1,7 +1,32 @@
 {
-  "status_hold": "No trade is taken in the current cycle.",
-  "paper_mode": "Read-only simulated execution mode with no live order placement.",
-  "comparison_run": "Parallel control vs experiment paper evaluation run.",
-  "main_blocker": "Highest-ranked active constraint preventing safe execution."
+  "terms": [
+    {
+      "term": "hold",
+      "definition": "do not enter trades"
+    },
+    {
+      "term": "paper",
+      "definition": "simulated mode without live order execution"
+    },
+    {
+      "term": "readiness",
+      "definition": "state indicating whether conditions are sufficient for safe live operation"
+    },
+    {
+      "term": "status_hold",
+      "definition": "No trade is taken in the current cycle."
+    },
+    {
+      "term": "paper_mode",
+      "definition": "Read-only simulated execution mode with no live order placement."
+    },
+    {
+      "term": "comparison_run",
+      "definition": "Parallel control vs experiment paper evaluation run."
+    },
+    {
+      "term": "main_blocker",
+      "definition": "Highest-ranked active constraint preventing safe execution."
+    }
+  ]
 }
-

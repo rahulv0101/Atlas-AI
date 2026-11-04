@@ -1,36 +1,44 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
+
+from atlas_ai.knowledge_paths import knowledge_root
 
 
 class BrainKnowledge:
     def __init__(self, root: Path | None = None) -> None:
-        project_root = Path(__file__).resolve().parents[2]
-        self.root = root or (project_root / "atlas_ai" / "knowledge")
-        self.legacy_root = project_root / "knowledge"
+        self.root = Path(root) if root is not None else knowledge_root()
         self._cache: dict[str, Any] = {}
+        self._signatures: dict[str, tuple[int, int] | None] = {}
 
     def load(self, name: str) -> dict[str, Any]:
-        if name in self._cache:
-            return dict(self._cache[name])
+        if Path(name).name != name or name in {"", ".", ".."}:
+            raise ValueError("Knowledge names must identify a file within the knowledge directory")
         path = self.root / f"{name}.json"
-        if not path.exists() and self.legacy_root.exists():
-            path = self.legacy_root / f"{name}.json"
-        if not path.exists():
+        try:
+            stat = path.stat()
+            signature = (stat.st_mtime_ns, stat.st_size)
+        except FileNotFoundError:
+            signature = None
+        if name in self._cache and self._signatures.get(name) == signature:
+            return deepcopy(self._cache[name])
+        self._signatures[name] = signature
+        if signature is None:
             self._cache[name] = {}
             return {}
         try:
-            data = json.loads(path.read_text(encoding="utf-8")) or {}
+            data = json.loads(path.read_text(encoding="utf-8-sig")) or {}
             if isinstance(data, dict):
                 validated = self._validate(name, data)
                 self._cache[name] = validated
-                return dict(validated)
+                return deepcopy(validated)
             if name == "blockers_catalog" and isinstance(data, list):
                 validated = {"entries": data}
                 self._cache[name] = validated
-                return dict(validated)
+                return deepcopy(validated)
         except Exception:
             pass
         self._cache[name] = {}

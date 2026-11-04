@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import queue
 import warnings
 from dataclasses import dataclass
@@ -61,22 +62,28 @@ class SpeechInput:
             )
 
     def _resolve_device(self) -> tuple[str | int | None, int]:
-        device = self.config.audio_device_name or None
         preferred_rate = int(self.config.audio_sample_rate or 16000)
-        if device is None:
-            default_device = sd.default.device[0]
+        default_device = sd.default.device[0]
+        requested = self.config.audio_device_name or default_device
+        candidates = [requested] + ([default_device] if requested != default_device else [])
+        last_error = None
+        for device in candidates:
             try:
-                sd.check_input_settings(device=default_device, samplerate=preferred_rate, channels=1, dtype="int16")
-                return default_device, preferred_rate
-            except Exception:
-                info = sd.query_devices(default_device, "input")
-                return default_device, int(float(info["default_samplerate"]))
-        try:
-            sd.check_input_settings(device=device, samplerate=preferred_rate, channels=1, dtype="int16")
-            return device, preferred_rate
-        except Exception:
-            info = sd.query_devices(device, "input")
-            return device, int(float(info["default_samplerate"]))
+                sd.check_input_settings(device=device, samplerate=preferred_rate, channels=1, dtype="int16")
+                rate = preferred_rate
+            except Exception as exc:
+                last_error = exc
+                try:
+                    info = sd.query_devices(device, "input")
+                    rate = int(float(info["default_samplerate"]))
+                    sd.check_input_settings(device=device, samplerate=rate, channels=1, dtype="int16")
+                except Exception as exc:
+                    last_error = exc
+                    continue
+            if device != requested:
+                logging.getLogger(__name__).warning("Configured audio input is unavailable; using the default input device.")
+            return device, rate
+        raise RuntimeError("No usable audio input device is available") from last_error
 
     def _callback(self, indata, frames, time_info, status) -> None:  # noqa: ANN001
         self._queue.put(bytes(indata))

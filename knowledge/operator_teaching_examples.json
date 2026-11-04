@@ -69,6 +69,12 @@
       "atlas_should_learn": "Keep the setup insight but do not treat poor execution as strategy failure."
     },
     {
+      "label": "confusing_answer",
+      "scenario": "Operator asks about capabilities, learning, or limitations and Atlas answers with HOLD/PAPER/RUN status.",
+      "why": "The answer is irrelevant even if the status is true.",
+      "atlas_should_learn": "Route self-knowledge and learning questions to Brain v2 knowledge, not trading-state fallback."
+    },
+    {
       "label": "learning_upgrade",
       "scenario": "A closed Atlas-tagged trade is processed after win/loss learning.",
       "why": "A win or loss by itself is too shallow. Atlas needs to know whether the idea was wrong, the entry timing was poor, confirmation was missing, HTF conflicted, or execution friction caused the outcome.",
@@ -79,12 +85,6 @@
       "scenario": "Atlas' Cognitive Core explains a current blocker or trade outcome.",
       "why": "Understanding the system is useful only if world model, decision lanes, memory, lessons, and safety boundaries are kept separate.",
       "atlas_should_learn": "Use Cognitive Core for explanation, teaching, and bounded proposals only; never treat brain understanding as execution permission."
-    },
-    {
-      "label": "confusing_answer",
-      "scenario": "Operator asks about capabilities, learning, or limitations and Atlas answers with HOLD/PAPER/RUN status.",
-      "why": "The answer is irrelevant even if the status is true.",
-      "atlas_should_learn": "Route self-knowledge and learning questions to Brain v2 knowledge, not trading-state fallback."
     }
   ],
   "policy_note": "Examples are teaching references only. They do not authorize automatic strategy, risk, or execution changes."
