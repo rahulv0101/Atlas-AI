@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-04",
+  "python": "Python 3.12.2",
+  "verification_workspace": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-repair-afa42432b8ce47cd83a716a32da40bb9",
+  "tests": {
+    "full-tests": {
+      "tests": 1362,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    "final-startup-tests": {
+      "tests": 37,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    }
+  },
+  "python_syntax_files_checked": 345,
+  "python_syntax_errors": 0,
+  "core_files_compared": 37,
+  "core_trading_files_changed": [],
+  "dependency_lists_match": true,
+  "pip_check": "No broken requirements found.",
+  "package_assets_verified": 17,
+  "wheel_sha256": "41aee5391dcc0e52c21e0c6cbf2eade7a5f7c53156e3f142b464835bcf8f59b9",
+  "offline_vosk_model_loaded": true,
+  "atlas_started": false,
+  "broker_orders_submitted": false,
+  "scope_limits": [
+    "No broker login/order, microphone capture, or interactive desktop launch tested.",
+    "Final three clap-precedence cases covered by final-startup-tests, after full-suite collection."
+  ]
+}

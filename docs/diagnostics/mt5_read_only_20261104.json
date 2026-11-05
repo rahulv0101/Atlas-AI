@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-11-04T07:12:46.634545+00:00",
+  "read_only_attachment": true,
+  "terminal_process_path": "C:\\Program Files\\HFM Metatrader 5\\terminal64.exe",
+  "connected": true,
+  "terminal_trade_allowed": true,
+  "tradeapi_disabled": false,
+  "account_mode": "demo",
+  "account_trade_allowed": true,
+  "account_expert_allowed": true,
+  "account_matches_project_config": true,
+  "symbol": "XAUUSD",
+  "symbol_exists": true,
+  "symbol_selected": true,
+  "symbol_trade_mode": 4,
+  "tick_time": "2026-11-04T09:12:46+00:00",
+  "tick_age_seconds": -7199.4,
+  "open_positions_for_symbol": 0,
+  "login_called": false,
+  "orders_sent": 0
+}
