@@ -1,0 +1,66 @@
+{
+  "candidate_counts": {
+    "timing_blocked_found": 3,
+    "timing_blocked_simulated": 0,
+    "timing_blocked_skipped_no_price_bar": 3,
+    "timing_passed_executed_found": 0,
+    "timing_passed_executed_simulated": 0,
+    "timing_passed_executed_skipped_no_price_bar": 0
+  },
+  "captured_at": "2026-11-05T10:59:52.504730+00:00",
+  "data_fetch": {},
+  "evidence_status": "insufficient_for_profitability_or_filter_change",
+  "label": "final_post_repair_evidence",
+  "limitations": [
+    "Observational cohorts are not randomized or matched by opportunity.",
+    "Overlapping hypothetical trades are correlated; counts are not independent portfolio returns.",
+    "Missing legacy clock/risk parameters and right-censored outcomes are excluded.",
+    "No filter, risk, strategy, or execution changes are recommended automatically."
+  ],
+  "method": {
+    "commission_model": "not supplied; results do not establish executable net profitability",
+    "control_group": "broker-confirmed filled directional candidates; requests and submitted/pending orders are excluded",
+    "entry_assumption": "candidate signal bar maps to nearest retained M1 bar at or before event timestamp; hypothetical entry uses next bar open, matching backtest simulator",
+    "intrabar_policy": "stop_first_when_both_stop_and_target_touched",
+    "provenance": "Only explicitly UTC-tagged candidates with recorded positive stop and target distances are eligible; legacy/incomplete evidence is excluded.",
+    "safety": "offline analysis only; execute_trades forced false; no strategy, risk, or execution policy changed",
+    "simulation": "atlas_ai.learning.trade_labeling._simulate_trade_path",
+    "slippage_cost_bps": 1.5,
+    "source": "current journal only",
+    "spread_cost_bps": 3.0
+  },
+  "samples": {
+    "timing_blocked_hypothetical": [],
+    "timing_passed_executed_control": []
+  },
+  "schema": "atlas_timing_discipline_selectivity_report_v2",
+  "summaries": {
+    "timing_blocked_hypothetical": {
+      "average_r": 0.0,
+      "by_strategy": {},
+      "count": 0,
+      "exit_reasons": {},
+      "hold_bars_distribution": {},
+      "median_r": 0.0,
+      "profit_factor": 0.0,
+      "win_rate": 0.0
+    },
+    "timing_passed_executed_control": {
+      "average_r": 0.0,
+      "by_strategy": {},
+      "count": 0,
+      "exit_reasons": {},
+      "hold_bars_distribution": {},
+      "median_r": 0.0,
+      "profit_factor": 0.0,
+      "win_rate": 0.0
+    }
+  },
+  "window": {
+    "bars": 24,
+    "end": "2026-11-05T10:59:00+00:00",
+    "start": "2026-11-05T10:36:00+00:00",
+    "symbol": "XAUUSD",
+    "timeframe": "M1"
+  }
+}

@@ -102,13 +102,22 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
     message_lower = message.lower()
     hard_timing_block = bool(timing.get("hard_block") or timing_result.get("passed") is False)
     timing_block = TIMING_TEXT in message_lower or (hard_timing_block and str(timing_result.get("check") or "") == "timing_discipline")
-    executed = bool(
-        meta.get("execution_request_created")
-        or meta.get("trade_executed")
-        or str(meta.get("action") or "").lower() in {"buy", "sell"}
-        or message_lower.startswith("executed buy")
-        or message_lower.startswith("executed sell")
+    execution = _as_dict(meta.get("execution"))
+    executed = bool(execution.get("success")) and (
+        int(execution.get("deal_id") or 0) > 0
+        or (str(execution.get("broker_status", "")) == "filled" and bool(execution.get("broker_order_id") or execution.get("order_id")))
     )
+    clock = _as_dict(meta.get("market_data_clock"))
+    # Legacy clock/risk assumptions cannot establish a trustworthy counterfactual.
+    try:
+        stop = float(chosen.get("stop_loss_points"))
+        take = float(chosen.get("take_profit_points"))
+        if not all(math.isfinite(v) and v > 0 for v in (stop, take)):
+            return None
+    except (TypeError, ValueError):
+        return None
+    if clock.get("timestamp_basis") != "UTC":
+        return None
 
     if timing_block:
         group = "timing_blocked"
@@ -123,8 +132,8 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
         strategy=strategy,
         side=side,
         confidence=float(chosen.get("confidence") or 0.0),
-        stop_loss_points=float(chosen.get("stop_loss_points") or 100.0),
-        take_profit_points=float(chosen.get("take_profit_points") or 160.0),
+        stop_loss_points=stop,
+        take_profit_points=take,
         message=message,
         session=_context_value(meta, "session"),
         regime=_context_value(meta, "regime"),
@@ -134,10 +143,10 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
     )
 
 
-def _load_candidates(start: datetime | None, end: datetime | None) -> list[Candidate]:
+def _load_candidates(start: datetime | None, end: datetime | None, *, include_archives: bool = False) -> list[Candidate]:
     seen: set[tuple[str, str, str, str, str]] = set()
     candidates: list[Candidate] = []
-    for path in EVENT_PATHS:
+    for path in (EVENT_PATHS if include_archives else EVENT_PATHS[:1]):
         if not path.exists():
             continue
         with path.open("r", encoding="utf-8", errors="replace") as handle:
@@ -175,10 +184,13 @@ def _load_candidates(start: datetime | None, end: datetime | None) -> list[Candi
 
 
 def _nearest_signal_index(df: pd.DataFrame, timestamp: datetime) -> int | None:
-    times = pd.DatetimeIndex(pd.to_datetime(df["time"], utc=True)).asi8
-    target = int(pd.Timestamp(timestamp).tz_convert("UTC").timestamp())
+    index = pd.DatetimeIndex(pd.to_datetime(df["time"], utc=True))
+    if index.hasnans or not index.is_monotonic_increasing or not index.is_unique:
+        return None
+    times = index.as_unit("ns").asi8
+    target = pd.Timestamp(timestamp).tz_convert("UTC").value
     position = int(times.searchsorted(target, side="right")) - 1
-    if position < 0 or position >= len(df) - 1:
+    if position < 0 or position >= len(df) - 1 or target - times[position] >= 60_000_000_000:
         return None
     return position
 
@@ -220,7 +232,7 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "losses": len(losses),
         "flat_or_zero": len(rows) - classified,
         "win_rate": (len(wins) / classified) if classified else 0.0,
-        "profit_factor": (sum(wins) / sum(losses)) if losses else (999.0 if wins else 0.0),
+        "profit_factor": (sum(wins) / sum(losses)) if losses else (None if wins else 0.0),
         "average_r": sum(r_values) / len(r_values),
         "median_r": _percentile(r_values, 0.5),
         "exit_reasons": dict(Counter(str(row["exit_type"]) for row in rows)),
@@ -238,12 +250,14 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> tuple[list[dict[str, Any]], int]:
+    if df.empty:
+        return [], len(candidates)
     rows: list[dict[str, Any]] = []
     skipped = 0
     for candidate in candidates:
         ts = _parse_dt(candidate.timestamp)
         idx = _nearest_signal_index(df, ts) if ts else None
-        if idx is None:
+        if idx is None or idx + int(getattr(settings, "backtest_max_hold_bars", 12)) >= len(df):
             skipped += 1
             continue
         signal = TradeSignal(
@@ -253,7 +267,7 @@ def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> t
             stop_loss_points=candidate.stop_loss_points,
             take_profit_points=candidate.take_profit_points,
         )
-        outcome = _simulate_trade_path(df, signal, idx, settings)
+        outcome = _simulate_trade_path(df, signal, idx, settings, ambiguous_bar_policy="stop_first")
         exit_idx = int(outcome.get("exit_idx", idx) or idx)
         entry_idx = min(idx + 1, len(df) - 1)
         rows.append(
@@ -264,7 +278,11 @@ def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> t
                 "entry_bar_time": pd.Timestamp(df.iloc[entry_idx]["time"]).isoformat(),
                 "exit_bar_time": pd.Timestamp(df.iloc[min(exit_idx, len(df) - 1)]["time"]).isoformat(),
                 "hold_bars": max(1, exit_idx - entry_idx + 1),
-                "r_multiple": float(outcome.get("r_multiple") or 0.0),
+                "gross_r_multiple": float(outcome.get("r_multiple") or 0.0),
+                "r_multiple": float(outcome.get("r_multiple") or 0.0) - (
+                    float(df.iloc[entry_idx]["open"]) * (float(getattr(settings, "backtest_spread_cost_bps", 0.0)) + float(getattr(settings, "backtest_slippage_cost_bps", 0.0))) / 10000.0
+                    / (candidate.stop_loss_points * float(getattr(settings, "backtest_point_size", .01)))
+                ),
                 "mfe_r": float(outcome.get("mfe_r") or 0.0),
                 "mae_r": float(outcome.get("mae_r") or 0.0),
                 "exit_type": str(outcome.get("exit_type") or "unknown"),
@@ -273,22 +291,17 @@ def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> t
     return rows, skipped
 
 
-def run_report(start: datetime | None, end: datetime | None, label: str) -> Path:
+def run_report(start: datetime | None, end: datetime | None, label: str, *, include_archives: bool = False) -> Path:
     settings = replace(load_settings(), timeframe="M1", execute_trades=False)
 
-    candidates = _load_candidates(start, end)
-    if not candidates:
-        raise SystemExit("No timing-discipline or executed directional candidates found in retained events.")
-
-    first = _parse_dt(candidates[0].timestamp)
-    last = _parse_dt(candidates[-1].timestamp)
-    assert first is not None and last is not None
-    fetch_start = start or first
-    fetch_end = end or last
+    candidates = _load_candidates(start, end, include_archives=include_archives)
+    first = _parse_dt(candidates[0].timestamp) if candidates else None
+    last = _parse_dt(candidates[-1].timestamp) if candidates else None
+    fetch_start = start or first or datetime.now(timezone.utc)
+    cutoff = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+    fetch_end = min(cutoff, pd.Timestamp(end or last or cutoff).to_pydatetime() + pd.Timedelta(minutes=int(settings.backtest_max_hold_bars) + 2))
     feed = MarketDataFeed(settings)
-    df = feed.get_rates_range(fetch_start, fetch_end)
-    if df.empty:
-        raise SystemExit("No M1 market data returned for candidate window.")
+    df = feed.get_rates_range(fetch_start, fetch_end) if candidates else pd.DataFrame()
 
     blocked = [candidate for candidate in candidates if candidate.group == "timing_blocked"]
     controls = [candidate for candidate in candidates if candidate.group == "timing_passed_executed"]
@@ -299,7 +312,7 @@ def run_report(start: datetime | None, end: datetime | None, label: str) -> Path
     BASELINE_DIR.mkdir(parents=True, exist_ok=True)
     path = BASELINE_DIR / f"baseline_{timestamp}_{_safe_label(label)}.json"
     payload = {
-        "schema": "atlas_timing_discipline_selectivity_report_v1",
+        "schema": "atlas_timing_discipline_selectivity_report_v2",
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "label": label,
         "window": {
@@ -310,19 +323,26 @@ def run_report(start: datetime | None, end: datetime | None, label: str) -> Path
             "bars": int(len(df)),
         },
         "method": {
-            "source": "retained storage/events.jsonl and storage/archive/events_*.jsonl",
+            "source": "current journal plus archives" if include_archives else "current journal only",
+            "provenance": "Only explicitly UTC-tagged candidates with recorded positive stop and target distances are eligible; legacy/incomplete evidence is excluded.",
+            "intrabar_policy": "stop_first_when_both_stop_and_target_touched",
+            "spread_cost_bps": settings.backtest_spread_cost_bps,
+            "slippage_cost_bps": settings.backtest_slippage_cost_bps,
+            "commission_model": "not supplied; results do not establish executable net profitability",
             "simulation": "atlas_ai.learning.trade_labeling._simulate_trade_path",
             "entry_assumption": "candidate signal bar maps to nearest retained M1 bar at or before event timestamp; hypothetical entry uses next bar open, matching backtest simulator",
-            "control_group": "directional candidates in retained events that created/executed an execution request and were not timing-discipline blocked",
+            "control_group": "broker-confirmed filled directional candidates; requests and submitted/pending orders are excluded",
             "safety": "offline analysis only; execute_trades forced false; no strategy, risk, or execution policy changed",
         },
+        "evidence_status": "insufficient_for_profitability_or_filter_change",
+        "limitations": ["Observational cohorts are not randomized or matched by opportunity.", "Overlapping hypothetical trades are correlated; counts are not independent portfolio returns.", "Missing legacy clock/risk parameters and right-censored outcomes are excluded.", "No filter, risk, strategy, or execution changes are recommended automatically."],
         "candidate_counts": {
             "timing_blocked_found": len(blocked),
             "timing_blocked_simulated": len(blocked_rows),
-            "timing_blocked_skipped_no_price_bar": blocked_skipped,
+            "timing_blocked_skipped_incomplete_or_unmatched": blocked_skipped,
             "timing_passed_executed_found": len(controls),
             "timing_passed_executed_simulated": len(control_rows),
-            "timing_passed_executed_skipped_no_price_bar": control_skipped,
+            "timing_passed_executed_skipped_incomplete_or_unmatched": control_skipped,
         },
         "summaries": {
             "timing_blocked_hypothetical": _summarize(blocked_rows),
@@ -343,10 +363,11 @@ def main() -> None:
     parser.add_argument("--start", default="", help="Optional ISO UTC start timestamp.")
     parser.add_argument("--end", default="", help="Optional ISO UTC end timestamp.")
     parser.add_argument("--label", default="timing_discipline_selectivity", help="Artifact label.")
+    parser.add_argument("--include-archives", action="store_true", help="Explicitly include historical archives; may be slow.")
     args = parser.parse_args()
     start = _parse_dt(args.start) if args.start else None
     end = _parse_dt(args.end) if args.end else None
-    path = run_report(start=start, end=end, label=args.label)
+    path = run_report(start=start, end=end, label=args.label, include_archives=args.include_archives)
     print(path)
 
 

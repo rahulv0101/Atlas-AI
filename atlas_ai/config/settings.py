@@ -44,6 +44,7 @@ class Settings:
     storage_dir: str = "storage"
     execute_trades: bool = False
     hfm_terminal_path: str = ""
+    mt5_server_timezone: str = ""
     enforce_day_trading: bool = True
     enable_historical_training: bool = True
     historical_train_months: int = 24
@@ -308,6 +309,7 @@ def load_settings() -> Settings:
         storage_dir=str(storage_path),
         execute_trades=os.getenv("EXECUTE_TRADES", "false").strip().lower() in {"1", "true", "yes", "on"},
         hfm_terminal_path=os.getenv("HFM_TERMINAL_PATH", "").strip(),
+        mt5_server_timezone=os.getenv("MT5_SERVER_TIMEZONE", "").strip(),
         enforce_day_trading=os.getenv("ENFORCE_DAY_TRADING", "true").strip().lower() in {"1", "true", "yes", "on"},
         enable_historical_training=os.getenv("ENABLE_HISTORICAL_TRAINING", "true").strip().lower() in {"1", "true", "yes", "on"},
         historical_train_months=int(os.getenv("HISTORICAL_TRAIN_MONTHS", "24")),

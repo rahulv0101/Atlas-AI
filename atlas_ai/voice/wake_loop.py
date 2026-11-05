@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from atlas_ai.windows_native import kernel32 as windows_kernel32
+
 import argparse
 import ctypes
 import os
@@ -28,13 +30,14 @@ def _norm(text: str) -> str:
 def _mutex() -> object | None:
     if os.name != "nt":
         return None
-    k32 = ctypes.windll.kernel32
+    k32 = windows_kernel32()
     for name in ("Local\\AtlasAI_VoiceLoop", "AtlasAI_VoiceLoop"):
         k32.SetLastError(0)
         handle = k32.CreateMutexW(None, False, name)
         if not handle:
             continue
         if k32.GetLastError() == 183:
+            k32.CloseHandle(handle)
             return False
         return handle
     return None

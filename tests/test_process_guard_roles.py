@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import pytest
 
 from atlas_ai.atlas_process_guard import (
     backend_process_state,
@@ -10,6 +11,22 @@ from atlas_ai.atlas_process_guard import (
     is_frontend_healthy,
 )
 from atlas_ai.atlas_wake_config import AtlasWakeConfig
+
+
+@pytest.mark.parametrize("responsive,expected", [(True, True), (False, False)])
+def test_stale_desktop_snapshot_uses_current_window_evidence(monkeypatch, tmp_path, responsive, expected):
+    from atlas_ai import atlas_process_guard as guard
+    cfg = _cfg(tmp_path)
+    monkeypatch.setattr(guard, "frontend_api_status", lambda config: {
+        "execute_trades": True, "ui_desktop_window_ready": True,
+        "ui_desktop_window": {"wrapper_pid": 123, "updated_at": "2026-01-01T00:00:00+00:00", "frontend_mode": "desktop"},
+    })
+    monkeypatch.setattr(guard, "frontend_process_state", lambda: SimpleNamespace(running=True))
+    monkeypatch.setattr(guard, "process_exists", lambda pid: True)
+    monkeypatch.setattr(guard, "_desktop_window_responding", lambda pid: responsive)
+    healthy, detail, _ = guard.is_frontend_healthy(cfg)
+    assert healthy is expected
+    assert f"desktop_live_verified={responsive}" in detail
 
 
 def _cfg(tmp_path, launch_profile: str = "guarded_demo") -> AtlasWakeConfig:

@@ -285,6 +285,7 @@ def test_request_payload_extracts_trade_fields_without_setup_collision() -> None
 
 
 def test_mt5_adapter_lists_open_positions_for_reconciliation(monkeypatch) -> None:
+    monkeypatch.setattr(mt5_adapter_module.mt5, "orders_get", lambda **kwargs: [])
     monkeypatch.setattr(mt5_adapter_module.mt5, "terminal_info", lambda: object())
     class _Settings:
         symbol = "XAUUSD"
@@ -325,6 +326,7 @@ def test_mt5_adapter_lists_open_positions_for_reconciliation(monkeypatch) -> Non
 
 
 def test_mt5_adapter_preserves_buy_position_type_zero_for_reconciliation(monkeypatch) -> None:
+    monkeypatch.setattr(mt5_adapter_module.mt5, "orders_get", lambda **kwargs: [])
     monkeypatch.setattr(mt5_adapter_module.mt5, "terminal_info", lambda: object())
     class _Settings:
         symbol = "XAUUSD"

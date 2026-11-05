@@ -127,7 +127,9 @@ class Backtester:
 
     def _session_label(self, ts) -> str:
         try:
-            hour = int(pd.Timestamp(ts).tz_localize("UTC") if pd.Timestamp(ts).tzinfo is None else pd.Timestamp(ts).tz_convert("UTC")).hour
+            timestamp = pd.Timestamp(ts)
+            timestamp = timestamp.tz_localize("UTC") if timestamp.tzinfo is None else timestamp.tz_convert("UTC")
+            hour = int(timestamp.hour)
         except Exception:
             hour = 0
         if 7 <= hour < 12:

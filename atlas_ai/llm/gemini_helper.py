@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from typing import Any
 
@@ -12,6 +13,7 @@ class GeminiAdvisor:
         openai_api_key: str = "",
         openai_model: str = "gpt-4.1-mini",
         api_key: str = "",
+        gemini_model: str = "",
     ) -> None:
         # Backward compatibility: older tests/callers passed api_key for Gemini only.
         if api_key and not gemini_api_key:
@@ -21,7 +23,7 @@ class GeminiAdvisor:
         self.openai_model = openai_model or "gpt-4.1-mini"
 
         self._gemini_client = None
-        self._gemini_model = "gemini-2.0-flash"
+        self._gemini_model = (gemini_model or os.getenv("GEMINI_MODEL", "")).strip() or "gemini-2.5-flash"
         self._openai_client = None
         self._providers: list[str] = []
         self._client = None  # legacy compatibility alias used by older tests/callers
@@ -42,7 +44,7 @@ class GeminiAdvisor:
                     import google.generativeai as legacy_genai
 
                     legacy_genai.configure(api_key=gemini_api_key)
-                    self._gemini_client = legacy_genai.GenerativeModel("gemini-1.5-flash")
+                    self._gemini_client = legacy_genai.GenerativeModel(self._gemini_model)
                     self._providers.append("gemini")
                 except Exception:
                     self._gemini_client = None
@@ -65,10 +67,18 @@ class GeminiAdvisor:
 
     def _enter_cooldown(self, provider: str, exc: Exception) -> None:
         msg = str(exc)
-        self._last_error[provider] = msg
         lower = msg.lower()
+        code = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+        configuration_kind = ""
+        if code in {401, 403} or any(token in lower for token in ("401", "unauthorized", "unauthenticated", "invalid api key", "incorrect api key", "api_key_invalid")):
+            configuration_kind = "authentication_failed"
+        elif code == 404 or "404" in lower:
+            configuration_kind = "model_or_endpoint_unavailable"
         # Quota/rate-limit style failures: back off to avoid repeated noisy failures.
-        if "insufficient_quota" in lower or "quota" in lower:
+        if configuration_kind:
+            self._last_error_kind[provider] = configuration_kind
+            self._cooldown_until[provider] = time.time() + 6 * 60 * 60
+        elif "insufficient_quota" in lower or "quota" in lower:
             self._last_error_kind[provider] = "quota_exhausted"
             self._cooldown_until[provider] = time.time() + 6 * 60 * 60
         elif "429" in lower or "resource_exhausted" in lower or "rate limit" in lower:
@@ -77,6 +87,9 @@ class GeminiAdvisor:
         else:
             self._last_error_kind[provider] = "api_error"
             self._cooldown_until[provider] = time.time() + 60
+        # Provider exceptions can echo API credentials or request contents.
+        # Persist classification only; never expose their raw body in UI health.
+        self._last_error[provider] = self._last_error_kind[provider]
 
     def _provider_unavailable_reason(self) -> str:
         reasons = []
@@ -478,6 +491,7 @@ class GeminiAdvisor:
             providers.append(
                 {
                     "name": provider,
+                    "model": self._gemini_model if provider == "gemini" else self.openai_model,
                     "in_cooldown": cooldown_until > now,
                     "cooldown_seconds_left": max(0, int(cooldown_until - now)),
                     "last_error": self._last_error.get(provider, ""),

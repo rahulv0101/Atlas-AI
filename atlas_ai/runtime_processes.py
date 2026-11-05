@@ -1,5 +1,6 @@
 """Cheap, read-only process inventory for UI and service supervision."""
 from __future__ import annotations
+from pathlib import Path
 
 try:
     import psutil
@@ -17,7 +18,7 @@ def python_process_exists(pid: int) -> bool | None:
         return False
 
 
-def atlas_mode_processes(mode: str) -> list[dict] | None:
+def atlas_mode_processes(mode: str, *, project_root=None) -> list[dict] | None:
     if psutil is None:
         return None
     rows = []
@@ -27,6 +28,8 @@ def atlas_mode_processes(mode: str) -> list[dict] | None:
                 continue
             command = process.cmdline()
             if not any(command[i:i + 3] == ["-m", "atlas_ai.main", mode] for i in range(len(command) - 2)):
+                continue
+            if project_root is not None and Path(process.cwd()).resolve() != Path(project_root).resolve():
                 continue
             rows.append({"ProcessId": process.pid, "ParentProcessId": process.ppid(),
                          "Name": process.info["name"], "CommandLine": " ".join(command)})

@@ -115,7 +115,9 @@ def _same_side_support_count(signals, side: str) -> int:
     return sum(1 for s in signals if str(getattr(s, "side", "")) == target and float(getattr(s, "confidence", 0.0) or 0.0) > 0.0)
 
 
-def _simulate_trade_path(df: pd.DataFrame, signal, signal_idx: int, settings: Settings) -> dict[str, Any]:
+def _simulate_trade_path(df: pd.DataFrame, signal, signal_idx: int, settings: Settings, *, ambiguous_bar_policy: str = "candle_direction") -> dict[str, Any]:
+    if ambiguous_bar_policy not in {"candle_direction", "stop_first"}:
+        raise ValueError("Unknown ambiguous-bar policy")
     point_size = max(1e-6, float(getattr(settings, "backtest_point_size", 0.01) or 0.01))
     entry_idx = signal_idx + 1
     if entry_idx >= len(df):
@@ -173,7 +175,7 @@ def _simulate_trade_path(df: pd.DataFrame, signal, signal_idx: int, settings: Se
             stop_r = (stop_price - entry_price) / max(stop_distance, 1e-9)
             take_r = (take_price - entry_price) / max(stop_distance, 1e-9)
             if hit_stop and hit_take:
-                bullish_bar = close >= open_px
+                bullish_bar = ambiguous_bar_policy == "candle_direction" and close >= open_px
                 exit_price = take_price if bullish_bar else stop_price
                 r_multiple = take_r if bullish_bar else stop_r
                 exit_type = "take_profit" if bullish_bar else ("breakeven_stop" if stop_r >= 0 else "stop_loss")
@@ -205,7 +207,7 @@ def _simulate_trade_path(df: pd.DataFrame, signal, signal_idx: int, settings: Se
             stop_r = (entry_price - stop_price) / max(stop_distance, 1e-9)
             take_r = (entry_price - take_price) / max(stop_distance, 1e-9)
             if hit_stop and hit_take:
-                bearish_bar = close <= open_px
+                bearish_bar = ambiguous_bar_policy == "candle_direction" and close <= open_px
                 exit_price = take_price if bearish_bar else stop_price
                 r_multiple = take_r if bearish_bar else stop_r
                 exit_type = "take_profit" if bearish_bar else ("breakeven_stop" if stop_r >= 0 else "stop_loss")

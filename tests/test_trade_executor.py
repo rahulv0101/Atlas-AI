@@ -94,6 +94,9 @@ def test_preflight_blocks_volume_below_broker_minimum(monkeypatch):
         bid = 100.0
 
     class _Account:
+        login = 1
+        server = "demo"
+        trade_mode = 0
         trade_allowed = True
         margin_free = 100000.0
 
@@ -124,6 +127,9 @@ def test_preflight_blocks_untagged_entry_requests(monkeypatch):
         bid = 100.0
 
     class _Account:
+        login = 1
+        server = "demo"
+        trade_mode = 0
         trade_allowed = True
         margin_free = 100000.0
 
@@ -192,6 +198,7 @@ def test_close_stale_positions_closes_buy_type_zero_with_sell_order(monkeypatch)
     ex = TradeExecutor(_settings())
     yesterday = datetime.now(timezone.utc) - timedelta(days=1)
     sent: list[dict] = []
+    monkeypatch.setattr(trade_executor_module.mt5, "account_info", lambda: SimpleNamespace(login=1, server="demo", trade_mode=0))
 
     monkeypatch.setattr(trade_executor_module.mt5, "POSITION_TYPE_BUY", 0, raising=False)
     monkeypatch.setattr(trade_executor_module.mt5, "ORDER_TYPE_BUY", 0, raising=False)

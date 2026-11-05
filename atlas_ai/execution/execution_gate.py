@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 import uuid
 from dataclasses import asdict, dataclass
@@ -1855,12 +1856,10 @@ class ExecutionGate:
         execution_truth = dict(self._last_execution_truth or {})
         truth_ts = float(execution_truth.get("ts", 0.0) or 0.0) if execution_truth else 0.0
         truth_age_seconds = max(0.0, time.time() - truth_ts) if truth_ts > 0 else 0.0
-        truth_reason = str(execution_truth.get("reason", "") or "")
         truth_stale = bool(
             execution_truth
-            and truth_age_seconds > 900
-            and truth_reason in {"approval_missing", "live_requires_explicit_confirmation"}
-            and not self._active_request_id
+            and (truth_ts <= 0 or truth_age_seconds > 900)
+            and not (self._active_request_id and execution_truth.get("request_id") == self._active_request_id)
         )
         if execution_truth:
             execution_truth["current"] = not truth_stale
@@ -1868,7 +1867,21 @@ class ExecutionGate:
             execution_truth["age_seconds"] = round(truth_age_seconds, 2)
             if truth_stale:
                 execution_truth["display_reason"] = "stale_previous_execution_truth"
-                execution_truth["policy_note"] = "Previous approval state is retained for audit but should not be treated as the current execution blocker."
+                execution_truth["policy_note"] = "Previous execution state is retained for audit; it is not a result or blocker from the current cycle."
+        last_cycle = dict(self._last_autonomy_cycle or {})
+        cycle_ts = float(last_cycle.get("ts", 0.0) or 0.0)
+        if runtime_flags is not None:
+            market_state_mode = self._resolved_market_state_mode(runtime_flags=flags, environment=self._execution_environment)
+        elif cycle_ts > 0 and 0 <= time.time() - cycle_ts <= 900:
+            market_state_mode = "simulation" if bool(last_cycle.get("simulation_market_state", False)) else "broker_or_runtime"
+        else:
+            market_state_mode = "unknown"
+        gate_decision = dict(self._last_gate_decision or {})
+        if gate_decision:
+            gate_ts = float(gate_decision.get("ts", 0.0) or 0.0)
+            gate_decision["age_seconds"] = round(max(0.0, time.time() - gate_ts), 2) if gate_ts > 0 else None
+            gate_decision["stale"] = gate_ts <= 0 or time.time() - gate_ts > 900
+            gate_decision["current"] = not gate_decision["stale"]
         return {
             "execution_gate_enabled": self._gate_enabled,
             "kill_switch_active": bool(kill.active),
@@ -1892,7 +1905,7 @@ class ExecutionGate:
             "autonomous_trader_mandate": self._load_autonomous_trader_mandate_summary(),
             "autonomy_live_default_safe": self._autonomy_mode != "guarded_execution",
             "mode_separation": {
-                "market_state_mode": "simulation" if bool((self._last_autonomy_cycle or {}).get("simulation_market_state", False)) else "broker_or_runtime",
+                "market_state_mode": market_state_mode,
                 "execution_mode": self._derived_operating_mode(),
                 "autonomy_mode": self._autonomy_mode,
                 "real_live_enabled": False,
@@ -1940,7 +1953,7 @@ class ExecutionGate:
             "automation_last_block_reason": self._last_automation_block_reason,
             "automation_last_event": dict(self._last_automation_event or {}),
             "execution_truth": execution_truth,
-            "gate_decisions_last_cycle": dict(self._last_gate_decision or {}),
+            "gate_decisions_last_cycle": gate_decision,
             "auto_trade_allowed": bool(auto_status.get("allowed", False)),
             "auto_trade_reason": str(auto_status.get("reason", "")),
             "auto_trade_last_block_reason": str(auto_status.get("last_block_reason", self._last_automation_block_reason)),
@@ -3166,7 +3179,8 @@ class ExecutionGate:
     @staticmethod
     def _safe_float(raw: Any) -> float | None:
         try:
-            return float(raw)
+            value = float(raw)
+            return value if math.isfinite(value) else None
         except Exception:
             return None
 
@@ -3378,12 +3392,12 @@ class ExecutionGate:
         if stale_raw is None or age_raw is None:
             return {"ok": False, "reason": "missing_runtime_freshness"}
         age = self._safe_int(age_raw)
-        if age is None:
+        if age is None or age < 0:
             return {"ok": False, "reason": "invalid_runtime_freshness"}
         stale = self._safe_bool(stale_raw)
         max_age_raw = flags.get("max_freshness_age_ms", 15000)
         max_age = self._safe_int(max_age_raw)
-        if max_age is None:
+        if max_age is None or max_age < 0:
             return {"ok": False, "reason": "invalid_runtime_freshness"}
         if stale or age > int(max_age):
             return {"ok": False, "reason": "freshness_stale"}

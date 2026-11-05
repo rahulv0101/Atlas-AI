@@ -1119,7 +1119,6 @@ function renderCommandStrip(status, runtime) {
   const blockerSummary = ((status || {}).blocker_classification || trace.blocker_summary || {});
   const topBlockers = Array.isArray(analysis.top_blockers) ? analysis.top_blockers : [];
   const hardBlockers = Array.isArray(analysis.hard_blockers) ? analysis.hard_blockers : [];
-  const decision = ((status || {}).decision_explanation || {});
   const message = compactText((status || {}).message, "Waiting for decision cycle");
   const automationEnabled = Boolean(exec.automation_enabled || exec.automation_explicit_resume_active);
   const automationPaused = Boolean(exec.automation_paused);
@@ -1128,8 +1127,6 @@ function renderCommandStrip(status, runtime) {
   const killActive = Boolean(exec.kill_switch_active);
   const recon = Boolean(exec.reconciliation_required);
   const forcedFlat = Boolean(exec.forced_flat_pending || session.forced_flat_required);
-  const action = compactText((status || {}).action, "hold").toLowerCase();
-  const finalDecision = compactText(decision.final_decision, action);
   const blocker = topBlockers[0] || {};
   const blockerClass = compactText(blockerSummary.class || (status || {}).blocker_class, "unknown").replace(/_/g, " ");
   const primaryBlocker = compactText(blockerSummary.primary || (status || {}).primary_blocker || blocker.name || hardBlockers[0], message);
@@ -1142,9 +1139,12 @@ function renderCommandStrip(status, runtime) {
     ? `${structuredCode} | ${compactText(structuredBlocker.recoverability || blockerRecoverability, blockerDetail)}`
     : (blockerRecoverability ? `${titleCase(blockerRecoverability)} | ${blockerDetail}` : blockerDetail);
 
-  let readiness = "WAITING";
-  let readinessDetail = message;
-  let readinessState = "waiting";
+  // The API owns readiness classification. A BUY/SELL alone is not proof
+  // that timing, broker, automation, or safety gates permit execution.
+  const readinessDisplay = ((status || {}).execution_readiness || {}).display || {};
+  let readinessState = compactText(readinessDisplay.state, "review");
+  let readiness = compactText(readinessDisplay.label, "REVIEW");
+  let readinessDetail = compactText(readinessDisplay.detail, "Execution readiness is unavailable; refreshing current evidence.");
   if (killActive || recon || forcedFlat) {
     readiness = "BLOCKED";
     readinessDetail = killActive ? "Kill switch active" : (recon ? "Reconciliation required" : "Forced-flat required");
@@ -1153,18 +1153,6 @@ function renderCommandStrip(status, runtime) {
     readiness = "REVIEW";
     readinessDetail = automationPaused ? compactText(exec.automation_pause_reason, "Automation paused") : "Automation disabled";
     readinessState = "review";
-  } else if (!sessionActive) {
-    readiness = "WAITING";
-    readinessDetail = compactText(session.session_block_reason, "Outside active session");
-    readinessState = "waiting";
-  } else if (action === "buy" || action === "sell") {
-    readiness = "READY";
-    readinessDetail = `${action.toUpperCase()} candidate inside active session`;
-    readinessState = "ready";
-  } else {
-    readiness = finalDecision === "block" ? "BLOCKED" : "WAITING";
-    readinessDetail = message;
-    readinessState = finalDecision === "block" ? "blocked" : "waiting";
   }
 
   setText("cmd-readiness", readiness);
@@ -1190,7 +1178,7 @@ function renderCommandStrip(status, runtime) {
   else if (blockerClass === "quality gate") nextAction = "Review Gate";
   else if (blockerClass === "signal quality") nextAction = "Wait For Setup";
   setText("cmd-next-action", nextAction);
-  setText("cmd-next-detail", compactText(operatorReadiness.next_action, readiness === "READY" ? "Approval still required by policy" : message));
+  setText("cmd-next-detail", compactText(((status || {}).execution_readiness || {}).next_action || operatorReadiness.next_action, readiness === "READY" ? "Approval still required by policy" : message));
   renderReadinessLanes(status);
 }
 

@@ -358,7 +358,11 @@ def test_system_health_warns_when_llm_provider_is_in_quota_cooldown():
 
 
 def test_freshness_runtime_and_system_health_share_same_stale_contract():
+    from datetime import datetime, timezone, timedelta
     status = _base_status()
+    now = datetime.now(timezone.utc)
+    status["updated_at"] = now.isoformat()
+    status["market"]["recent_time"] = [(now - timedelta(minutes=1)).isoformat()]
     settings = SimpleNamespace(
         timeframe_minutes=1,
         execute_trades=False,
@@ -506,7 +510,7 @@ def test_trader_status_augmentation_surfaces_mode_truth_top_level():
         },
     }
     trader.execution_gate = SimpleNamespace(
-        snapshot=lambda: {
+        snapshot=lambda **kwargs: {
             "execution_environment": "demo",
             "execution_environment_label": "Live Demo",
             "execution_gate_enabled": True,

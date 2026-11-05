@@ -1,0 +1,19 @@
+{
+  "verified_at": "2026-11-04T19:03:53.745869+00:00",
+  "regression_group": {
+    "initial_passed": 1407,
+    "missing_fixture_failures": 10,
+    "fixture_retest_passed": 14,
+    "unique_passed_after_fixture_restore": 1417
+  },
+  "legacy_backtest_group_passed": 12,
+  "latest_utc_clock_tests_passed": 12,
+  "latest_brain_and_voice_tests_passed": 35,
+  "frozen_signal_frames_equal": 37,
+  "demo_preflight_passed": true,
+  "forced_orders_sent": 0,
+  "full_single_run_pass_claimed": false,
+  "earlier_instrumented_native_crash_cause": "not_established",
+  "live_final_evidence": "storage/system_repair_final_verification_20261104.json",
+  "report": "docs/SYSTEM_REPAIR_20261104.md"
+}

@@ -234,7 +234,7 @@ class AskAtlasService:
         if self._is_safety_lock_query(q):
             payload = self._build_safety_lock_reply(q, mode=mode)
             return self._with_handling(payload, "system")
-        exec_query = self._handle_execution_query(q)
+        exec_query = self._handle_execution_query(q, mode=mode)
         if exec_query is not None:
             return self._with_handling(exec_query, "system" if str(exec_query.get("response_kind", "")) == "control" else handled_as)
         if self._is_operator_guidance_query(q):
@@ -2259,7 +2259,7 @@ class AskAtlasService:
             return {"action": "reconcile_now"}
         return None
 
-    def _handle_execution_query(self, query: str) -> dict[str, Any] | None:
+    def _handle_execution_query(self, query: str, mode: str = "standard") -> dict[str, Any] | None:
         q = str(query or "").strip().lower()
         runtime = dict(self.source.load_runtime_flags() or {})
         snap = self.execution.snapshot(runtime_flags=runtime)
@@ -2369,18 +2369,25 @@ class AskAtlasService:
             "what is blocking demo trading right now?",
             "what is blocking demo trading right now",
         }:
-            reason = str(snap.get("tiny_live_pilot_last_block_reason", "") or "")
-            last_exec = dict(snap.get("last_execution_result", {}) or {})
-            last_reason = str(last_exec.get("reason", "") or "")
+            # Historical execution/pilot failures and missing execution context
+            # are not evidence of the current market blocker. Use the shared
+            # Brain evidence path unless a current operational veto is active.
+            reason = ""
             if bool(snap.get("sleep_mode_active", False)):
                 reason = "sleep_mode_active_execution_blocked"
-            auto_reason = str(snap.get("auto_trade_reason", "") or "")
-            resolved = reason or last_reason or auto_reason or "no_active_block_reason"
+            elif bool(snap.get("kill_switch_active", False)):
+                reason = "kill_switch_active"
+            elif bool(snap.get("reconciliation_required", False)):
+                reason = "broker_reconciliation_required"
+            elif bool(snap.get("automation_paused", False)):
+                reason = str(snap.get("automation_pause_reason", "") or "automation_paused")
+            if not reason:
+                return self._answer_via_brain(query, mode=mode)
             return {
                 "mode": "standard",
                 "intent": "execution_status",
                 "response_kind": "control",
-                "result": f"Execution block reason: {resolved}.",
+                "result": f"Execution block reason: {reason}.",
                 "execution_state": snap,
                 "control_state": self.control.to_debug(),
             }

@@ -80,18 +80,38 @@ def build_why_trace(
         or execution_snapshot.get("last_execution_truth", {})
         or {}
     )
+    if gate_decision.get("stale") is True or gate_decision.get("current") is False:
+        gate_decision = {}
+    if execution_truth.get("stale") is True or execution_truth.get("current") is False:
+        execution_truth = {}
 
     entries: list[dict[str, Any]] = []
     raw_signals = list(dict(decision_trace.get("signal", {}) or {}).get("raw", []) or [])
     active_signals = list(dict(decision_trace.get("signal", {}) or {}).get("active", []) or [])
-    has_signal = bool(raw_signals or active_signals or _text(chosen.get("strategy"), "").lower() not in {"", "none"})
+    has_signal = any(
+        _text(row.get("side")).lower() in {"buy", "sell"} and float(row.get("confidence", 0.0) or 0.0) > 0
+        for row in [*raw_signals, *active_signals, chosen]
+    )
     signal_blocked = not has_signal and action in {"hold", "flat", "blocked", "no_trade", "unknown"}
+    generation = dict(status.get("signal_generation", {}) or {})
+    directional_count = sum(_text(row.get("side")).lower() in {"buy", "sell"} for row in raw_signals)
+    signal_reason = message if signal_blocked else (
+        f"Generated {directional_count} directional candidates before strategy eligibility checks."
+        if directional_count else f"Signal observed: {_text(chosen.get('strategy'), 'candidate available')}."
+    )
+    if signal_blocked and int(generation.get("suppressed_count", 0) or 0) > 0:
+        suppressed = [row for row in generation.get("candidates", []) if row.get("suppressed")]
+        low_energy = all("low_energy_directional_suppression" in row.get("reason_codes", []) for row in suppressed)
+        signal_reason = (
+            f"Low market energy filtered out {len(suppressed)} directional candidates."
+            if low_energy and suppressed else f"Signal-generation filters removed {len(suppressed)} directional candidates."
+        )
     entries.append(
         _entry(
             "signal_generation",
             "blocked" if signal_blocked else "passed",
-            message if signal_blocked else f"Signal observed: {_text(chosen.get('strategy'), 'candidate available')}.",
-            data={"chosen": chosen, "raw_count": len(raw_signals), "active_count": len(active_signals)},
+            signal_reason,
+            data={"chosen": chosen, "raw_count": len(raw_signals), "active_count": len(active_signals), "generation": generation},
         )
     )
 
@@ -102,17 +122,23 @@ def build_why_trace(
         score = ranking.get("chosen_score")
         ranking_blocked = (
             action in {"hold", "flat", "blocked", "no_trade"}
-            and not dict(ranking.get("best_actionable", {}) or {})
-            and not top
-            and score is None
-            and not bool(timing_result and timing_result.get("passed") is False)
+            and (
+                _text(chosen.get("side")).lower() not in {"buy", "sell"}
+                or (status.get("min_confidence_threshold") is not None
+                    and float(chosen.get("confidence", 0.0) or 0.0) < float(status["min_confidence_threshold"]))
+                or (not dict(ranking.get("best_actionable", {}) or {}) and not top and score is None
+                    and not bool(timing_result and timing_result.get("passed") is False))
+            )
         )
         reason = (
             message
             if ranking_blocked
             else f"Selected candidate ranked with score {score}." if score is not None else "Ranking state was recorded for the selected candidate."
         )
-        entries.append(_entry("signal_ranking", "blocked" if ranking_blocked else "passed", reason, data={"chosen_score": score, "top": top[:5]}))
+        eligibility = list(dict(status.get("win_rate_focus", {}) or {}).get("weak_strategies_blocked", []) or [])
+        if ranking_blocked and eligibility and not any(_text(row.get("side")).lower() in {"buy", "sell"} for row in active_signals):
+            reason = "Directional candidates failed the existing strategy performance eligibility checks; no eligible buy or sell candidate remained."
+        entries.append(_entry("signal_ranking", "blocked" if ranking_blocked else "passed", reason, data={"chosen_score": score, "top": top[:5], "strategy_eligibility_blocks": eligibility}))
 
     prior_block = _first_block(entries)
     if prior_block:
@@ -168,8 +194,7 @@ def build_why_trace(
         )
 
     prior_block = _first_block(entries)
-    has_execution_record = bool(gate_decision or execution_truth)
-    if prior_block and not has_execution_record:
+    if prior_block:
         entries.append(_entry("execution", "not_reached", f"Pipeline stopped at {prior_block}."))
     else:
         gate_allowed = gate_decision.get("allowed")

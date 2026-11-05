@@ -242,7 +242,10 @@ def test_guarded_demo_rejects_forbidden_backend_command(monkeypatch, tmp_path):
         assert "forbidden paper routing token" in str(exc).lower()
 
 
-def test_run_full_launch_fails_fast_when_guarded_demo_command_is_paper(tmp_path):
+def test_run_full_launch_fails_fast_when_guarded_demo_command_is_paper(tmp_path, monkeypatch):
+    def forbidden_shutdown(*args, **kwargs):
+        raise AssertionError("Invalid launch configuration must not stop existing processes")
+    monkeypatch.setattr("atlas_ai.atlas_full_launcher.run_full_shutdown", forbidden_shutdown)
     cfg = AtlasWakeConfig(
         project_root=str(tmp_path),
         python_executable="python",
@@ -273,6 +276,8 @@ def test_run_full_launch_fails_fast_when_guarded_demo_command_is_paper(tmp_path)
     summary = run_full_launch(cfg)
     assert summary["health"]["overall_result"] == "FAILED"
     assert "forbidden token" in str(summary["health"]["failure_reason"]).lower()
+    assert len(summary["attempts"]) == 1
+    assert not summary.get("recovery_actions")
 
 
 def test_run_full_launch_restarts_after_failed_start(monkeypatch, tmp_path):

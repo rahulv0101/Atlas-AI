@@ -1,11 +1,11 @@
 {
   "available": true,
   "correct_block_rate": 0.0,
-  "created_at": "2026-10-14T14:51:01.383022+00:00",
+  "created_at": "2026-11-05T13:20:42.661088+00:00",
   "missed_rate": 0.0,
   "outcome_counts": {
     "correct_hold_or_block": 0,
-    "inconclusive": 685,
+    "inconclusive": 175,
     "missed_opportunity": 0
   },
   "policy": {
@@ -24,12 +24,12 @@
     "type": "offline_selectivity_review"
   },
   "review_priority": "medium",
-  "samples": 685,
+  "samples": 175,
   "schema": "atlas_blocker_selectivity_review_v1",
   "sides": [
     "buy"
   ],
-  "target_blocker": "Risk guard active: Daily drawdown limit reached. No trade executed.",
+  "target_blocker": "Higher-timeframe alignment required: chosen=buy, htf_bias=sell.",
   "total_adverse_blocked_points": 0,
   "total_favorable_missed_points": 0
 }

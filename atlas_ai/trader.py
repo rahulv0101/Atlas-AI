@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import contextlib
 import os
 import re
@@ -15,6 +16,8 @@ import MetaTrader5 as mt5
 
 from atlas_ai.config.settings import Settings, get_active_thresholds
 from atlas_ai.data.market_data import MarketDataFeed
+from atlas_ai.data.broker_clock import broker_time_to_utc, utc_query_time
+from atlas_ai.data.freshness import execution_freshness
 from atlas_ai.analysis.decision_analysis import build_structured_decision_analysis
 from atlas_ai.analysis.regime_tagging import classify_regime_label
 from atlas_ai.analysis.setup_hunter import build_setup_hunter
@@ -157,12 +160,8 @@ class AtlasTrader:
         self._ensure_learning_playbook()
 
     @staticmethod
-    def _freshness_runtime_payload(*, status_age_ms: float | None, max_age_ms: int = 120000) -> dict[str, Any]:
-        age = float(status_age_ms) if status_age_ms is not None else None
-        return {
-            "status_age_ms": age,
-            "is_stale": bool(age is None or age > float(max_age_ms)),
-        }
+    def _freshness_runtime_payload(*, status_age_ms: float | None, max_age_ms: int = 120000, market_fetch=None) -> dict[str, Any]:
+        return execution_freshness(status_age_ms=status_age_ms, max_age_ms=max_age_ms, market_fetch=market_fetch)
 
     def _current_cycle_age_ms(self) -> float | None:
         timing = dict(getattr(self, "_current_cycle_timing", {}) or {})
@@ -249,7 +248,11 @@ class AtlasTrader:
         if not bool(getattr(result, "success", False)):
             return False
         try:
-            return int(getattr(result, "order_id", 0) or 0) > 0 or int(getattr(result, "deal_id", 0) or 0) > 0
+            return (
+                int(getattr(result, "order_id", 0) or 0) > 0
+                or int(getattr(result, "deal_id", 0) or 0) > 0
+                or str(getattr(result, "broker_order_id", "") or "").strip() not in {"", "0"}
+            )
         except Exception:
             return False
 
@@ -362,7 +365,15 @@ class AtlasTrader:
             signal.side = "flat"
             signal.confidence = 0.0
         else:
-            conf = max(0.0, min(1.0, float(getattr(signal, "confidence", 0.0) or 0.0)))
+            try:
+                raw_confidence = float(getattr(signal, "confidence", 0.0))
+            except (TypeError, ValueError, OverflowError):
+                raw_confidence = float("nan")
+            if not math.isfinite(raw_confidence):
+                signal.side = "flat"
+                signal.confidence = 0.0
+                return signal
+            conf = max(0.0, min(1.0, raw_confidence))
             strategy = str(getattr(signal, "strategy", "") or "")
             if strategy.startswith("evolved_rule("):
                 # Prevent evolved variants from bunching at 1.0 and dominating ranking
@@ -1017,9 +1028,13 @@ class AtlasTrader:
         signal.confidence = 0.0
         return signal
 
-    def _apply_signal_generation_gating(self, signal: TradeSignal, context: dict[str, Any]) -> TradeSignal:
+    def _apply_signal_generation_gating(self, signal: TradeSignal, context: dict[str, Any], *, diagnostics: dict[str, Any] | None = None) -> TradeSignal:
+        reasons: list[str] = []
+        if diagnostics is not None:
+            diagnostics["reason_codes"] = reasons
         side = str(getattr(signal, "side", "flat") or "flat").lower()
         if side not in {"buy", "sell"}:
+            reasons.append("strategy_returned_flat")
             return self._sanitize_signal(signal)
 
         regime = str(context.get("regime", "unknown") or "unknown")
@@ -1036,13 +1051,17 @@ class AtlasTrader:
             # LEARNING MODE: keep directional candidates alive with a strong confidence haircut
             # instead of hard-flattening every low-energy cycle.
             if learning_mode:
+                reasons.append("low_energy_learning_confidence_reduction")
                 signal.confidence = float(signal.confidence or 0.0) * 0.78
                 return self._sanitize_signal(signal)
+            reasons.append("low_energy_directional_suppression")
             return self._suppress_signal(signal)
 
         if str(self.settings.timeframe).upper() == "M1" and not bool(context.get("allowed_session", False)):
             if bool(getattr(self.settings, "suppress_directional_signals_outside_sessions", True)):
+                reasons.append("outside_allowed_session_suppression")
                 return self._suppress_signal(signal)
+            reasons.append("outside_allowed_session_confidence_reduction")
             signal.confidence = float(signal.confidence or 0.0) * float(
                 getattr(self.settings, "signal_outside_session_confidence_multiplier", 0.5) or 0.5
             )
@@ -1059,24 +1078,31 @@ class AtlasTrader:
                 # LEARNING MODE: do not completely erase momentum candidates;
                 # retain them at reduced confidence for safe exploration.
                 if learning_mode:
+                    reasons.append("momentum_regime_learning_confidence_reduction")
                     signal.confidence = float(signal.confidence or 0.0) * 0.88
                     return self._sanitize_signal(signal)
+                reasons.append("momentum_regime_requirements_not_met")
                 return self._suppress_signal(signal)
 
         weak_trend = float(getattr(self.settings, "signal_trend_strength_weak_pct", 0.12) or 0.12)
         strong_trend = float(getattr(self.settings, "signal_trend_strength_strong_pct", 0.28) or 0.28)
         if trend_strength < weak_trend:
+            reasons.append("weak_trend_confidence_reduction")
             signal.confidence = float(signal.confidence or 0.0) * float(
                 getattr(self.settings, "signal_trend_strength_weak_confidence_multiplier", 0.55) or 0.55
             )
         elif regime == "trend" and volatility_state in {"normal", "high"} and trend_strength >= strong_trend:
+            reasons.append("strong_trend_confidence_boost")
             signal.confidence = min(
                 1.0,
                 float(signal.confidence or 0.0)
                 * float(getattr(self.settings, "signal_trend_strength_strong_confidence_boost", 1.12) or 1.12),
             )
 
+        before_learning = float(signal.confidence)
         signal = self._apply_entry_timing_learning(signal, context)
+        if float(signal.confidence) != before_learning:
+            reasons.append("entry_timing_learning_confidence_adjustment")
         return self._sanitize_signal(signal)
 
     def _min_conf_threshold(self, regime: dict[str, Any]) -> float:
@@ -2254,7 +2280,7 @@ class AtlasTrader:
                 self._closed_learning_synced_until = None
         if self._closed_learning_synced_until is not None:
             start = max(start, self._closed_learning_synced_until - timedelta(minutes=5))
-        deals = mt5.history_deals_get(start, end) or []
+        deals = mt5.history_deals_get(utc_query_time(start, self.settings), utc_query_time(end, self.settings)) or []
         decision_strategy_map, decision_id_aliases, decision_meta_by_execution_ref = self._decision_sample_maps(limit=5000)
         owned_positions: set[str] = set()
         position_strategy: dict[str, str] = {}
@@ -2327,7 +2353,7 @@ class AtlasTrader:
                         "ticket": ticket,
                         "order": str(getattr(d, "order", "") or ""),
                         "position_id": pos_id,
-                        "time": datetime.fromtimestamp(int(getattr(d, "time", 0) or 0), tz=timezone.utc).isoformat(),
+                        "time": broker_time_to_utc(int(getattr(d, "time", 0) or 0), self.settings).isoformat(),
                         "symbol": str(getattr(d, "symbol", "")),
                         "magic": magic,
                         "comment": comment,
@@ -2356,7 +2382,7 @@ class AtlasTrader:
                         "ticket": ticket,
                         "order": str(getattr(d, "order", "") or ""),
                         "position_id": pos_id,
-                        "time": datetime.fromtimestamp(int(getattr(d, "time", 0) or 0), tz=timezone.utc).isoformat(),
+                        "time": broker_time_to_utc(int(getattr(d, "time", 0) or 0), self.settings).isoformat(),
                         "symbol": str(getattr(d, "symbol", "")),
                         "magic": magic,
                         "comment": comment,
@@ -2383,7 +2409,7 @@ class AtlasTrader:
                 side = "sell"
             else:
                 side = "flat"
-            hour = datetime.fromtimestamp(int(getattr(d, "time", 0) or 0), tz=timezone.utc).hour
+            hour = broker_time_to_utc(int(getattr(d, "time", 0) or 0), self.settings).hour
             key = f"{side}:{hour}"
             st = dict(stats.get(key, {"wins": 0, "losses": 0, "pnl": 0.0}))
             st["pnl"] = float(st.get("pnl", 0.0)) + profit
@@ -2404,10 +2430,10 @@ class AtlasTrader:
             setup_family = str(ref_meta.get("setup_family", "") or "").strip().lower() or self._strategy_to_setup_family(strategy_name)
             regime_name = str(ref_meta.get("regime", "") or "").strip().lower() or "unknown"
             entry_session = str(ref_meta.get("session", "") or "").strip().lower()
-            close_time = datetime.fromtimestamp(int(getattr(d, "time", 0) or 0), tz=timezone.utc)
+            close_time = broker_time_to_utc(int(getattr(d, "time", 0) or 0), self.settings)
             session_label = self._session_label(close_time)
             open_time_raw = int(position_open_times.get(pos_id, int(getattr(d, "time", 0) or 0)) or int(getattr(d, "time", 0) or 0))
-            duration_minutes = round(max(0.0, (int(getattr(d, "time", 0) or 0) - open_time_raw) / 60.0), 2)
+            duration_minutes = round(max(0.0, (close_time - broker_time_to_utc(open_time_raw, self.settings)).total_seconds() / 60.0), 2)
             exit_reason = "stop_loss" if "[sl" in comment.lower() else ("take_profit" if "[tp" in comment.lower() else "other")
             loss_classification = self._classify_loss_cause(
                 outcome=outcome,
@@ -2478,7 +2504,7 @@ class AtlasTrader:
             if strategy_name != "unknown":
                 self.allocator.update(strategy_name, profit)
             if outcome == "win" and ticket not in win_processed:
-                session = self._session_label(datetime.fromtimestamp(int(getattr(d, "time", 0) or 0), tz=timezone.utc))
+                session = self._session_label(broker_time_to_utc(int(getattr(d, "time", 0) or 0), self.settings))
                 context_key = f"{strategy_name}|{side}|{session}|{hour}"
                 cur = dict(win_stats.get(context_key, {"wins": 0, "pnl": 0.0}))
                 cur["wins"] = int(cur.get("wins", 0)) + 1
@@ -4393,8 +4419,22 @@ class AtlasTrader:
 
     def _build_signals(self, df) -> list[TradeSignal]:
         signal_context = self._signal_generation_context(df)
+        candidates: list[dict[str, Any]] = []
+
+        def generate(strategy, name: str | None = None) -> TradeSignal:
+            signal = self._sanitize_signal(strategy.generate_signal(df))
+            row = {
+                "strategy": name or str(signal.strategy),
+                "before_filters": {"side": str(signal.side), "confidence": float(signal.confidence)},
+            }
+            signal = self._apply_signal_generation_gating(signal, signal_context, diagnostics=row)
+            row["after_filters"] = {"side": str(signal.side), "confidence": float(signal.confidence)}
+            row["suppressed"] = row["before_filters"]["side"] in {"buy", "sell"} and signal.side == "flat"
+            candidates.append(row)
+            return signal
+
         signals = [
-            self._apply_signal_generation_gating(self._sanitize_signal(s.generate_signal(df)), signal_context)
+            generate(s)
             for s in self.base_strategies
             if self._strategy_enabled(str(getattr(s, "name", "")))
         ]
@@ -4411,10 +4451,7 @@ class AtlasTrader:
                 )
                 self._logged_evolved_fallback = True
         for evolved in evolved_pool:
-            evolved_signal = self._apply_signal_generation_gating(
-                self._sanitize_signal(evolved.generate_signal(df)),
-                signal_context,
-            )
+            evolved_signal = generate(evolved, self._format_evolved_strategy_name(evolved))
             evolved_signal.strategy = self._format_evolved_strategy_name(evolved)
             signals.append(evolved_signal)
 
@@ -4424,10 +4461,7 @@ class AtlasTrader:
         for chromosome in demo_chromosomes:
             try:
                 strategy = StrategyFactory.build(chromosome)
-                chromo_signal = self._apply_signal_generation_gating(
-                    self._sanitize_signal(strategy.generate_signal(df)),
-                    signal_context,
-                )
+                chromo_signal = generate(strategy, strategy.name)
                 chromo_signal.strategy = strategy.name
                 signals.append(chromo_signal)
             except Exception as exc:
@@ -4435,6 +4469,15 @@ class AtlasTrader:
                     "system",
                     f"Demo chromosome signal generation failed for {chromosome.uid[:8]}: {exc}",
                 )
+        self._signal_generation_diagnostics = {
+            "schema": "atlas_signal_generation_diagnostics_v1",
+            "context": signal_context,
+            "candidates": candidates,
+            "directional_before_filters": sum(row["before_filters"]["side"] in {"buy", "sell"} for row in candidates),
+            "directional_after_filters": sum(row["after_filters"]["side"] in {"buy", "sell"} for row in candidates),
+            "suppressed_count": sum(row["suppressed"] for row in candidates),
+            "policy_note": "Observability only; existing signal-generation filters are unchanged.",
+        }
         return signals
 
     def _top_signal_rows(
@@ -4587,6 +4630,8 @@ class AtlasTrader:
                 "strategy": chosen.get("strategy"),
                 "side": chosen.get("side"),
                 "confidence": chosen.get("confidence"),
+                "stop_loss_points": chosen.get("stop_loss_points"),
+                "take_profit_points": chosen.get("take_profit_points"),
             },
             "risk": {
                 "equity": risk.get("equity"),
@@ -4600,6 +4645,7 @@ class AtlasTrader:
                 "daily_profit_zar": risk.get("daily_profit_zar"),
             },
             "signal_summary": dict(status.get("signal_summary", {}) or {}),
+            "signal_generation": dict(status.get("signal_generation", {}) or {}),
             "higher_timeframe": dict(status.get("higher_timeframe", {}) or {}),
             "drift": dict(status.get("drift", {}) or {}),
             "contextual_ranking": dict(status.get("contextual_ranking", {}) or {}),
@@ -4610,6 +4656,7 @@ class AtlasTrader:
             "timing_discipline": dict(status.get("timing_discipline", {}) or {}),
             "system_health": dict(status.get("system_health", {}) or {}),
             "shadow_advice": dict(status.get("shadow_advice", {}) or {}),
+            "market_data_clock": dict(dict(getattr(self, "_current_cycle_timing", {}) or {}).get("market_fetch", {}) or {}),
         }
         if event_type == "execution":
             compact["execution"] = dict(status.get("execution", {}) or {})
@@ -4751,6 +4798,9 @@ class AtlasTrader:
     def _augment_status_layers(self, status: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(status, dict):
             return status
+        generation = getattr(self, "_signal_generation_diagnostics", None)
+        if generation is not None:
+            status["signal_generation"] = generation
         runtime_flags = dict(self._last_runtime_flags or {})
         rollout = dict(runtime_flags.get("paper_rollout", {}) or {})
         if rollout and not status.get("lane"):
@@ -4820,7 +4870,7 @@ class AtlasTrader:
             system_health.update(refreshed_health)
             status["system_health"] = system_health
         execution_gate = getattr(self, "execution_gate", None)
-        execution_snapshot = dict(execution_gate.snapshot() or {}) if execution_gate is not None else {}
+        execution_snapshot = dict(execution_gate.snapshot(runtime_flags=runtime_flags) or {}) if execution_gate is not None else {}
         if execution_snapshot:
             status["execution_state"] = execution_snapshot
             status["execution_gate"] = {
@@ -4907,8 +4957,9 @@ class AtlasTrader:
                     age_ms = None
             timing["status_write_attempted_at"] = now.isoformat()
             timing["backend_cycle_age_ms"] = age_ms
+            payload["market_data_clock"] = dict(timing.get("market_fetch", {}) or {})
             payload["freshness_timing"] = timing
-            payload["freshness_runtime"] = self._freshness_runtime_payload(status_age_ms=age_ms, max_age_ms=120000)
+            payload["freshness_runtime"] = self._freshness_runtime_payload(status_age_ms=age_ms, max_age_ms=120000, market_fetch=timing.get("market_fetch"))
         audit_result = record_missed_entry_audit(self.settings.storage_dir, payload)
         if bool(audit_result.get("recorded", False)):
             audit = dict(audit_result.get("audit", {}) or {})
@@ -5995,7 +6046,7 @@ class AtlasTrader:
             )
         gate_runtime_flags = dict(runtime_flags or {})
         cycle_age_ms = self._current_cycle_age_ms()
-        gate_runtime_flags["freshness_runtime"] = self._freshness_runtime_payload(status_age_ms=cycle_age_ms, max_age_ms=120000)
+        gate_runtime_flags["freshness_runtime"] = self._freshness_runtime_payload(status_age_ms=cycle_age_ms, max_age_ms=120000, market_fetch=dict(getattr(self, "_current_cycle_timing", {}) or {}).get("market_fetch"))
         gate_runtime_flags["max_freshness_age_ms"] = 120000
         gate_out = self.execution_gate.execute(
             req_id,
@@ -6052,7 +6103,12 @@ class AtlasTrader:
         )
 
         gate_block_reasons = {"approval_missing", "live_requires_explicit_confirmation"}
-        execution_blocked = (not bool(result.success)) and str(result.comment) in gate_block_reasons
+        gate_request = dict(gate_out.get("request", {}) or {})
+        execution_blocked = (not bool(result.success)) and (
+            str(result.comment) in gate_block_reasons
+            or str(gate_request.get("execution_status", "")) in {"pending", "blocked"}
+            or str(result.comment) == "request_not_created"
+        )
         status["action"] = "execute" if result.success else ("blocked" if execution_blocked else "failed")
         status["volume"] = volume
         status["execution"] = {
@@ -6063,6 +6119,8 @@ class AtlasTrader:
             "order_id": int(result.order_id),
             "deal_id": int(result.deal_id),
             "broker_order_id": str(result.broker_order_id),
+            "broker_status": str(gate_result.get("status", "") or ""),
+            "filled_quantity": gate_result.get("fill_qty", 0.0),
         }
         status["message"] = (
             f"Executed {chosen.side} via {chosen.strategy}"
@@ -6070,7 +6128,7 @@ class AtlasTrader:
             else (
                 f"Execution blocked for {chosen.side} via {chosen.strategy}: {result.comment}"
                 if execution_blocked
-                else f"Execution failed for {chosen.side} via {chosen.strategy}"
+                else f"Execution failed for {chosen.side} via {chosen.strategy}: {result.comment}"
             )
         )
         status["journal"] = {

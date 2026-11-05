@@ -419,7 +419,7 @@ def _build_trader(scenario: ReplayScenario) -> tuple[AtlasTrader, _ReplayStore]:
         def set_execution_environment(self, env):
             pass
 
-        def snapshot(self):
+        def snapshot(self, **kwargs):
             # Replay projects trade behavior, without a persisted runtime gate.
             return {}
 

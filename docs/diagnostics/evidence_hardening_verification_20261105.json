@@ -1,0 +1,184 @@
+{
+  "captured_at": "2026-11-05T12:33:03.546884+00:00",
+  "full_suite": {
+    "tests": 1583,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 1329.0,
+    "workspace": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-evidence-hardening-geqcylo5",
+    "normal_instrumentation": true
+  },
+  "supplemental_checks": [
+    {
+      "scope": "Frontend shutdown/startup/commands/voice/supervisor",
+      "passed": 62
+    },
+    {
+      "scope": "Invalid confidence/signals/replay/guarded pipeline/frontend shutdown",
+      "passed": 53
+    },
+    {
+      "scope": "Selectivity integrity after count-label clarification",
+      "passed": 10
+    },
+    {
+      "scope": "Provider faults and related health/answer regressions",
+      "passed": 44
+    },
+    {
+      "scope": "Provider faults and explicit/default model selection",
+      "passed": 6
+    }
+  ],
+  "supplemental_count_note": "Groups overlap; do not add as disjoint counts.",
+  "files_changed_after_full_snapshot": [
+    "atlas_ai\\atlas_full_shutdown.py",
+    "atlas_ai\\runtime_processes.py",
+    "atlas_ai\\trader.py",
+    "atlas_ai\\llm\\gemini_helper.py",
+    "tools\\timing_discipline_selectivity_report.py"
+  ],
+  "late_change_scope": {
+    "atlas_ai/atlas_full_shutdown.py": "Complete project-scoped frontend shutdown",
+    "atlas_ai/runtime_processes.py": "Optional project-root process inventory filter",
+    "atlas_ai/trader.py": "Narrow non-finite confidence rejection",
+    "tools/timing_discipline_selectivity_report.py": "Count-label clarification only",
+    "atlas_ai/llm/gemini_helper.py": "Explicit verified model, sanitized configuration errors and cooldown"
+  },
+  "runtime": {
+    "backend_ok": true,
+    "frontend_ok": true,
+    "backend_detail": "process_running=True, runtime_execute=True, fresh=True, worker_verified=True, age_seconds=0.6",
+    "frontend_detail": "process_running=True, api_ok=True, comparison_active=False, runtime_execute=True, desktop_window_ready=True, desktop_state_fresh=True, desktop_live_verified=False, desktop_state_age_seconds=117.0, wrapper_pid=1924, wrapper_running=True, fallback_active=False, desktop_disabled=False, frontend_mode=desktop, failure_reason=",
+    "action": "hold",
+    "message": "No directional trade signal selected.",
+    "readiness": {
+      "detail": "No directional trade signal selected.",
+      "label": "WAITING",
+      "state": "waiting"
+    },
+    "freshness": {
+      "aging_threshold_ms": 240000.0,
+      "backend_cycle_age_ms": 1841.79,
+      "clock_error": false,
+      "is_stale": false,
+      "is_status_stale": false,
+      "market_data_age_ms": 63449.84,
+      "market_data_reasons": [],
+      "max_freshness_age_ms": 480000.0,
+      "primary_age_ms": 63449.84,
+      "source": "status_freshness_contract",
+      "stale_threshold_ms": 480000.0,
+      "state": "fresh",
+      "status_age_ms": 7573.46,
+      "timestamp_basis": "UTC"
+    },
+    "market_data_clock": {
+      "bar_stale_after_ms": 480000,
+      "bars_received": 1200,
+      "bars_requested": 1200,
+      "broker_timezone": "Europe/Athens",
+      "duration_ms": 11.6,
+      "ended_at": "2026-11-05T12:32:49.090570+00:00",
+      "error": "",
+      "latest_bar_utc": "2026-11-05T12:32:00+00:00",
+      "latest_tick_utc": "2026-11-05T12:32:48+00:00",
+      "ok": true,
+      "retries": 0,
+      "retry_sleep_ms": 0.0,
+      "started_at": "2026-11-05T12:32:49.078974+00:00",
+      "timestamp_basis": "UTC"
+    },
+    "providers": [
+      {
+        "name": "gemini",
+        "model": "gemini-2.5-flash",
+        "last_error_kind": "",
+        "in_cooldown": false
+      },
+      {
+        "name": "openai",
+        "model": "gpt-4.1-mini",
+        "last_error_kind": "",
+        "in_cooldown": false
+      }
+    ],
+    "gemini_trading_influence": false
+  },
+  "broker": {
+    "demo": true,
+    "configured_account_matches": true,
+    "algo_trading_allowed": true,
+    "python_api_allowed": true,
+    "position_count": 0,
+    "pending_order_count": 0
+  },
+  "historical_recovery": {
+    "completed_position_groups": 158,
+    "wins": 49,
+    "losses": 109,
+    "win_rate": 0.310126582278481,
+    "profit_factor": 0.6970232045237883,
+    "current_strategy_profitability_proven": false
+  },
+  "recovered_fill_legs": 316,
+  "original_journal_recovered": false,
+  "provider_repair": {
+    "gemini_model": "gemini-2.5-flash",
+    "model_list_confirmed": true,
+    "generation_ok": true,
+    "openai_credentials_replaced": false,
+    "openai_previous_status": 401,
+    "trading_influence_changed": false
+  },
+  "selectivity": {
+    "artifact": "docs\\baselines\\baseline_20261105T110202Z_verified_post_repair_evidence.json",
+    "counts": {
+      "timing_blocked_found": 3,
+      "timing_blocked_simulated": 0,
+      "timing_blocked_skipped_incomplete_or_unmatched": 3,
+      "timing_passed_executed_found": 0,
+      "timing_passed_executed_simulated": 0,
+      "timing_passed_executed_skipped_incomplete_or_unmatched": 0
+    },
+    "evidence_status": "insufficient_for_profitability_or_filter_change"
+  },
+  "observer": {
+    "duration_minutes": 120,
+    "interval_seconds": 60,
+    "running_pids": [
+      4316,
+      12164
+    ],
+    "artifact": "storage\\demo_observations\\observation_20261105T123203Z.jsonl",
+    "rows_so_far": 2,
+    "read_only": true,
+    "note": "Earlier observation was interrupted; a new bounded run was started after restoration."
+  },
+  "native_trace_files": [
+    "storage\\native_crashes\\native_10840.log",
+    "storage\\native_crashes\\native_14440.log",
+    "storage\\native_crashes\\native_15388.log",
+    "storage\\native_crashes\\native_17536.log",
+    "storage\\native_crashes\\native_1924.log",
+    "storage\\native_crashes\\native_19892.log",
+    "storage\\native_crashes\\native_20444.log",
+    "storage\\native_crashes\\native_21196.log",
+    "storage\\native_crashes\\native_24872.log",
+    "storage\\native_crashes\\native_24908.log",
+    "storage\\native_crashes\\native_7208.log"
+  ],
+  "pytest_workers_remaining": [],
+  "orders_forced_by_audit": 0,
+  "remaining_limits": [
+    "Historical fills are loss-making as a group, with incomplete strategy/manual-test attribution.",
+    "Current strategy profitability and filter selectivity remain unproven.",
+    "Original missing journal cannot be reconstructed from fills.",
+    "Native crash cause remains unestablished; durable fault tracing is enabled.",
+    "Unattended recovery supervision is not enabled; shutdown intent handling needs work.",
+    "Live background training remains disabled; Python 3.13 voice migration needs a resampler replacement.",
+    "OpenAI fallback requires a valid local API credential; Gemini text generation was verified.",
+    "Memory pressure occurred during the audit; no orphaned Atlas browser was established."
+  ]
+}

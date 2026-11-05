@@ -47,6 +47,60 @@ class _StoreSource(_Source):
         return self.store.load_events(limit=limit)
 
 
+def test_flat_candidates_do_not_claim_signal_generation_or_execution_passed():
+    status = {"action": "hold", "message": "No directional trade signal selected.",
+              "chosen": {"strategy": "momentum_continuation", "side": "flat", "confidence": .45},
+              "signals": [{"strategy": "momentum_continuation", "side": "flat", "confidence": 0}],
+              "signal_generation": {"suppressed_count": 1, "candidates": [
+                  {"suppressed": True, "reason_codes": ["low_energy_directional_suppression"]}
+              ]}}
+    trace = build_why_trace(status, {}, {"gate_decisions_last_cycle": {"allowed": True, "stale": True}})
+    assert trace["first_blocked_stage"] == "signal_generation"
+    assert "Low market energy" in trace["stages"][0]["reason"]
+    assert all(row["status"] == "not_reached" for row in trace["stages"][1:])
+
+
+def test_stale_execution_gate_decision_cannot_be_current_blocker():
+    trace = build_why_trace(_Source().load_status(), {}, {
+        "gate_decisions_last_cycle": {"allowed": False, "reason": "old_block", "stale": True},
+        "execution_truth": {"ok": False, "current": False, "reason": "old_block"},
+    })
+    assert trace["stages"][-1]["status"] == "not_reached"
+    assert trace["stages"][-1]["data"]["execution_truth"] == {}
+
+
+def test_directional_candidates_filtered_for_performance_stop_at_ranking():
+    status = {"action": "hold", "message": "No directional trade signal selected.",
+              "chosen": {"strategy": "momentum_continuation", "side": "flat", "confidence": .45},
+              "signals": [{"strategy": "ema_crossover", "side": "sell", "confidence": .24}],
+              "signals_active": [{"strategy": "momentum_continuation", "side": "flat", "confidence": 0}],
+              "contextual_ranking": {"chosen_score": 0, "top": [{"strategy": "momentum_continuation", "score": 0}]},
+              "win_rate_focus": {"weak_strategies_blocked": ["ema_crossover severe_blocked"]}}
+    trace = build_why_trace(status)
+    assert trace["stages"][0]["status"] == "passed"
+    assert trace["first_blocked_stage"] == "signal_ranking"
+    assert "performance eligibility" in trace["stages"][1]["reason"]
+    assert all(row["status"] == "not_reached" for row in trace["stages"][2:])
+
+
+def test_ask_atlas_typed_and_voice_explain_generation_filter_instead_of_generic_catalog():
+    class Source(_Source):
+        def load_status(self):
+            return {"action": "hold", "message": "No directional trade signal selected.",
+                    "chosen": {"strategy": "momentum_continuation", "side": "flat", "confidence": .45},
+                    "signal_generation": {"suppressed_count": 1, "candidates": [
+                        {"suppressed": True, "reason_codes": ["low_energy_directional_suppression"]}
+                    ]}}
+
+    typed = AskAtlasService(Source()).answer("why isn't it trading")
+    voice = AskAtlasService(Source()).answer("why isn't it trading", mode="voice")
+    for result in [typed, voice]:
+        assert "Blocked at signal generation" in result["result"]
+        assert "Low market energy" in result["result"]
+        assert "Main blocker: No high-confidence setup" not in result["result"]
+    assert len(voice["result"]) <= len(typed["result"])
+
+
 def _write_heartbeat(store: KnowledgeStore, *, last_ts: float, cycle_count: int = 1) -> None:
     store.heartbeat_file.write_text(
         json.dumps(

@@ -277,7 +277,11 @@ def classify_intent_candidates(query: str) -> list[IntentCandidate]:
         add(IntentCandidate("strategy_knowledge", 0.93, ["strategy_definition_terms"]))
     if any(p in q for p in ("what does hold mean", "define hold", "meaning of hold")):
         add(IntentCandidate("glossary", 0.92, ["glossary_terms"]))
-    if any(p in q for p in ("what blocks you from trading", "what blocks trading")):
+    if any(p in q for p in (
+        "what blocks you from trading", "what blocks trading",
+        "what is blocking trading", "what is blocking demo trading",
+        "why is execution blocked",
+    )):
         add(IntentCandidate("blocker", 0.94, ["blocker_direct_terms"]))
     if any(k in t for k in ("strategy", "risk", "rules")) and any(k in t for k in ("know", "understand")):
         add(IntentCandidate("strategy_knowledge", 0.84, ["strategy_knowledge_terms"]))

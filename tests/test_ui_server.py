@@ -2064,11 +2064,14 @@ def test_execution_readiness_treats_runtime_context_required_as_market_wait(tmp_
             },
         }
     )
+    app = create_ui_app(store)
     (tmp_path / "automation_state.json").write_text(
         json.dumps(
             {
                 "payload": {
                     "automation_enabled": True,
+                    "automation_profiles": {"p1": {"id": "p1", "enabled": True, "environment": "demo"}},
+                    "active_automation_policy_id": "p1",
                     "automation_paused": False,
                     "auto_trade_allowed": False,
                     "auto_trade_reason": "runtime_context_required",
@@ -2079,7 +2082,7 @@ def test_execution_readiness_treats_runtime_context_required_as_market_wait(tmp_
         encoding="utf-8",
     )
 
-    payload = create_ui_app(store).test_client().get("/api/status").get_json()
+    payload = app.test_client().get("/api/status").get_json()
 
     readiness = payload["execution_readiness"]
     assert readiness["ready"] is False
@@ -2111,11 +2114,14 @@ def test_execution_readiness_missing_auto_status_does_not_fake_automation_block(
             },
         }
     )
+    app = create_ui_app(store)
     (tmp_path / "automation_state.json").write_text(
         json.dumps(
             {
                 "payload": {
                     "automation_enabled": True,
+                    "automation_profiles": {"p1": {"id": "p1", "enabled": True, "environment": "demo"}},
+                    "active_automation_policy_id": "p1",
                     "automation_paused": False,
                     "session_control": {"session_active": True, "session_pause": False},
                 }
@@ -2124,7 +2130,7 @@ def test_execution_readiness_missing_auto_status_does_not_fake_automation_block(
         encoding="utf-8",
     )
 
-    payload = create_ui_app(store).test_client().get("/api/status").get_json()
+    payload = app.test_client().get("/api/status").get_json()
 
     readiness = payload["execution_readiness"]
     assert readiness["primary_blocker"]["lane"] == "market"

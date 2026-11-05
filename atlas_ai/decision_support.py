@@ -378,6 +378,8 @@ def build_decision_trace(
         "bias_breakdown": _bias_breakdown(status, context_snapshot),
         "signal": {
             "raw": _compact_signal_rows(status.get("signals", []), limit=8),
+            "raw_stage": "after_signal_generation_filters",
+            "generation": dict(status.get("signal_generation", {}) or {}),
             "active": _compact_signal_rows(status.get("signals_active", []), limit=8),
             "summary": dict(status.get("signal_summary", {}) or {}),
         },

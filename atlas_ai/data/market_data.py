@@ -7,6 +7,7 @@ import MetaTrader5 as mt5
 import pandas as pd
 
 from atlas_ai.config.settings import Settings
+from atlas_ai.data.broker_clock import broker_time_to_utc, normalize_rates, server_timezone, utc_query_time
 
 _TIMEFRAME_MAP = {
     "M1": mt5.TIMEFRAME_M1,
@@ -74,7 +75,7 @@ class MarketDataFeed:
             retries += 1
             retry_sleep_seconds += 1.0
             time.sleep(1.0)
-        if rates is None:
+        if rates is None or len(rates) == 0:
             ended = datetime.now(timezone.utc)
             self.last_fetch_meta = {
                 "started_at": started.isoformat(),
@@ -89,8 +90,8 @@ class MarketDataFeed:
             }
             raise RuntimeError(f"Failed to fetch MT5 rates: {last_error or mt5.last_error()}")
 
-        df = pd.DataFrame(rates)
-        df["time"] = pd.to_datetime(df["time"], unit="s")
+        df = normalize_rates(rates, self.settings)
+        tick = mt5.symbol_info_tick(self.settings.symbol)
         ended = datetime.now(timezone.utc)
         self.last_fetch_meta = {
             "started_at": started.isoformat(),
@@ -102,6 +103,11 @@ class MarketDataFeed:
             "bars_received": int(len(df)),
             "ok": True,
             "error": "",
+            "timestamp_basis": "UTC",
+            "broker_timezone": server_timezone(self.settings),
+            "latest_bar_utc": df["time"].iloc[-1].isoformat() + "+00:00",
+            "latest_tick_utc": broker_time_to_utc(tick.time, self.settings).isoformat() if tick is not None and getattr(tick, "time", 0) else "",
+            "bar_stale_after_ms": max(180000, self.settings.timeframe_minutes * 8 * 60000),
         }
         return df
 
@@ -109,22 +115,26 @@ class MarketDataFeed:
         self._ensure_initialized()
         timeframe = _TIMEFRAME_MAP.get(str(timeframe_name).upper(), mt5.TIMEFRAME_M5)
         rates = mt5.copy_rates_from_pos(self.settings.symbol, timeframe, 0, bars)
-        if rates is None:
+        if rates is None or len(rates) == 0:
             raise RuntimeError(f"Failed to fetch MT5 rates for timeframe {timeframe_name}")
-        df = pd.DataFrame(rates)
-        df["time"] = pd.to_datetime(df["time"], unit="s")
+        df = normalize_rates(rates, self.settings)
         return df
 
     def get_rates_range(self, start: datetime, end: datetime) -> pd.DataFrame:
         self._ensure_initialized()
         timeframe = _TIMEFRAME_MAP.get(self.settings.timeframe.upper(), mt5.TIMEFRAME_M15)
-        rates = mt5.copy_rates_range(self.settings.symbol, timeframe, start, end)
+        start_utc = pd.Timestamp(start)
+        end_utc = pd.Timestamp(end)
+        start_utc = start_utc.tz_localize("UTC") if start_utc.tzinfo is None else start_utc.tz_convert("UTC")
+        end_utc = end_utc.tz_localize("UTC") if end_utc.tzinfo is None else end_utc.tz_convert("UTC")
+        if start_utc > end_utc:
+            raise ValueError("Market-data range start must precede end")
+        rates = mt5.copy_rates_range(self.settings.symbol, timeframe, utc_query_time(start, self.settings), utc_query_time(end, self.settings))
         if rates is None:
             raise RuntimeError("Failed to fetch MT5 rates range")
 
-        df = pd.DataFrame(rates)
-        df["time"] = pd.to_datetime(df["time"], unit="s")
-        return df
+        df = normalize_rates(rates, self.settings)
+        return df.loc[(df["time"] >= start_utc.tz_localize(None)) & (df["time"] <= end_utc.tz_localize(None))].reset_index(drop=True)
 
     def diagnostics(self, bars: int = 50) -> dict[str, object]:
         self._ensure_initialized()
@@ -141,11 +151,11 @@ class MarketDataFeed:
         timestamp_source = "unavailable"
         if rates is not None and len(rates):
             bars_received = int(len(rates))
-            latest_bar_time = datetime.fromtimestamp(int(rates[-1]["time"]), tz=timezone.utc).isoformat()
+            latest_bar_time = broker_time_to_utc(int(rates[-1]["time"]), self.settings).isoformat()
             timestamp_source = "live_feed"
         tick_time = None
         if tick is not None and getattr(tick, "time", None):
-            tick_time = datetime.fromtimestamp(int(tick.time), tz=timezone.utc).isoformat()
+            tick_time = broker_time_to_utc(int(tick.time), self.settings).isoformat()
         return {
             "terminal_connected": bool(getattr(terminal, "connected", False)) if terminal is not None else False,
             "trade_allowed": bool(getattr(terminal, "trade_allowed", False)) if terminal is not None else False,
@@ -159,5 +169,9 @@ class MarketDataFeed:
             "latest_bar_utc": latest_bar_time or "",
             "bars_received": bars_received,
             "timestamp_source": timestamp_source,
+            "timestamp_basis": "UTC",
+            "broker_timezone": server_timezone(self.settings),
+            "raw_tick_epoch": int(getattr(tick, "time", 0) or 0),
+            "tick_age_seconds": round((datetime.now(timezone.utc) - datetime.fromisoformat(tick_time)).total_seconds(), 3) if tick_time else None,
             "mt5_last_error": mt5.last_error(),
         }

@@ -98,6 +98,8 @@ def _is_structured_execution_block(stage: dict[str, Any]) -> bool:
 
 def _is_structured_pipeline_block(stage: dict[str, Any]) -> bool:
     data = dict(stage.get("data", {}) or {})
+    if stage.get("stage") in {"signal_generation", "signal_ranking"}:
+        return bool(data.get("generation") or data.get("strategy_eligibility_blocks"))
     if _is_structured_execution_block(stage):
         return True
     timing_discipline = dict(data.get("timing_discipline", {}) or {})
@@ -376,7 +378,7 @@ def synthesize(
         )
     if plan.name == "self_knowledge_plan":
         if voice_mode:
-            return "I know market and strategy concepts well within Atlas limits, but I stay grounded to configured evidence."
+            return "Knowledge level: I explain market and strategy concepts using Atlas's structured knowledge and available evidence."
         return (
             f"Knowledge level: {self_model['purpose']}\n\n"
             "I understand:\n"
@@ -496,10 +498,10 @@ def synthesize(
     if plan.name == "capabilities_plan":
         if intent == "limitations":
             if voice_mode:
-                return "I do not invent facts, I do not place trades from Ask Atlas, and I cannot guarantee outcomes."
+                return "My limitations: I do not invent facts, place trades from Ask Atlas, or guarantee outcomes."
             return "Limitations:\n" + "\n".join(f"- {x}" for x in self_model["limitations"])
         if voice_mode:
-            return "I can explain status, blockers, readiness, comparison, and safe next steps using grounded evidence."
+            return "My capabilities include explaining status, blockers, readiness, comparisons, market concepts, and strategy rules using grounded evidence."
         return (
             "Capabilities:\n"
             + "\n".join(f"- {x}" for x in self_model["capabilities"])

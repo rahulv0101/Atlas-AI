@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 from atlas_ai.config.settings import Settings, get_active_thresholds
 
@@ -25,6 +26,13 @@ class RiskManager:
         return allowed
 
     def evaluate(self, snapshot: RiskSnapshot) -> tuple[bool, str]:
+        for field in ("equity", "balance", "daily_loss_pct", "weekly_loss_pct", "open_positions", "spread_points"):
+            try:
+                valid = math.isfinite(float(getattr(snapshot, field)))
+            except (TypeError, ValueError, OverflowError):
+                valid = False
+            if not valid:
+                return False, f"Invalid risk data: {field}"
         if snapshot.daily_loss_pct >= self.settings.max_daily_drawdown:
             return False, "Daily drawdown limit reached"
         if snapshot.weekly_loss_pct >= getattr(self.settings, "max_weekly_drawdown", 1.0):
@@ -36,6 +44,12 @@ class RiskManager:
         return True, ""
 
     def lot_size(self, equity: float, stop_loss_points: float, tick_value: float) -> float:
+        try:
+            valid = all(math.isfinite(float(value)) for value in (equity, stop_loss_points, tick_value))
+        except (TypeError, ValueError, OverflowError):
+            valid = False
+        if not valid:
+            return 0.0
         thresholds = get_active_thresholds(self.settings)
         # LEARNING MODE: lot size fixed from get_active_thresholds().
         if bool(getattr(self.settings, "learning_mode", False)):

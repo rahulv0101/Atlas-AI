@@ -69,23 +69,28 @@ def build_freshness_runtime(
     settings: Any,
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    now_dt = now or datetime.now().astimezone()
+    now_dt = now or datetime.now(timezone.utc)
+    if now_dt.tzinfo is None:
+        now_dt = now_dt.replace(tzinfo=timezone.utc)
     updated_at = str(status.get("updated_at", "") or "")
     market = dict(status.get("market", {}) or {})
     recent_times = list(market.get("recent_time", []) or [])
     recent_bar = str(recent_times[-1]) if recent_times else ""
-    updated_dt = _parse_dt(updated_at, fallback_tz=now_dt.tzinfo)
-    recent_dt = _parse_dt(recent_bar, fallback_tz=(updated_dt.tzinfo if updated_dt else now_dt.tzinfo))
+    updated_dt = _parse_dt(updated_at, fallback_tz=timezone.utc)
+    recent_dt = _parse_dt(recent_bar, fallback_tz=timezone.utc)
     status_age_ms = None
     if updated_dt is not None:
-        status_age_ms = round(max(0.0, (now_dt - updated_dt).total_seconds()) * 1000.0, 2)
+        status_age_ms = round((now_dt - updated_dt).total_seconds() * 1000.0, 2)
     market_data_age_ms = None
-    if updated_dt is not None and recent_dt is not None:
-        market_data_age_ms = round(max(0.0, (updated_dt - recent_dt).total_seconds()) * 1000.0, 2)
+    if recent_dt is not None:
+        market_data_age_ms = round((now_dt - recent_dt).total_seconds() * 1000.0, 2)
     stale_threshold_ms = max(180000.0, float(getattr(settings, "timeframe_minutes", 1) or 1) * 8.0 * 60.0 * 1000.0)
     aging_threshold_ms = round(stale_threshold_ms * 0.5, 2)
     primary_age_ms = market_data_age_ms if market_data_age_ms is not None else status_age_ms
-    if primary_age_ms is None:
+    clock_error = any(age is not None and age < -5000.0 for age in (status_age_ms, market_data_age_ms))
+    if clock_error or status_age_ms is not None and status_age_ms > stale_threshold_ms:
+        state = "stale"
+    elif primary_age_ms is None:
         state = "unknown"
     elif primary_age_ms > stale_threshold_ms:
         state = "stale"
@@ -105,6 +110,8 @@ def build_freshness_runtime(
         "stale_threshold_ms": stale_threshold_ms,
         "aging_threshold_ms": aging_threshold_ms,
         "source": "status_freshness_contract",
+        "clock_error": clock_error,
+        "timestamp_basis": "UTC",
     }
 
 

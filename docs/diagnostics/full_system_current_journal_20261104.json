@@ -1,0 +1,22 @@
+{
+  "source": "storage/events.jsonl only; old archives not included",
+  "since": "2026-11-04T18:21:00+00:00",
+  "scanned_at": "2026-11-04T20:49:12.917953+00:00",
+  "event_types": {
+    "system": 129,
+    "training": 4,
+    "decision": 96,
+    "error": 16,
+    "risk": 8
+  },
+  "decision_reasons": {
+    "No directional trade signal selected.": 93,
+    "No high-confidence trade found.": 3
+  },
+  "decision_actions": {
+    "hold": 96
+  },
+  "latest_decision": "2026-11-04T20:48:33.535914+00:00",
+  "invalid_rows": 0,
+  "historical_gap_manifest": "storage/event_history_gap.json"
+}

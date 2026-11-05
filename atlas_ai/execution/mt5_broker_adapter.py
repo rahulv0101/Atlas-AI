@@ -43,9 +43,11 @@ class MT5BrokerAdapter(BrokerAdapter):
         )
 
         result = self._executor.execute(signal, volume=volume, decision_id=decision_id)
+        broker_order_id = str(result.order_id or result.deal_id or "")
+        if getattr(result, "status", "") == "unknown":
+            return BrokerOrderResponse(ok=False, status="unknown", broker_order_id=broker_order_id, message=result.comment)
 
         if result.success:
-            broker_order_id = str(result.order_id or result.deal_id or "")
             if not broker_order_id:
                 return BrokerOrderResponse(
                     ok=False,
@@ -55,11 +57,11 @@ class MT5BrokerAdapter(BrokerAdapter):
                 )
             return BrokerOrderResponse(
                 ok=True,
-                status="filled",
+                status=str(getattr(result, "status", "") or "filled"),
                 broker_order_id=broker_order_id,
                 message=result.comment,
-                fill_qty=volume,
-                avg_fill_price=0.0,
+                fill_qty=(float(getattr(result, "fill_qty", 0.0) or 0.0) if getattr(result, "status", "") else volume),
+                avg_fill_price=float(getattr(result, "avg_fill_price", 0.0) or 0.0),
             )
         return BrokerOrderResponse(
             ok=False,
@@ -69,23 +71,94 @@ class MT5BrokerAdapter(BrokerAdapter):
         )
 
     def cancel_order(self, *, broker_order_id: str) -> BrokerOrderResponse:
-        # TradeExecutor does not expose cancel directly; MT5 positions are managed
-        # through the position lifecycle. Return not-supported for now.
-        return BrokerOrderResponse(
-            ok=False,
-            status="cancel_failed",
-            broker_order_id=broker_order_id,
-            message="mt5_cancel_not_implemented_use_position_close",
-        )
+        """Cancel only an explicitly requested, Atlas-owned demo pending order.
+
+        Never turn cancellation into a position close or retry an ambiguous send.
+        The gate calls this only for a tracked request with a broker ticket.
+        """
+        def failed(message: str, status: str = "cancel_failed") -> BrokerOrderResponse:
+            return BrokerOrderResponse(ok=False, status=status, broker_order_id=broker_order_id, message=message)
+
+        try:
+            ticket = int(broker_order_id)
+            if ticket <= 0:
+                return failed("invalid_broker_order_id")
+            if not self._executor.settings.execute_trades:
+                return failed("execution_disabled")
+            terminal = mt5.terminal_info()
+            if terminal is None or not bool(getattr(terminal, "connected", False)):
+                return failed("terminal_not_connected")
+            account_rejection = self._executor._account_rejection(mt5.account_info())
+            if account_rejection:
+                return failed(account_rejection)
+            if not bool(getattr(terminal, "trade_allowed", False)) or bool(getattr(terminal, "tradeapi_disabled", True)):
+                return failed("terminal_trading_not_allowed")
+            orders = mt5.orders_get(ticket=ticket)
+            if orders is None:
+                return failed("mt5_orders_get_failed")
+            order = next((item for item in orders if int(item.ticket) == ticket), None)
+            if order is None:
+                existing = self.query_order_status(broker_order_id=broker_order_id)
+                if existing.ok and existing.status == "cancelled":
+                    return existing
+                return failed("pending_order_not_found")
+            if str(order.symbol) != self._executor.settings.symbol or int(order.magic) != self._executor.settings.magic_number:
+                return failed("pending_order_not_owned_by_atlas")
+            pending_types = {mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_SELL_LIMIT, mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_SELL_STOP, mt5.ORDER_TYPE_BUY_STOP_LIMIT, mt5.ORDER_TYPE_SELL_STOP_LIMIT}
+            if int(order.type) not in pending_types:
+                return failed("not_a_pending_order")
+            result = mt5.order_send({"action": mt5.TRADE_ACTION_REMOVE, "order": ticket, "symbol": order.symbol})
+            if result is None:
+                return failed("cancel_result_unknown", "unknown")
+            if result.retcode == mt5.TRADE_RETCODE_DONE:
+                confirmed = self.query_order_status(broker_order_id=broker_order_id)
+                if confirmed.ok and confirmed.status == "cancelled":
+                    return confirmed
+                return failed("cancel_not_yet_confirmed", "unknown")
+            return failed(f"cancel_retcode:{result.retcode}")
+        except Exception as exc:
+            return failed(f"cancel_failed:{type(exc).__name__}", "unknown")
 
     def query_order_status(self, *, broker_order_id: str) -> BrokerOrderResponse:
-        # Best-effort: we do not maintain a separate order book in this adapter.
-        return BrokerOrderResponse(
-            ok=True,
-            status="unknown",
-            broker_order_id=broker_order_id,
-            message="mt5_status_query_not_implemented",
-        )
+        def unknown(message: str) -> BrokerOrderResponse:
+            return BrokerOrderResponse(ok=False, status="unknown", broker_order_id=broker_order_id, message=message)
+
+        try:
+            ticket = int(broker_order_id)
+            if ticket <= 0:
+                return unknown("invalid_broker_order_id")
+            if mt5.terminal_info() is None and not mt5.initialize():
+                return unknown("mt5_initialize_failed")
+            rows = mt5.orders_get(ticket=ticket)
+            if rows is None:
+                return unknown("mt5_orders_get_failed")
+            if not rows:
+                rows = mt5.history_orders_get(ticket=ticket)
+            if rows is None:
+                return unknown("mt5_history_orders_get_failed")
+            order = next((row for row in rows if int(row.ticket) == ticket), None)
+            if order is None:
+                return unknown("broker_order_not_found")
+            status = {
+                mt5.ORDER_STATE_STARTED: "submitted",
+                mt5.ORDER_STATE_PLACED: "acknowledged",
+                mt5.ORDER_STATE_PARTIAL: "partially_filled",
+                mt5.ORDER_STATE_FILLED: "filled",
+                mt5.ORDER_STATE_CANCELED: "cancelled",
+                mt5.ORDER_STATE_EXPIRED: "cancelled",
+                mt5.ORDER_STATE_REJECTED: "rejected",
+                mt5.ORDER_STATE_REQUEST_ADD: "submitted",
+                mt5.ORDER_STATE_REQUEST_MODIFY: "submitted",
+                mt5.ORDER_STATE_REQUEST_CANCEL: "submitted",
+            }.get(int(order.state))
+            if status is None:
+                return unknown("unrecognized_broker_order_state")
+            initial = float(getattr(order, "volume_initial", 0.0) or 0.0)
+            remaining = float(getattr(order, "volume_current", 0.0) or 0.0)
+            filled = initial if status == "filled" else max(0.0, min(initial, initial - remaining))
+            return BrokerOrderResponse(ok=True, status=status, broker_order_id=str(ticket), fill_qty=filled)
+        except Exception as exc:
+            return unknown(f"broker_query_failed:{type(exc).__name__}")
 
     def list_open_orders(self) -> list[dict[str, Any]]:
         if mt5.terminal_info() is None and not mt5.initialize():
@@ -116,5 +189,27 @@ class MT5BrokerAdapter(BrokerAdapter):
                     "comment": str(getattr(pos, "comment", "") or ""),
                 }
             )
+        pending = mt5.orders_get(symbol=self._executor.settings.symbol)
+        if pending is None:
+            raise RuntimeError(f"mt5_orders_get_failed:{mt5.last_error()}")
+        seen = {row["broker_order_id"] for row in out}
+        buy_types = {mt5.ORDER_TYPE_BUY, mt5.ORDER_TYPE_BUY_LIMIT, mt5.ORDER_TYPE_BUY_STOP, mt5.ORDER_TYPE_BUY_STOP_LIMIT}
+        for order in pending:
+            ticket = str(getattr(order, "ticket", "") or "")
+            if ticket in seen:
+                continue
+            out.append({
+                "broker_order_id": ticket,
+                "instrument": str(getattr(order, "symbol", self._executor.settings.symbol)),
+                "side": "buy" if int(order.type) in buy_types else "sell",
+                "size": float(getattr(order, "volume_current", 0.0) or 0.0),
+                "status": "submitted",
+                "profit": 0.0,
+                "sl": float(getattr(order, "sl", 0.0) or 0.0),
+                "tp": float(getattr(order, "tp", 0.0) or 0.0),
+                "magic": int(getattr(order, "magic", 0) or 0),
+                "comment": str(getattr(order, "comment", "") or ""),
+            })
+            seen.add(ticket)
         return out
 

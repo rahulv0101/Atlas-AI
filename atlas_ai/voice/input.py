@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import queue
 import warnings
 from dataclasses import dataclass
@@ -34,7 +35,7 @@ class SpeechInput:
         self._resample_state = None
         self._model = Model(str(model_path))
         self._recognizer = KaldiRecognizer(self._model, float(self._target_sample_rate))
-        self._recognizer.SetWords(False)
+        self._recognizer.SetWords(True)
         self._queue: queue.Queue[bytes] = queue.Queue()
         try:
             self._stream = sd.RawInputStream(
@@ -51,7 +52,7 @@ class SpeechInput:
             self._device = default_device
             self._sample_rate = int(float(info["default_samplerate"]))
             self._recognizer = KaldiRecognizer(self._model, float(self._target_sample_rate))
-            self._recognizer.SetWords(False)
+            self._recognizer.SetWords(True)
             self._stream = sd.RawInputStream(
                 samplerate=self._sample_rate,
                 blocksize=self.config.audio_block_size,
@@ -116,7 +117,10 @@ class SpeechInput:
                 vals = []
                 for row in words:
                     try:
-                        vals.append(float(row.get("conf", 0.0) or 0.0))
+                        value = float(row.get("conf", 0.0) or 0.0)
+                        if not math.isfinite(value) or not 0.0 <= value <= 1.0:
+                            return text, 0.0
+                        vals.append(value)
                     except Exception:
                         continue
                 if vals:

@@ -1,0 +1,77 @@
+{
+  "captured_at": "2026-11-05T05:52:14.243606+00:00",
+  "since_utc": "2026-11-05T05:41:28",
+  "scope": "Current journal only; logged status records are not distinct market opportunities.",
+  "first": "2026-11-05T05:42:11.049127+00:00",
+  "last": "2026-11-05T05:51:14.648484+00:00",
+  "actions": {
+    "hold": 5,
+    "blocked": 4
+  },
+  "messages": {
+    "No directional trade signal selected.": 3,
+    "No high-confidence trade found.": 2,
+    "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, and strong/turning M1 momentum missing (location=consolidation, momentum=weak, session=asia).": 1,
+    "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, and visual confirmation missing (location=mid_range, momentum=strong, session=asia).": 1,
+    "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M1 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=asia).": 1,
+    "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M1 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=asia).": 1
+  },
+  "timing_missing_counts": {
+    "tradable_location": 9,
+    "strong_or_turning_m1_momentum": 8,
+    "visual_confirmation": 6,
+    "visual_tradable_location": 3
+  },
+  "malformed_lines": 0,
+  "latest_examples": [
+    {
+      "time": "2026-11-05T05:45:35.965005+00:00",
+      "type": "risk",
+      "action": "blocked",
+      "message": "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, and strong/turning M1 momentum missing (location=consolidation, momentum=weak, session=asia).",
+      "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)",
+      "side": "sell"
+    },
+    {
+      "time": "2026-11-05T05:46:42.408904+00:00",
+      "type": "decision",
+      "action": "hold",
+      "message": "No high-confidence trade found.",
+      "strategy": "momentum_continuation",
+      "side": "flat"
+    },
+    {
+      "time": "2026-11-05T05:47:51.872787+00:00",
+      "type": "risk",
+      "action": "blocked",
+      "message": "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, and visual confirmation missing (location=mid_range, momentum=strong, session=asia).",
+      "strategy": "momentum_continuation",
+      "side": "sell"
+    },
+    {
+      "time": "2026-11-05T05:48:59.229261+00:00",
+      "type": "decision",
+      "action": "hold",
+      "message": "No directional trade signal selected.",
+      "strategy": "momentum_continuation",
+      "side": "flat"
+    },
+    {
+      "time": "2026-11-05T05:50:06.694704+00:00",
+      "type": "risk",
+      "action": "blocked",
+      "message": "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M1 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=asia).",
+      "strategy": "momentum_continuation",
+      "side": "sell"
+    },
+    {
+      "time": "2026-11-05T05:51:14.648484+00:00",
+      "type": "risk",
+      "action": "blocked",
+      "message": "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M1 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=asia).",
+      "strategy": "momentum_continuation",
+      "side": "sell"
+    }
+  ],
+  "orders_forced_by_audit": 0
+}

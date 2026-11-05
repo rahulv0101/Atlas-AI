@@ -693,6 +693,7 @@ def _run_launch_cycle(config: AtlasWakeConfig, attempt_index: int = 1, max_attem
                 "checked_at": datetime.now(timezone.utc).isoformat(),
                 "launch_profile": str(config.launch_profile or "").strip().lower(),
                 "overall_result": "FAILED",
+                "overall_reason": "invalid_launch_configuration",
                 "failure_reason": command_validation.detail,
             },
         }
@@ -767,6 +768,10 @@ def run_full_launch(config: AtlasWakeConfig | None = None) -> dict[str, Any]:
         overall_reason = str(dict(summary.get("health", {}) or {}).get("overall_reason", "") or "")
         if overall in {"SUCCESS", "DEGRADED"}:
             break
+        if overall_reason == "invalid_launch_configuration":
+            # No component was started. Retrying or cleaning up here can stop
+            # an unrelated, already running terminal/backend.
+            break
         if attempt_index >= max_attempts:
             break
         logging.error(
@@ -789,7 +794,7 @@ def run_full_launch(config: AtlasWakeConfig | None = None) -> dict[str, Any]:
         time.sleep(2.0)
     final = dict(attempts[-1] if attempts else {})
     final_overall = str(dict(final.get("health", {}) or {}).get("overall_result", "") or "")
-    if final_overall == "FAILED":
+    if final_overall == "FAILED" and dict(final.get("health", {}) or {}).get("overall_reason") != "invalid_launch_configuration":
         final_reason = str(dict(final.get("health", {}) or {}).get("overall_reason", "") or "")
         logging.error(
             "Atlas wake final result unhealthy (result=%s reason=%s). Running final cleanup shutdown.",

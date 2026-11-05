@@ -1,0 +1,1127 @@
+{
+  "source_artifact": "storage\\recovered_history\\broker_fills_20261105T103238Z.json",
+  "source": "Actual historical broker fills, exact current symbol/magic matches",
+  "completed_position_groups": 158,
+  "incomplete_or_reversal_groups_excluded": 0,
+  "wins": 49,
+  "losses": 109,
+  "draws": 0,
+  "win_rate": 0.310126582278481,
+  "profit_factor": 0.6970232045237883,
+  "net_profit_total": -131593.99,
+  "closed_positions": [
+    {
+      "position_id": 88657500,
+      "opened_utc": "2026-03-30T16:26:46+00:00",
+      "closed_utc": "2026-03-30T16:27:02+00:00",
+      "fill_legs": 2,
+      "net_profit": -4928.65
+    },
+    {
+      "position_id": 88659277,
+      "opened_utc": "2026-03-30T16:30:31+00:00",
+      "closed_utc": "2026-03-30T16:30:59+00:00",
+      "fill_legs": 2,
+      "net_profit": 5006.61
+    },
+    {
+      "position_id": 88662457,
+      "opened_utc": "2026-03-30T16:40:00+00:00",
+      "closed_utc": "2026-03-30T16:40:01+00:00",
+      "fill_legs": 2,
+      "net_profit": -5236.71
+    },
+    {
+      "position_id": 88663848,
+      "opened_utc": "2026-03-30T16:43:29+00:00",
+      "closed_utc": "2026-03-30T16:44:20+00:00",
+      "fill_legs": 2,
+      "net_profit": 6816.48
+    },
+    {
+      "position_id": 88664146,
+      "opened_utc": "2026-03-30T16:44:42+00:00",
+      "closed_utc": "2026-03-30T16:44:51+00:00",
+      "fill_legs": 2,
+      "net_profit": -4989.14
+    },
+    {
+      "position_id": 88698865,
+      "opened_utc": "2026-03-30T17:29:10+00:00",
+      "closed_utc": "2026-03-30T17:29:59+00:00",
+      "fill_legs": 2,
+      "net_profit": 7957.48
+    },
+    {
+      "position_id": 88720834,
+      "opened_utc": "2026-03-30T17:44:25+00:00",
+      "closed_utc": "2026-03-30T17:46:05+00:00",
+      "fill_legs": 2,
+      "net_profit": 8032.99
+    },
+    {
+      "position_id": 88721959,
+      "opened_utc": "2026-03-30T17:45:34+00:00",
+      "closed_utc": "2026-03-30T17:45:53+00:00",
+      "fill_legs": 2,
+      "net_profit": -4960.52
+    },
+    {
+      "position_id": 88723234,
+      "opened_utc": "2026-03-30T17:46:43+00:00",
+      "closed_utc": "2026-03-30T17:46:48+00:00",
+      "fill_legs": 2,
+      "net_profit": -5376.97
+    },
+    {
+      "position_id": 88731893,
+      "opened_utc": "2026-03-30T17:53:37+00:00",
+      "closed_utc": "2026-03-30T17:54:31+00:00",
+      "fill_legs": 2,
+      "net_profit": 8255.4
+    },
+    {
+      "position_id": 88745264,
+      "opened_utc": "2026-03-30T18:04:24+00:00",
+      "closed_utc": "2026-03-30T18:04:47+00:00",
+      "fill_legs": 2,
+      "net_profit": 7919.7
+    },
+    {
+      "position_id": 88746994,
+      "opened_utc": "2026-03-30T18:05:45+00:00",
+      "closed_utc": "2026-03-30T18:05:49+00:00",
+      "fill_legs": 2,
+      "net_profit": -2006.67
+    },
+    {
+      "position_id": 88750037,
+      "opened_utc": "2026-03-30T18:08:29+00:00",
+      "closed_utc": "2026-03-30T18:08:30+00:00",
+      "fill_legs": 2,
+      "net_profit": -5018.33
+    },
+    {
+      "position_id": 88753151,
+      "opened_utc": "2026-03-30T18:11:09+00:00",
+      "closed_utc": "2026-03-30T18:11:37+00:00",
+      "fill_legs": 2,
+      "net_profit": -5681.16
+    },
+    {
+      "position_id": 88754325,
+      "opened_utc": "2026-03-30T18:12:26+00:00",
+      "closed_utc": "2026-03-30T18:12:29+00:00",
+      "fill_legs": 2,
+      "net_profit": -4967.13
+    },
+    {
+      "position_id": 88770638,
+      "opened_utc": "2026-03-30T18:31:35+00:00",
+      "closed_utc": "2026-03-30T18:32:09+00:00",
+      "fill_legs": 2,
+      "net_profit": 6748.25
+    },
+    {
+      "position_id": 88773017,
+      "opened_utc": "2026-03-30T18:39:30+00:00",
+      "closed_utc": "2026-03-30T18:40:10+00:00",
+      "fill_legs": 2,
+      "net_profit": -5360.8
+    },
+    {
+      "position_id": 88773349,
+      "opened_utc": "2026-03-30T18:40:51+00:00",
+      "closed_utc": "2026-03-30T18:40:59+00:00",
+      "fill_legs": 2,
+      "net_profit": -4945.76
+    },
+    {
+      "position_id": 88773559,
+      "opened_utc": "2026-03-30T18:42:19+00:00",
+      "closed_utc": "2026-03-30T18:42:37+00:00",
+      "fill_legs": 2,
+      "net_profit": 7904.38
+    },
+    {
+      "position_id": 88773992,
+      "opened_utc": "2026-03-30T18:44:53+00:00",
+      "closed_utc": "2026-03-30T18:45:01+00:00",
+      "fill_legs": 2,
+      "net_profit": -5061.49
+    },
+    {
+      "position_id": 88774299,
+      "opened_utc": "2026-03-30T18:46:15+00:00",
+      "closed_utc": "2026-03-30T18:49:05+00:00",
+      "fill_legs": 2,
+      "net_profit": -4976.12
+    },
+    {
+      "position_id": 90117939,
+      "opened_utc": "2026-04-02T07:32:41+00:00",
+      "closed_utc": "2026-04-02T07:32:46+00:00",
+      "fill_legs": 2,
+      "net_profit": -4915.93
+    },
+    {
+      "position_id": 90118623,
+      "opened_utc": "2026-04-02T07:33:50+00:00",
+      "closed_utc": "2026-04-02T07:34:10+00:00",
+      "fill_legs": 2,
+      "net_profit": -4889.24
+    },
+    {
+      "position_id": 90119509,
+      "opened_utc": "2026-04-02T07:35:05+00:00",
+      "closed_utc": "2026-04-02T07:35:09+00:00",
+      "fill_legs": 2,
+      "net_profit": 6835.46
+    },
+    {
+      "position_id": 90120004,
+      "opened_utc": "2026-04-02T07:36:23+00:00",
+      "closed_utc": "2026-04-02T07:36:43+00:00",
+      "fill_legs": 2,
+      "net_profit": -4979.67
+    },
+    {
+      "position_id": 90120658,
+      "opened_utc": "2026-04-02T07:37:40+00:00",
+      "closed_utc": "2026-04-02T07:37:58+00:00",
+      "fill_legs": 2,
+      "net_profit": 6903.9
+    },
+    {
+      "position_id": 90120954,
+      "opened_utc": "2026-04-02T07:39:04+00:00",
+      "closed_utc": "2026-04-02T07:39:12+00:00",
+      "fill_legs": 2,
+      "net_profit": -4904.46
+    },
+    {
+      "position_id": 90121426,
+      "opened_utc": "2026-04-02T07:40:22+00:00",
+      "closed_utc": "2026-04-02T07:40:59+00:00",
+      "fill_legs": 2,
+      "net_profit": -4839.97
+    },
+    {
+      "position_id": 90121848,
+      "opened_utc": "2026-04-02T07:41:38+00:00",
+      "closed_utc": "2026-04-02T07:41:40+00:00",
+      "fill_legs": 2,
+      "net_profit": -3046.34
+    },
+    {
+      "position_id": 90122360,
+      "opened_utc": "2026-04-02T07:42:57+00:00",
+      "closed_utc": "2026-04-02T07:43:05+00:00",
+      "fill_legs": 2,
+      "net_profit": 7256.58
+    },
+    {
+      "position_id": 90122669,
+      "opened_utc": "2026-04-02T07:44:19+00:00",
+      "closed_utc": "2026-04-02T07:44:23+00:00",
+      "fill_legs": 2,
+      "net_profit": -3753.23
+    },
+    {
+      "position_id": 90122986,
+      "opened_utc": "2026-04-02T07:45:41+00:00",
+      "closed_utc": "2026-04-02T07:46:00+00:00",
+      "fill_legs": 2,
+      "net_profit": -5192.64
+    },
+    {
+      "position_id": 90123179,
+      "opened_utc": "2026-04-02T07:47:01+00:00",
+      "closed_utc": "2026-04-02T07:47:07+00:00",
+      "fill_legs": 2,
+      "net_profit": -3965.37
+    },
+    {
+      "position_id": 90123840,
+      "opened_utc": "2026-04-02T07:48:21+00:00",
+      "closed_utc": "2026-04-02T07:48:25+00:00",
+      "fill_legs": 2,
+      "net_profit": 7221.34
+    },
+    {
+      "position_id": 90124584,
+      "opened_utc": "2026-04-02T07:49:39+00:00",
+      "closed_utc": "2026-04-02T07:49:47+00:00",
+      "fill_legs": 2,
+      "net_profit": -4800.78
+    },
+    {
+      "position_id": 90125096,
+      "opened_utc": "2026-04-02T07:50:56+00:00",
+      "closed_utc": "2026-04-02T07:51:11+00:00",
+      "fill_legs": 2,
+      "net_profit": -4818.34
+    },
+    {
+      "position_id": 90125520,
+      "opened_utc": "2026-04-02T07:52:13+00:00",
+      "closed_utc": "2026-04-02T07:52:14+00:00",
+      "fill_legs": 2,
+      "net_profit": -3600.92
+    },
+    {
+      "position_id": 90125976,
+      "opened_utc": "2026-04-02T07:53:34+00:00",
+      "closed_utc": "2026-04-02T07:53:38+00:00",
+      "fill_legs": 2,
+      "net_profit": -4783.01
+    },
+    {
+      "position_id": 90126345,
+      "opened_utc": "2026-04-02T07:54:50+00:00",
+      "closed_utc": "2026-04-02T07:55:05+00:00",
+      "fill_legs": 2,
+      "net_profit": -5318.15
+    },
+    {
+      "position_id": 90126584,
+      "opened_utc": "2026-04-02T07:56:09+00:00",
+      "closed_utc": "2026-04-02T07:58:26+00:00",
+      "fill_legs": 2,
+      "net_profit": -4304.95
+    },
+    {
+      "position_id": 90126840,
+      "opened_utc": "2026-04-02T07:57:28+00:00",
+      "closed_utc": "2026-04-02T07:57:32+00:00",
+      "fill_legs": 2,
+      "net_profit": -4747.42
+    },
+    {
+      "position_id": 90134242,
+      "opened_utc": "2026-04-02T08:14:59+00:00",
+      "closed_utc": "2026-04-02T08:15:10+00:00",
+      "fill_legs": 2,
+      "net_profit": -4586.18
+    },
+    {
+      "position_id": 90135996,
+      "opened_utc": "2026-04-02T08:18:52+00:00",
+      "closed_utc": "2026-04-02T08:19:00+00:00",
+      "fill_legs": 2,
+      "net_profit": -5384.2
+    },
+    {
+      "position_id": 90136520,
+      "opened_utc": "2026-04-02T08:20:13+00:00",
+      "closed_utc": "2026-04-02T08:20:33+00:00",
+      "fill_legs": 2,
+      "net_profit": -5046.94
+    },
+    {
+      "position_id": 90145155,
+      "opened_utc": "2026-04-02T08:45:06+00:00",
+      "closed_utc": "2026-04-02T08:45:24+00:00",
+      "fill_legs": 2,
+      "net_profit": 7114.83
+    },
+    {
+      "position_id": 90147462,
+      "opened_utc": "2026-04-02T08:49:24+00:00",
+      "closed_utc": "2026-04-02T08:49:43+00:00",
+      "fill_legs": 2,
+      "net_profit": 7173.56
+    },
+    {
+      "position_id": 90147677,
+      "opened_utc": "2026-04-02T08:49:58+00:00",
+      "closed_utc": "2026-04-02T08:50:00+00:00",
+      "fill_legs": 2,
+      "net_profit": -4682.29
+    },
+    {
+      "position_id": 90147843,
+      "opened_utc": "2026-04-02T08:50:16+00:00",
+      "closed_utc": "2026-04-02T08:50:30+00:00",
+      "fill_legs": 2,
+      "net_profit": 7205.46
+    },
+    {
+      "position_id": 90147935,
+      "opened_utc": "2026-04-02T08:50:33+00:00",
+      "closed_utc": "2026-04-02T08:50:35+00:00",
+      "fill_legs": 2,
+      "net_profit": -4616.6
+    },
+    {
+      "position_id": 90147993,
+      "opened_utc": "2026-04-02T08:50:50+00:00",
+      "closed_utc": "2026-04-02T08:50:52+00:00",
+      "fill_legs": 2,
+      "net_profit": -5910.77
+    },
+    {
+      "position_id": 90148077,
+      "opened_utc": "2026-04-02T08:51:07+00:00",
+      "closed_utc": "2026-04-02T08:51:14+00:00",
+      "fill_legs": 2,
+      "net_profit": 7213.0
+    },
+    {
+      "position_id": 90148198,
+      "opened_utc": "2026-04-02T08:51:24+00:00",
+      "closed_utc": "2026-04-02T08:51:47+00:00",
+      "fill_legs": 2,
+      "net_profit": -6939.45
+    },
+    {
+      "position_id": 90148270,
+      "opened_utc": "2026-04-02T08:51:41+00:00",
+      "closed_utc": "2026-04-02T08:51:47+00:00",
+      "fill_legs": 2,
+      "net_profit": -4664.41
+    },
+    {
+      "position_id": 90148336,
+      "opened_utc": "2026-04-02T08:51:58+00:00",
+      "closed_utc": "2026-04-02T08:53:16+00:00",
+      "fill_legs": 2,
+      "net_profit": 6993.31
+    },
+    {
+      "position_id": 90148412,
+      "opened_utc": "2026-04-02T08:52:15+00:00",
+      "closed_utc": "2026-04-02T08:53:16+00:00",
+      "fill_legs": 2,
+      "net_profit": 6532.68
+    },
+    {
+      "position_id": 90148602,
+      "opened_utc": "2026-04-02T08:53:20+00:00",
+      "closed_utc": "2026-04-02T08:53:27+00:00",
+      "fill_legs": 2,
+      "net_profit": 7490.01
+    },
+    {
+      "position_id": 90148702,
+      "opened_utc": "2026-04-02T08:53:37+00:00",
+      "closed_utc": "2026-04-02T08:54:25+00:00",
+      "fill_legs": 2,
+      "net_profit": -4718.92
+    },
+    {
+      "position_id": 90148828,
+      "opened_utc": "2026-04-02T08:53:55+00:00",
+      "closed_utc": "2026-04-02T08:53:58+00:00",
+      "fill_legs": 2,
+      "net_profit": -4719.73
+    },
+    {
+      "position_id": 90149232,
+      "opened_utc": "2026-04-02T08:55:28+00:00",
+      "closed_utc": "2026-04-02T08:56:07+00:00",
+      "fill_legs": 2,
+      "net_profit": 7048.84
+    },
+    {
+      "position_id": 90149474,
+      "opened_utc": "2026-04-02T08:56:00+00:00",
+      "closed_utc": "2026-04-02T08:56:09+00:00",
+      "fill_legs": 2,
+      "net_profit": -4704.92
+    },
+    {
+      "position_id": 90149636,
+      "opened_utc": "2026-04-02T08:56:17+00:00",
+      "closed_utc": "2026-04-02T08:56:18+00:00",
+      "fill_legs": 2,
+      "net_profit": -4686.74
+    },
+    {
+      "position_id": 90149775,
+      "opened_utc": "2026-04-02T08:56:34+00:00",
+      "closed_utc": "2026-04-02T08:57:07+00:00",
+      "fill_legs": 2,
+      "net_profit": 7208.85
+    },
+    {
+      "position_id": 90149851,
+      "opened_utc": "2026-04-02T08:56:50+00:00",
+      "closed_utc": "2026-04-02T08:57:20+00:00",
+      "fill_legs": 2,
+      "net_profit": 6784.4
+    },
+    {
+      "position_id": 90150291,
+      "opened_utc": "2026-04-02T08:57:22+00:00",
+      "closed_utc": "2026-04-02T08:58:13+00:00",
+      "fill_legs": 2,
+      "net_profit": 6996.74
+    },
+    {
+      "position_id": 90150428,
+      "opened_utc": "2026-04-02T08:57:38+00:00",
+      "closed_utc": "2026-04-02T08:58:13+00:00",
+      "fill_legs": 2,
+      "net_profit": 7914.82
+    },
+    {
+      "position_id": 90151031,
+      "opened_utc": "2026-04-02T08:58:26+00:00",
+      "closed_utc": "2026-04-02T08:58:29+00:00",
+      "fill_legs": 2,
+      "net_profit": -4631.0
+    },
+    {
+      "position_id": 90151220,
+      "opened_utc": "2026-04-02T08:58:43+00:00",
+      "closed_utc": "2026-04-02T08:59:37+00:00",
+      "fill_legs": 2,
+      "net_profit": 7046.95
+    },
+    {
+      "position_id": 90151437,
+      "opened_utc": "2026-04-02T08:59:00+00:00",
+      "closed_utc": "2026-04-02T08:59:37+00:00",
+      "fill_legs": 2,
+      "net_profit": 5546.63
+    },
+    {
+      "position_id": 90151798,
+      "opened_utc": "2026-04-02T08:59:40+00:00",
+      "closed_utc": "2026-04-02T08:59:53+00:00",
+      "fill_legs": 2,
+      "net_profit": -4662.99
+    },
+    {
+      "position_id": 90152191,
+      "opened_utc": "2026-04-02T09:00:04+00:00",
+      "closed_utc": "2026-04-02T09:00:09+00:00",
+      "fill_legs": 2,
+      "net_profit": 6296.44
+    },
+    {
+      "position_id": 90152523,
+      "opened_utc": "2026-04-02T09:00:26+00:00",
+      "closed_utc": "2026-04-02T09:00:40+00:00",
+      "fill_legs": 2,
+      "net_profit": -4863.08
+    },
+    {
+      "position_id": 90152839,
+      "opened_utc": "2026-04-02T09:00:47+00:00",
+      "closed_utc": "2026-04-02T09:00:48+00:00",
+      "fill_legs": 2,
+      "net_profit": -4827.96
+    },
+    {
+      "position_id": 90153148,
+      "opened_utc": "2026-04-02T09:01:10+00:00",
+      "closed_utc": "2026-04-02T09:01:28+00:00",
+      "fill_legs": 2,
+      "net_profit": -4811.53
+    },
+    {
+      "position_id": 90153421,
+      "opened_utc": "2026-04-02T09:01:30+00:00",
+      "closed_utc": "2026-04-02T09:01:37+00:00",
+      "fill_legs": 2,
+      "net_profit": -4793.66
+    },
+    {
+      "position_id": 90153667,
+      "opened_utc": "2026-04-02T09:01:50+00:00",
+      "closed_utc": "2026-04-02T09:01:54+00:00",
+      "fill_legs": 2,
+      "net_profit": -4760.28
+    },
+    {
+      "position_id": 90154180,
+      "opened_utc": "2026-04-02T09:02:18+00:00",
+      "closed_utc": "2026-04-02T09:02:24+00:00",
+      "fill_legs": 2,
+      "net_profit": -4018.57
+    },
+    {
+      "position_id": 90154480,
+      "opened_utc": "2026-04-02T09:02:36+00:00",
+      "closed_utc": "2026-04-02T09:02:37+00:00",
+      "fill_legs": 2,
+      "net_profit": -4767.86
+    },
+    {
+      "position_id": 90154637,
+      "opened_utc": "2026-04-02T09:02:53+00:00",
+      "closed_utc": "2026-04-02T09:03:07+00:00",
+      "fill_legs": 2,
+      "net_profit": -4687.16
+    },
+    {
+      "position_id": 90154855,
+      "opened_utc": "2026-04-02T09:03:10+00:00",
+      "closed_utc": "2026-04-02T09:03:25+00:00",
+      "fill_legs": 2,
+      "net_profit": -4536.45
+    },
+    {
+      "position_id": 90157828,
+      "opened_utc": "2026-04-02T09:10:45+00:00",
+      "closed_utc": "2026-04-02T09:10:47+00:00",
+      "fill_legs": 2,
+      "net_profit": -4639.08
+    },
+    {
+      "position_id": 90158898,
+      "opened_utc": "2026-04-02T09:14:08+00:00",
+      "closed_utc": "2026-04-02T09:14:23+00:00",
+      "fill_legs": 2,
+      "net_profit": 6628.14
+    },
+    {
+      "position_id": 90159972,
+      "opened_utc": "2026-04-02T09:17:24+00:00",
+      "closed_utc": "2026-04-02T09:17:34+00:00",
+      "fill_legs": 2,
+      "net_profit": -6692.59
+    },
+    {
+      "position_id": 90160695,
+      "opened_utc": "2026-04-02T09:20:31+00:00",
+      "closed_utc": "2026-04-02T09:21:16+00:00",
+      "fill_legs": 2,
+      "net_profit": 7043.02
+    },
+    {
+      "position_id": 90161629,
+      "opened_utc": "2026-04-02T09:23:33+00:00",
+      "closed_utc": "2026-04-02T09:23:52+00:00",
+      "fill_legs": 2,
+      "net_profit": -4652.88
+    },
+    {
+      "position_id": 90162577,
+      "opened_utc": "2026-04-02T09:26:44+00:00",
+      "closed_utc": "2026-04-02T09:26:53+00:00",
+      "fill_legs": 2,
+      "net_profit": -4796.3
+    },
+    {
+      "position_id": 90163923,
+      "opened_utc": "2026-04-02T09:29:57+00:00",
+      "closed_utc": "2026-04-02T09:29:58+00:00",
+      "fill_legs": 2,
+      "net_profit": -5072.98
+    },
+    {
+      "position_id": 90165651,
+      "opened_utc": "2026-04-02T09:33:16+00:00",
+      "closed_utc": "2026-04-02T09:33:24+00:00",
+      "fill_legs": 2,
+      "net_profit": -4592.46
+    },
+    {
+      "position_id": 90166972,
+      "opened_utc": "2026-04-02T09:36:32+00:00",
+      "closed_utc": "2026-04-02T09:37:17+00:00",
+      "fill_legs": 2,
+      "net_profit": 6949.55
+    },
+    {
+      "position_id": 90167688,
+      "opened_utc": "2026-04-02T09:39:42+00:00",
+      "closed_utc": "2026-04-02T09:39:45+00:00",
+      "fill_legs": 2,
+      "net_profit": -4599.44
+    },
+    {
+      "position_id": 90168360,
+      "opened_utc": "2026-04-02T09:42:54+00:00",
+      "closed_utc": "2026-04-02T09:43:00+00:00",
+      "fill_legs": 2,
+      "net_profit": -4703.14
+    },
+    {
+      "position_id": 90169873,
+      "opened_utc": "2026-04-02T09:47:41+00:00",
+      "closed_utc": "2026-04-02T09:48:09+00:00",
+      "fill_legs": 2,
+      "net_profit": -4549.89
+    },
+    {
+      "position_id": 90208839,
+      "opened_utc": "2026-04-02T11:32:58+00:00",
+      "closed_utc": "2026-04-02T11:33:00+00:00",
+      "fill_legs": 2,
+      "net_profit": -1481.52
+    },
+    {
+      "position_id": 90211961,
+      "opened_utc": "2026-04-02T11:40:02+00:00",
+      "closed_utc": "2026-04-02T11:40:20+00:00",
+      "fill_legs": 2,
+      "net_profit": 6452.58
+    },
+    {
+      "position_id": 90214546,
+      "opened_utc": "2026-04-02T11:42:31+00:00",
+      "closed_utc": "2026-04-02T11:42:44+00:00",
+      "fill_legs": 2,
+      "net_profit": 6707.67
+    },
+    {
+      "position_id": 90240864,
+      "opened_utc": "2026-04-02T12:24:33+00:00",
+      "closed_utc": "2026-04-02T12:24:34+00:00",
+      "fill_legs": 2,
+      "net_profit": -4209.27
+    },
+    {
+      "position_id": 90297838,
+      "opened_utc": "2026-04-02T13:54:02+00:00",
+      "closed_utc": "2026-04-02T13:54:03+00:00",
+      "fill_legs": 2,
+      "net_profit": -4475.78
+    },
+    {
+      "position_id": 90320838,
+      "opened_utc": "2026-04-02T14:23:46+00:00",
+      "closed_utc": "2026-04-02T14:23:47+00:00",
+      "fill_legs": 2,
+      "net_profit": -4236.91
+    },
+    {
+      "position_id": 90349314,
+      "opened_utc": "2026-04-02T14:57:46+00:00",
+      "closed_utc": "2026-04-02T14:57:51+00:00",
+      "fill_legs": 2,
+      "net_profit": 6165.12
+    },
+    {
+      "position_id": 90349589,
+      "opened_utc": "2026-04-02T14:58:52+00:00",
+      "closed_utc": "2026-04-02T14:58:57+00:00",
+      "fill_legs": 2,
+      "net_profit": -3684.31
+    },
+    {
+      "position_id": 90349757,
+      "opened_utc": "2026-04-02T14:59:54+00:00",
+      "closed_utc": "2026-04-02T15:00:03+00:00",
+      "fill_legs": 2,
+      "net_profit": 5835.48
+    },
+    {
+      "position_id": 90350015,
+      "opened_utc": "2026-04-02T15:00:57+00:00",
+      "closed_utc": "2026-04-02T15:00:58+00:00",
+      "fill_legs": 2,
+      "net_profit": -3730.03
+    },
+    {
+      "position_id": 90350280,
+      "opened_utc": "2026-04-02T15:01:58+00:00",
+      "closed_utc": "2026-04-02T15:02:03+00:00",
+      "fill_legs": 2,
+      "net_profit": -3838.78
+    },
+    {
+      "position_id": 90351740,
+      "opened_utc": "2026-04-02T15:06:13+00:00",
+      "closed_utc": "2026-04-02T15:06:17+00:00",
+      "fill_legs": 2,
+      "net_profit": 6095.63
+    },
+    {
+      "position_id": 90352118,
+      "opened_utc": "2026-04-02T15:07:16+00:00",
+      "closed_utc": "2026-04-02T15:07:22+00:00",
+      "fill_legs": 2,
+      "net_profit": -4734.22
+    },
+    {
+      "position_id": 90352414,
+      "opened_utc": "2026-04-02T15:08:20+00:00",
+      "closed_utc": "2026-04-02T15:08:22+00:00",
+      "fill_legs": 2,
+      "net_profit": -5006.49
+    },
+    {
+      "position_id": 90352991,
+      "opened_utc": "2026-04-02T15:09:26+00:00",
+      "closed_utc": "2026-04-02T15:09:48+00:00",
+      "fill_legs": 2,
+      "net_profit": 5773.28
+    },
+    {
+      "position_id": 90353397,
+      "opened_utc": "2026-04-02T15:10:30+00:00",
+      "closed_utc": "2026-04-02T15:10:39+00:00",
+      "fill_legs": 2,
+      "net_profit": -2587.13
+    },
+    {
+      "position_id": 90354268,
+      "opened_utc": "2026-04-02T15:11:33+00:00",
+      "closed_utc": "2026-04-02T15:11:53+00:00",
+      "fill_legs": 2,
+      "net_profit": -3586.35
+    },
+    {
+      "position_id": 90354976,
+      "opened_utc": "2026-04-02T15:12:37+00:00",
+      "closed_utc": "2026-04-02T15:12:43+00:00",
+      "fill_legs": 2,
+      "net_profit": -4029.36
+    },
+    {
+      "position_id": 90355587,
+      "opened_utc": "2026-04-02T15:13:40+00:00",
+      "closed_utc": "2026-04-02T15:13:59+00:00",
+      "fill_legs": 2,
+      "net_profit": -4466.84
+    },
+    {
+      "position_id": 90356252,
+      "opened_utc": "2026-04-02T15:14:48+00:00",
+      "closed_utc": "2026-04-02T15:15:00+00:00",
+      "fill_legs": 2,
+      "net_profit": 7708.72
+    },
+    {
+      "position_id": 90357524,
+      "opened_utc": "2026-04-02T15:18:55+00:00",
+      "closed_utc": "2026-04-02T15:19:11+00:00",
+      "fill_legs": 2,
+      "net_profit": -4193.96
+    },
+    {
+      "position_id": 90359121,
+      "opened_utc": "2026-04-02T15:23:09+00:00",
+      "closed_utc": "2026-04-02T15:23:17+00:00",
+      "fill_legs": 2,
+      "net_profit": 3512.62
+    },
+    {
+      "position_id": 90365980,
+      "opened_utc": "2026-04-02T15:36:56+00:00",
+      "closed_utc": "2026-04-02T15:37:22+00:00",
+      "fill_legs": 2,
+      "net_profit": 5787.25
+    },
+    {
+      "position_id": 90386704,
+      "opened_utc": "2026-04-02T16:33:15+00:00",
+      "closed_utc": "2026-04-02T16:33:20+00:00",
+      "fill_legs": 2,
+      "net_profit": -4258.08
+    },
+    {
+      "position_id": 90387144,
+      "opened_utc": "2026-04-02T16:35:20+00:00",
+      "closed_utc": "2026-04-02T16:35:22+00:00",
+      "fill_legs": 2,
+      "net_profit": -4658.42
+    },
+    {
+      "position_id": 90401034,
+      "opened_utc": "2026-04-02T17:28:12+00:00",
+      "closed_utc": "2026-04-02T17:28:32+00:00",
+      "fill_legs": 2,
+      "net_profit": 6633.71
+    },
+    {
+      "position_id": 90404905,
+      "opened_utc": "2026-04-02T17:44:21+00:00",
+      "closed_utc": "2026-04-02T17:44:34+00:00",
+      "fill_legs": 2,
+      "net_profit": -4124.19
+    },
+    {
+      "position_id": 90405127,
+      "opened_utc": "2026-04-02T17:45:28+00:00",
+      "closed_utc": "2026-04-02T17:45:46+00:00",
+      "fill_legs": 2,
+      "net_profit": 6634.7
+    },
+    {
+      "position_id": 90407517,
+      "opened_utc": "2026-04-02T17:51:46+00:00",
+      "closed_utc": "2026-04-02T17:52:15+00:00",
+      "fill_legs": 2,
+      "net_profit": -4251.93
+    },
+    {
+      "position_id": 90408315,
+      "opened_utc": "2026-04-02T17:53:48+00:00",
+      "closed_utc": "2026-04-02T17:54:01+00:00",
+      "fill_legs": 2,
+      "net_profit": 6224.46
+    },
+    {
+      "position_id": 90408679,
+      "opened_utc": "2026-04-02T17:54:55+00:00",
+      "closed_utc": "2026-04-02T17:55:01+00:00",
+      "fill_legs": 2,
+      "net_profit": -4269.15
+    },
+    {
+      "position_id": 90408905,
+      "opened_utc": "2026-04-02T17:55:56+00:00",
+      "closed_utc": "2026-04-02T17:56:25+00:00",
+      "fill_legs": 2,
+      "net_profit": -4169.18
+    },
+    {
+      "position_id": 90409066,
+      "opened_utc": "2026-04-02T17:56:59+00:00",
+      "closed_utc": "2026-04-02T17:57:52+00:00",
+      "fill_legs": 2,
+      "net_profit": -5500.29
+    },
+    {
+      "position_id": 90409152,
+      "opened_utc": "2026-04-02T17:58:00+00:00",
+      "closed_utc": "2026-04-02T17:58:32+00:00",
+      "fill_legs": 2,
+      "net_profit": 4816.41
+    },
+    {
+      "position_id": 90409406,
+      "opened_utc": "2026-04-02T17:59:02+00:00",
+      "closed_utc": "2026-04-02T17:59:17+00:00",
+      "fill_legs": 2,
+      "net_profit": -4463.99
+    },
+    {
+      "position_id": 90412118,
+      "opened_utc": "2026-04-02T18:08:31+00:00",
+      "closed_utc": "2026-04-02T18:09:08+00:00",
+      "fill_legs": 2,
+      "net_profit": -4609.72
+    },
+    {
+      "position_id": 90412219,
+      "opened_utc": "2026-04-02T18:09:39+00:00",
+      "closed_utc": "2026-04-02T18:10:10+00:00",
+      "fill_legs": 2,
+      "net_profit": -4057.57
+    },
+    {
+      "position_id": 90412423,
+      "opened_utc": "2026-04-02T18:10:41+00:00",
+      "closed_utc": "2026-04-02T18:11:03+00:00",
+      "fill_legs": 2,
+      "net_profit": -3820.7
+    },
+    {
+      "position_id": 90415737,
+      "opened_utc": "2026-04-02T18:29:41+00:00",
+      "closed_utc": "2026-04-02T18:30:03+00:00",
+      "fill_legs": 2,
+      "net_profit": -4011.13
+    },
+    {
+      "position_id": 90416154,
+      "opened_utc": "2026-04-02T18:30:47+00:00",
+      "closed_utc": "2026-04-02T18:31:15+00:00",
+      "fill_legs": 2,
+      "net_profit": -4034.56
+    },
+    {
+      "position_id": 90421377,
+      "opened_utc": "2026-04-02T18:46:54+00:00",
+      "closed_utc": "2026-04-02T18:48:11+00:00",
+      "fill_legs": 2,
+      "net_profit": 5591.09
+    },
+    {
+      "position_id": 90423316,
+      "opened_utc": "2026-04-02T18:50:00+00:00",
+      "closed_utc": "2026-04-02T18:50:36+00:00",
+      "fill_legs": 2,
+      "net_profit": -4121.64
+    },
+    {
+      "position_id": 90428435,
+      "opened_utc": "2026-04-02T19:02:05+00:00",
+      "closed_utc": "2026-04-02T19:02:24+00:00",
+      "fill_legs": 2,
+      "net_profit": -4065.26
+    },
+    {
+      "position_id": 90430055,
+      "opened_utc": "2026-04-02T19:08:12+00:00",
+      "closed_utc": "2026-04-02T19:08:28+00:00",
+      "fill_legs": 2,
+      "net_profit": -4012.49
+    },
+    {
+      "position_id": 90431259,
+      "opened_utc": "2026-04-02T19:11:17+00:00",
+      "closed_utc": "2026-04-02T19:11:29+00:00",
+      "fill_legs": 2,
+      "net_profit": -3679.28
+    },
+    {
+      "position_id": 90433121,
+      "opened_utc": "2026-04-02T19:15:20+00:00",
+      "closed_utc": "2026-04-02T19:15:33+00:00",
+      "fill_legs": 2,
+      "net_profit": -3980.76
+    },
+    {
+      "position_id": 90433847,
+      "opened_utc": "2026-04-02T19:16:27+00:00",
+      "closed_utc": "2026-04-02T19:17:18+00:00",
+      "fill_legs": 2,
+      "net_profit": 6656.11
+    },
+    {
+      "position_id": 90434663,
+      "opened_utc": "2026-04-02T19:18:29+00:00",
+      "closed_utc": "2026-04-02T19:18:42+00:00",
+      "fill_legs": 2,
+      "net_profit": -3997.79
+    },
+    {
+      "position_id": 90450573,
+      "opened_utc": "2026-04-02T20:12:44+00:00",
+      "closed_utc": "2026-04-02T20:12:58+00:00",
+      "fill_legs": 2,
+      "net_profit": -3108.61
+    },
+    {
+      "position_id": 90450725,
+      "opened_utc": "2026-04-02T20:14:54+00:00",
+      "closed_utc": "2026-04-02T20:14:58+00:00",
+      "fill_legs": 2,
+      "net_profit": -3967.78
+    },
+    {
+      "position_id": 100627457,
+      "opened_utc": "2026-05-12T17:34:27+00:00",
+      "closed_utc": "2026-05-12T17:34:33+00:00",
+      "fill_legs": 2,
+      "net_profit": -16.87
+    },
+    {
+      "position_id": 100670696,
+      "opened_utc": "2026-05-12T19:31:07+00:00",
+      "closed_utc": "2026-05-12T19:31:56+00:00",
+      "fill_legs": 2,
+      "net_profit": 19.96
+    },
+    {
+      "position_id": 100916605,
+      "opened_utc": "2026-05-13T16:39:22+00:00",
+      "closed_utc": "2026-05-13T16:39:34+00:00",
+      "fill_legs": 2,
+      "net_profit": -17.23
+    },
+    {
+      "position_id": 100936324,
+      "opened_utc": "2026-05-13T18:10:18+00:00",
+      "closed_utc": "2026-05-13T18:13:01+00:00",
+      "fill_legs": 2,
+      "net_profit": -15.77
+    },
+    {
+      "position_id": 100951967,
+      "opened_utc": "2026-05-13T19:13:27+00:00",
+      "closed_utc": "2026-05-13T19:14:15+00:00",
+      "fill_legs": 2,
+      "net_profit": -16.42
+    },
+    {
+      "position_id": 101233394,
+      "opened_utc": "2026-05-14T19:20:55+00:00",
+      "closed_utc": "2026-05-14T19:29:57+00:00",
+      "fill_legs": 2,
+      "net_profit": 26.69
+    },
+    {
+      "position_id": 101329861,
+      "opened_utc": "2026-05-15T07:26:55+00:00",
+      "closed_utc": "2026-05-15T07:27:14+00:00",
+      "fill_legs": 2,
+      "net_profit": -15.61
+    },
+    {
+      "position_id": 101330222,
+      "opened_utc": "2026-05-15T07:27:57+00:00",
+      "closed_utc": "2026-05-15T07:28:05+00:00",
+      "fill_legs": 2,
+      "net_profit": 27.06
+    },
+    {
+      "position_id": 101354104,
+      "opened_utc": "2026-05-15T09:15:25+00:00",
+      "closed_utc": "2026-05-15T09:15:51+00:00",
+      "fill_legs": 2,
+      "net_profit": 28.53
+    },
+    {
+      "position_id": 101355465,
+      "opened_utc": "2026-05-15T09:17:27+00:00",
+      "closed_utc": "2026-05-15T09:18:19+00:00",
+      "fill_legs": 2,
+      "net_profit": -20.2
+    },
+    {
+      "position_id": 101427546,
+      "opened_utc": "2026-05-15T13:02:23+00:00",
+      "closed_utc": "2026-05-15T13:02:32+00:00",
+      "fill_legs": 2,
+      "net_profit": -18.01
+    },
+    {
+      "position_id": 101440001,
+      "opened_utc": "2026-05-15T13:37:43+00:00",
+      "closed_utc": "2026-05-15T13:38:03+00:00",
+      "fill_legs": 2,
+      "net_profit": -16.37
+    },
+    {
+      "position_id": 101469676,
+      "opened_utc": "2026-05-15T14:45:38+00:00",
+      "closed_utc": "2026-05-15T14:46:26+00:00",
+      "fill_legs": 2,
+      "net_profit": -16.17
+    },
+    {
+      "position_id": 101503413,
+      "opened_utc": "2026-05-15T17:24:56+00:00",
+      "closed_utc": "2026-05-15T17:25:01+00:00",
+      "fill_legs": 2,
+      "net_profit": -14.67
+    },
+    {
+      "position_id": 102053185,
+      "opened_utc": "2026-05-19T09:05:50+00:00",
+      "closed_utc": "2026-05-19T09:06:09+00:00",
+      "fill_legs": 2,
+      "net_profit": -14.14
+    },
+    {
+      "position_id": 102200847,
+      "opened_utc": "2026-05-19T16:06:59+00:00",
+      "closed_utc": "2026-05-19T16:07:21+00:00",
+      "fill_legs": 2,
+      "net_profit": -25.09
+    },
+    {
+      "position_id": 126024999,
+      "opened_utc": "2026-09-03T11:37:33+00:00",
+      "closed_utc": "2026-09-03T11:37:54+00:00",
+      "fill_legs": 2,
+      "net_profit": -16.52
+    }
+  ],
+  "current_strategy_profitability_proven": false,
+  "limitations": [
+    "Old broker fills may include diagnostic/manual trades sharing the Atlas magic.",
+    "Entry/exit fills do not prove current strategy, filter or management decisions.",
+    "Broker retention may omit earlier legs.",
+    "No performance parameters or live learning state were changed."
+  ]
+}

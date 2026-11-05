@@ -13,11 +13,11 @@
       "loss_pattern_state"
     ]
   },
-  "created_at": "2026-10-14T14:51:01.385039+00:00",
+  "created_at": "2026-11-05T13:20:42.661088+00:00",
   "metrics": {
     "correct_block_false_unlock_risk_count": 0,
     "false_unlock_risk_rate": 0.0,
-    "inconclusive_count": 685,
+    "inconclusive_count": 175,
     "missed_opportunity_capture_count": 0,
     "net_review_edge": 0.0,
     "opportunity_capture_rate": 0.0,
@@ -35,7 +35,7 @@
     "requires_operator_approval_for_any_candidate_rule": true,
     "shadow_review_only": true
   },
-  "samples": 685,
+  "samples": 175,
   "schema": "atlas_blocker_selectivity_replay_v1",
   "source_review": {
     "proposal": {
@@ -47,6 +47,6 @@
     },
     "review_priority": "medium"
   },
-  "target_blocker": "Risk guard active: Daily drawdown limit reached. No trade executed.",
+  "target_blocker": "Higher-timeframe alignment required: chosen=buy, htf_bias=sell.",
   "verdict": "collect_more_context"
 }

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from atlas_ai.windows_native import kernel32 as windows_kernel32
+
 import logging
 import os
 import subprocess
@@ -12,6 +14,7 @@ from typing import Any
 import MetaTrader5 as mt5
 
 from atlas_ai.config.settings import Settings
+from atlas_ai.execution.mt5_session import ensure_configured_session
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +85,7 @@ class HFMConnector:
                     f"and keep only one MT5 instance for this account. MT5 error: {last_error or mt5.last_error()}"
                 )
 
-            authorized = mt5.login(
+            authorized = ensure_configured_session(
                 login=self.settings.hfm_login,
                 password=self.settings.hfm_password,
                 server=self.settings.hfm_server,
@@ -126,7 +129,7 @@ class HFMConnector:
         server = str(self.settings.hfm_server or "default")
         server = "".join(ch if ch.isalnum() else "_" for ch in server)[:40]
         mutex_name = f"Global\\AtlasAI_broker_{int(self.settings.hfm_login)}_{server}"
-        k32 = ctypes.windll.kernel32
+        k32 = windows_kernel32()
         k32.SetLastError(0)
         handle = k32.CreateMutexW(None, False, mutex_name)
         if not handle:
@@ -141,5 +144,5 @@ class HFMConnector:
         handle = self._broker_mutex_handle
         if handle and os.name == "nt":
             with contextlib.suppress(Exception):
-                ctypes.windll.kernel32.CloseHandle(handle)
+                windows_kernel32().CloseHandle(handle)
         self._broker_mutex_handle = None

@@ -18,6 +18,7 @@ from atlas_ai.atlas_process_guard import (
 )
 from atlas_ai.atlas_runtime_control import write_stop_request
 from atlas_ai.atlas_wake_config import AtlasWakeConfig, load_atlas_wake_config
+from atlas_ai.runtime_processes import atlas_mode_processes
 
 
 def _log_path(config: AtlasWakeConfig) -> Path:
@@ -37,20 +38,43 @@ def setup_logging(config: AtlasWakeConfig) -> None:
 
 
 def _stop_frontend(config: AtlasWakeConfig) -> dict[str, Any]:
-    state = frontend_process_state()
-    if not state.running or not state.pid:
-        return {"stopped": True, "was_running": False, "detail": "frontend not running"}
-    logging.info("Stopping frontend pid=%s", state.pid)
-    stop_process(state.pid, force=False)
-    stopped, _ = wait_for(lambda: not process_exists(state.pid), timeout_seconds=20, poll_seconds=1.0)
-    if not stopped:
-        stop_process(state.pid, force=True)
-        stopped, _ = wait_for(lambda: not process_exists(state.pid), timeout_seconds=10, poll_seconds=0.5)
+    def inventory():
+        rows = []
+        # Close desktop wrappers first so they cannot respawn a stopped API.
+        for mode in ("ui", "ui-browser", "ui-server"):
+            found = atlas_mode_processes(mode, project_root=config.project_root)
+            if found is None:
+                raise RuntimeError("frontend_inventory_unavailable")
+            rows.extend(found)
+        return list(dict.fromkeys(int(row["ProcessId"]) for row in rows))
+
+    try:
+        pids = inventory()
+    except Exception:
+        return {"stopped": False, "was_running": None, "detail": "Cannot verify project-scoped frontend inventory"}
+    results = []
+    for pid in pids:
+        if not process_exists(pid):
+            continue
+        logging.info("Stopping project frontend pid=%s", pid)
+        stop_process(pid, force=False)
+        stopped, _ = wait_for(lambda: not process_exists(pid), timeout_seconds=20, poll_seconds=1.0)
+        if not stopped:
+            stop_process(pid, force=True)
+            stopped, _ = wait_for(lambda: not process_exists(pid), timeout_seconds=10, poll_seconds=0.5)
+        results.append({"pid": pid, "stopped": bool(stopped)})
+    try:
+        remaining = inventory()
+    except Exception:
+        remaining = None
+    stopped = remaining == [] and all(row["stopped"] for row in results)
     return {
         "stopped": bool(stopped),
-        "was_running": True,
-        "pid": state.pid,
-        "detail": "frontend stopped" if stopped else "frontend stop failed",
+        "was_running": bool(pids),
+        "pid": pids[0] if pids else None,
+        "pids": pids,
+        "remaining_pids": remaining,
+        "detail": "All project frontends stopped" if stopped else "Frontend shutdown is incomplete or unverified",
     }
 
 

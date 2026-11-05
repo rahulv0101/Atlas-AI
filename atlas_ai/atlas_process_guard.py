@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from atlas_ai.windows_native import kernel32 as windows_kernel32
+
 import contextlib
 import ctypes
 import json
@@ -19,6 +21,7 @@ import MetaTrader5 as mt5
 
 from atlas_ai.atlas_wake_config import AtlasWakeConfig
 from atlas_ai.config.settings import load_settings
+from atlas_ai.execution.mt5_session import ensure_configured_session
 
 
 def _hidden_creationflags() -> int:
@@ -30,7 +33,7 @@ def _hidden_creationflags() -> int:
 def _terminate_process_windows(pid: int, *, force: bool = False) -> bool:
     if os.name != "nt" or pid <= 0:
         return False
-    kernel32 = ctypes.windll.kernel32
+    kernel32 = windows_kernel32()
     process = None
     try:
         process = kernel32.OpenProcess(0x0001 | 0x00100000, False, int(pid))
@@ -299,12 +302,28 @@ def is_backend_healthy(config: AtlasWakeConfig) -> tuple[bool, str, dict[str, An
         now = datetime.now(timezone.utc)
         age_seconds = (now - updated_at).total_seconds() if updated_at else None
         runtime_execute = bool(status.get("execute_trades", False))
-        process_running = backend_process_state(config).running
-        fresh = age_seconds is not None and age_seconds <= config.health_stale_after_seconds
-        healthy = (process_running or fresh) and runtime_execute and fresh
+        state = backend_process_state(config)
+        process_running = state.running
+        fresh = age_seconds is not None and 0 <= age_seconds <= config.health_stale_after_seconds
+        heartbeat = {}
+        with contextlib.suppress(Exception):
+            heartbeat = json.loads((Path(load_settings().storage_dir) / "heartbeat.json").read_text(encoding="utf-8"))
+        try:
+            heartbeat_pid = int(heartbeat.get("pid", 0) or 0)
+            heartbeat_age = time.time() - float(heartbeat.get("last_heartbeat_ts", 0) or 0)
+            heartbeat_fresh = 0 <= heartbeat_age <= config.health_stale_after_seconds
+        except (TypeError, ValueError, OverflowError):
+            heartbeat_pid, heartbeat_fresh = 0, False
+        # Saved status alone cannot prove that a worker is alive. Bind readiness
+        # to the current worker's heartbeat, including restricted Windows sessions.
+        worker_verified = bool(heartbeat_pid > 0 and heartbeat_fresh and (
+            (process_running and heartbeat_pid == state.pid)
+            or (not process_running and process_exists(heartbeat_pid))
+        ))
+        healthy = worker_verified and runtime_execute and fresh
         detail = (
             f"process_running={process_running}, runtime_execute={runtime_execute}, "
-            f"fresh={fresh}, age_seconds={None if age_seconds is None else round(age_seconds, 1)}"
+            f"fresh={fresh}, worker_verified={worker_verified}, age_seconds={None if age_seconds is None else round(age_seconds, 1)}"
         )
         return healthy, detail, {"status": status}
 
@@ -316,7 +335,7 @@ def is_backend_healthy(config: AtlasWakeConfig) -> tuple[bool, str, dict[str, An
     comparison_ok = str(summary.get("run_id", "")) == config.comparison_run_id
     paper_mode = bool(dict(status.get("system_health", {}) or {}).get("paper_mode_confirmed", False))
     process_running = backend_process_state(config).running
-    fresh = age_seconds is not None and age_seconds <= config.health_stale_after_seconds
+    fresh = age_seconds is not None and 0 <= age_seconds <= config.health_stale_after_seconds
     # In restricted Windows sessions command-line process visibility can be limited.
     # Treat a fresh run summary as sufficient evidence of backend activity.
     healthy = (process_running or fresh) and comparison_ok and paper_mode and fresh
@@ -325,6 +344,34 @@ def is_backend_healthy(config: AtlasWakeConfig) -> tuple[bool, str, dict[str, An
         f"paper_mode={paper_mode}, fresh={fresh}, age_seconds={None if age_seconds is None else round(age_seconds, 1)}"
     )
     return healthy, detail, {"status": status, "summary": summary}
+
+
+def _desktop_window_responding(pid: int) -> bool:
+    """Check current native-window liveness without changing focus or UI state."""
+    if os.name != "nt" or pid <= 0:
+        return False
+    try:
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+        user32.IsWindowVisible.argtypes = [wintypes.HWND]
+        user32.IsHungAppWindow.argtypes = [wintypes.HWND]
+        responsive = False
+
+        @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        def visit(hwnd, _):
+            nonlocal responsive
+            owner = wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+            if owner.value == pid and user32.IsWindowVisible(hwnd) and not user32.IsHungAppWindow(hwnd):
+                responsive = True
+                return False
+            return True
+
+        user32.EnumWindows(visit, 0)
+        return responsive
+    except Exception:
+        return False
 
 
 def is_frontend_healthy(config: AtlasWakeConfig) -> tuple[bool, str, dict[str, Any]]:
@@ -351,13 +398,15 @@ def is_frontend_healthy(config: AtlasWakeConfig) -> tuple[bool, str, dict[str, A
         desktop_disabled = bool(desktop_window.get("disabled_due_to_repeated_failures", False))
         frontend_mode = str(desktop_window.get("frontend_mode", "") or "")
         failure_reason = str(desktop_window.get("failure_reason", "") or "")
-        desktop_ready_now = bool(desktop_window_ready and desktop_state_fresh and wrapper_running)
+        desktop_live_verified = bool(desktop_window_ready and wrapper_running and not desktop_state_fresh and _desktop_window_responding(wrapper_pid))
+        desktop_ready_now = bool(desktop_window_ready and wrapper_running and (desktop_state_fresh or desktop_live_verified))
         ui_available = bool(desktop_ready_now or fallback_active)
         healthy = bool(payload) and not comparison_active and runtime_execute and ui_available
         detail = (
             f"process_running={process_running}, api_ok={bool(payload)}, "
             f"comparison_active={comparison_active}, runtime_execute={runtime_execute}, "
             f"desktop_window_ready={desktop_window_ready}, desktop_state_fresh={desktop_state_fresh}, "
+            f"desktop_live_verified={desktop_live_verified}, "
             f"desktop_state_age_seconds={None if desktop_updated_age_seconds is None else round(desktop_updated_age_seconds, 1)}, "
             f"wrapper_pid={wrapper_pid}, wrapper_running={wrapper_running}, "
             f"fallback_active={fallback_active}, "
@@ -383,7 +432,7 @@ def is_mt5_ready(config: AtlasWakeConfig) -> tuple[bool, str]:
             if not initialized:
                 last_detail = f"initialize_failed={mt5.last_error()}"
                 continue
-            authorized = mt5.login(
+            authorized = ensure_configured_session(
                 login=settings.hfm_login,
                 password=settings.hfm_password,
                 server=settings.hfm_server,

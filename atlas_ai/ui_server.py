@@ -18,6 +18,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.serving import WSGIRequestHandler, make_server
 
 from atlas_ai.config.settings import load_settings
+from atlas_ai.data.freshness import execution_freshness
 from atlas_ai.knowledge_paths import knowledge_root
 from atlas_ai.memory.knowledge_store import KnowledgeStore
 from atlas_ai.memory.jsonl_tail import tail_text_lines
@@ -127,7 +128,10 @@ def _automation_truth_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if last_block_reason and not automation_paused and last_event_age_seconds > 3600.0:
         last_block_reason = ""
     return {
-        "automation_enabled": bool(policy.get("enabled", False)) and not automation_paused,
+        "automation_enabled": (
+            bool(policy.get("enabled", False) if policy else payload.get("automation_enabled", False))
+            or bool(payload.get("automation_explicit_resume_active", False))
+        ) and not automation_paused,
         "automation_paused": automation_paused,
         "automation_pause_reason": str(payload.get("automation_pause_reason", "") or ""),
         "automation_explicit_resume_active": bool(payload.get("automation_explicit_resume_active", False)),
@@ -206,6 +210,12 @@ def _load_evolution_scheduler_state(store: KnowledgeStore) -> dict[str, Any]:
 
 def _canonical_freshness_runtime(status_payload: dict, settings) -> dict:
     freshness = build_freshness_runtime(status_payload, settings)
+    clock = status_payload.get("market_data_clock")
+    if clock:
+        market = execution_freshness(status_age_ms=0, market_fetch=clock)
+        freshness["market_data_reasons"] = market.get("market_data_reasons", [])
+        if market["is_stale"]:
+            freshness.update({"is_stale": True, "state": "stale"})
     return dict(freshness or {})
 
 
@@ -882,6 +892,7 @@ def _build_compact_status_payload(
             "trace_notes": list(decision_trace.get("trace_notes", []) or [])[:8],
         },
         "freshness_runtime": _canonical_freshness_runtime(status_payload, settings),
+        "market_data_clock": dict(status_payload.get("market_data_clock", {}) or {}),
         "system_health": {
             "effective_mode": effective_mode,
             "effective_mode_label": effective_mode_label,
@@ -2296,12 +2307,36 @@ def _build_execution_readiness(
     timing_ready = not bool(timing.get("hard_block", False))
 
     blockers: list[dict[str, Any]] = []
+    clock = status_payload.get("market_data_clock")
+    if clock and execution_freshness(status_age_ms=0, market_fetch=clock)["is_stale"]:
+        blockers.append({"lane": "runtime", "code": "stale_market_data", "detail": "Market ticks or bars are stale, future-dated, or unavailable; execution must wait for fresh data."})
+    updated_at = str(status_payload.get("updated_at", "") or "")
+    if updated_at:
+        try:
+            updated = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+            updated = updated.replace(tzinfo=timezone.utc) if updated.tzinfo is None else updated
+            age = (datetime.now(timezone.utc) - updated).total_seconds()
+            if age > 120 or age < -5:
+                blockers.append({"lane": "runtime", "code": "stale_decision", "detail": "Decision evidence is stale or its clock is invalid; wait for a fresh backend cycle."})
+        except (ValueError, TypeError):
+            blockers.append({"lane": "runtime", "code": "invalid_decision_time", "detail": "Decision timestamp is invalid."})
     if not execute_trades:
         blockers.append({"lane": "runtime", "code": "execute_trades_disabled", "detail": "Runtime execution flag is off."})
+    if bool(automation_payload.get("kill_switch_active", runtime_execution.get("kill_switch_active", False))):
+        blockers.append({"lane": "safety", "code": "kill_switch_active", "detail": "Kill switch active."})
+    if bool(automation_payload.get("reconciliation_required", runtime_execution.get("reconciliation_required", False))):
+        blockers.append({"lane": "safety", "code": "reconciliation_required", "detail": "Broker reconciliation requires review."})
     if safety_locked:
         blockers.append({"lane": "safety", "code": "safety_lock_active", "detail": safety_reason or message})
     if not broker_ready:
         blockers.append({"lane": "broker", "code": "broker_not_ready", "detail": "MT5/HFM bridge is not confirmed connected."})
+    if not bool(automation_truth.get("automation_enabled", False)) or bool(automation_truth.get("automation_paused", False)):
+        blockers.append({"lane": "automation", "code": "automation_not_enabled", "detail": str(automation_truth.get("automation_pause_reason", "") or "Automation is paused or disabled.")})
+    session_control = dict(automation_payload.get("session_control", {}) or runtime_execution.get("session_control", {}) or {})
+    if session_control and (not bool(session_control.get("session_active", False)) or bool(session_control.get("session_pause", False))):
+        blockers.append({"lane": "session", "code": "outside_active_session", "detail": str(session_control.get("session_block_reason", "") or "Outside active trading session.")})
+    if bool(automation_payload.get("forced_flat_pending", False)) or bool(session_control.get("forced_flat_required", False)):
+        blockers.append({"lane": "safety", "code": "forced_flat_required", "detail": "Forced-flat handling is required."})
     auto_trade_waiting_for_context = (
         not market_ready
         and (
@@ -2314,11 +2349,33 @@ def _build_execution_readiness(
     if not market_ready:
         blockers.append({"lane": "market", "code": structured_blocker.get("code", "market_not_ready"), "detail": structured_blocker.get("detail", message)})
     if not timing_ready:
-        blockers.append({"lane": "timing", "code": "timing_discipline_block", "detail": ", ".join(list(timing.get("missing", []) or [])[:6])})
+        blockers.append({"lane": "timing", "code": "timing_discipline_block", "detail": str(timing.get("detail", "") or ", ".join(list(timing.get("missing", []) or [])[:6]))})
+
+    # A rejected market candidate is normal waiting. Keep it distinct from a
+    # broken broker, safety veto, or disabled execution, using one API/UI truth.
+    system_blockers = [item for item in blockers if item["lane"] not in {"market", "timing", "session"}]
+    if system_blockers:
+        display_state = "blocked"
+        display_detail = str(system_blockers[0]["detail"])
+    elif blockers:
+        market_class = str(structured_blocker.get("class", "") or "")
+        normal_wait = (
+            market_class in {"signal_quality", "timing", "market_quality"}
+            or (not market_ready and action == "hold")
+            or (not timing_ready and structured_blocker.get("code", "").startswith("timing_discipline"))
+            or all(item["lane"] in {"timing", "session"} for item in blockers)
+        )
+        display_state = "waiting" if normal_wait else "blocked"
+        display_detail = str(blockers[0]["detail"] or message)
+    else:
+        display_state = "ready"
+        display_detail = "Directional candidate available for existing execution gates; this is not a fill confirmation."
 
     return {
         "ready": not blockers,
         "ready_for_execution_attempt": not blockers,
+        "display": {"state": display_state, "label": display_state.upper(), "detail": display_detail},
+        "checked_at": str(status_payload.get("updated_at", "") or ""),
         "primary_blocker": blockers[0] if blockers else {},
         "blocker_chain": blockers,
         "state": {
@@ -2345,13 +2402,13 @@ def _build_execution_readiness(
             "policy_note": "Stale execution truth is audit history, not the current blocker.",
         },
         "next_action": (
-            "Do not unlock or trade until the safety lock clears or is explicitly reviewed."
-            if safety_locked
-            else (
-                "Wait for market and timing gates to produce a valid directional setup."
-                if blockers
-                else "Atlas can submit the next gated execution request."
-            )
+            "Review the safety or reconciliation blocker before expecting execution."
+            if any(item["lane"] == "safety" for item in blockers)
+            else "Restore current backend/broker evidence and review automation controls."
+            if system_blockers
+            else "Wait for the active session and a qualifying directional setup."
+            if blockers
+            else "Atlas can evaluate the next gated execution request."
         ),
         "operator_readiness_primary_lane": str(operator_readiness.get("primary_lane", "") or ""),
         "policy_note": "Execution readiness is read-only observability; it does not change strategy, risk, guard, or execution policy.",

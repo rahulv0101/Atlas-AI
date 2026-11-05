@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from atlas_ai.windows_native import kernel32 as windows_kernel32
+
 import argparse
 import atexit
 import contextlib
@@ -1018,7 +1020,7 @@ def _ensure_mode_mutex(mode: str) -> bool:
         return True
     mutex_name = f"Global\\AtlasAI_{mode_key}"
     # Win32 CreateMutexW returns existing handle and sets last_error=183 if already exists.
-    k32 = ctypes.windll.kernel32
+    k32 = windows_kernel32()
     k32.SetLastError(0)
     handle = k32.CreateMutexW(None, False, mutex_name)
     if not handle:
@@ -1033,8 +1035,6 @@ def _ensure_mode_mutex(mode: str) -> bool:
     def _cleanup() -> None:
         h = _MUTEX_HANDLES.pop(mode_key, None)
         if h:
-            with contextlib.suppress(Exception):
-                k32.ReleaseMutex(h)
             with contextlib.suppress(Exception):
                 k32.CloseHandle(h)
 
@@ -1643,6 +1643,11 @@ def main() -> None:
         _append_startup_trace("non_venv_duplicate_exit", {"mode": args.mode})
         os._exit(0)
     setup_logging()
+    try:
+        from atlas_ai.native_diagnostics import enable_native_diagnostics
+        enable_native_diagnostics(load_settings().storage_dir, args.mode)
+    except Exception as exc:
+        logging.warning("Native fault tracing unavailable: %s", type(exc).__name__)
 
     if args.mode == "live":
         run_live(args.poll_seconds, mode_override=args.mode_override)

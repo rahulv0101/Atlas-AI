@@ -1,0 +1,896 @@
+{
+  "checked_at": "2026-11-04T20:59:25.249086+00:00",
+  "full_suite": {
+    "tests": 1504,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "full_suite_seconds": 428.392,
+  "suite_command": "python -m pytest tests -q --tb=short -p no:faulthandler --durations=10 --junitxml=complete_audit_suite.xml",
+  "workspace": "C:\\Users\\rv010\\AppData\\Local\\Temp\\atlas-full-system-audit-k92a1e18",
+  "application_python_files": 184,
+  "test_python_files_in_full_snapshot": 152,
+  "post_suite_changes": [
+    "atlas_ai/atlas_process_guard.py",
+    "atlas_ai/brain/synthesis.py",
+    "tests/test_process_guard_roles.py"
+  ],
+  "post_suite_changes_scope": "Voice self-model summaries and read-only native desktop liveness; no trading-path change after full snapshot.",
+  "supplemental_voice_checks_passed": 23,
+  "supplemental_ui_voice_routing_checks_passed": 71,
+  "new_supplemental_regression_cases": 5,
+  "pip_check": "passed",
+  "python_compileall": "passed",
+  "ui_javascript_syntax_check": "passed (1 file)",
+  "broker": {
+    "demo": true,
+    "configured_account_matches": true,
+    "configured_server_matches": true,
+    "connected": true,
+    "algo_enabled": true,
+    "python_api_allowed": true,
+    "positions": 0,
+    "pending_orders": 0
+  },
+  "health": {
+    "backend": {
+      "healthy": true,
+      "detail": "process_running=True, runtime_execute=True, fresh=True, worker_verified=True, age_seconds=61.2"
+    },
+    "frontend": {
+      "healthy": true,
+      "detail": "process_running=True, api_ok=True, comparison_active=False, runtime_execute=True, desktop_window_ready=True, desktop_state_fresh=False, desktop_live_verified=True, desktop_state_age_seconds=980.5, wrapper_pid=19820, wrapper_running=True, fallback_active=False, desktop_disabled=False, frontend_mode=desktop, failure_reason="
+    }
+  },
+  "live_status": {
+    "updated_at": "2026-11-04T20:59:22.469304+00:00",
+    "action": "hold",
+    "message": "No directional trade signal selected.",
+    "chosen": {
+      "strategy": "momentum_continuation",
+      "side": "flat",
+      "confidence": 0.45,
+      "signal_confidence_seed": 0.0,
+      "stop_loss_points": 115.0,
+      "take_profit_points": 175.0
+    },
+    "min_confidence_threshold": 0.44,
+    "signal_generation": {
+      "schema": "atlas_signal_generation_diagnostics_v1",
+      "context": {
+        "session": "late_us",
+        "regime": "range",
+        "regime_label": "low_volatility",
+        "regime_label_detail": {
+          "label": "low_volatility",
+          "confidence": 0.35,
+          "reason": "ATR proxy 0.0177% <= low volatility threshold 0.0200% and slope is muted",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": 0.06354,
+            "atr_pct": 0.017654,
+            "range_pct": 0.222988,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        },
+        "trend_strength": 0.0635,
+        "volatility_pct": 0.0177,
+        "volatility_state": "low",
+        "allowed_session": false,
+        "entry_location_state": "pullback",
+        "entry_momentum_state": "strong",
+        "entry_wickiness": 0.4276,
+        "entry_expansion": 0.0298,
+        "entry_position": 0.9479,
+        "entry_trend_state": "range",
+        "entry_trend_strength": 0.0635
+      },
+      "candidates": [
+        {
+          "strategy": "ema_crossover",
+          "before_filters": {
+            "side": "sell",
+            "confidence": 0.11912253063799776
+          },
+          "reason_codes": [
+            "low_energy_directional_suppression"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": true
+        },
+        {
+          "strategy": "momentum_continuation",
+          "before_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "reason_codes": [
+            "strategy_returned_flat"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": false
+        },
+        {
+          "strategy": "pullback_trend",
+          "before_filters": {
+            "side": "sell",
+            "confidence": 0.16562728053830517
+          },
+          "reason_codes": [
+            "low_energy_directional_suppression"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": true
+        },
+        {
+          "strategy": "gold_micro_impulse",
+          "before_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "reason_codes": [
+            "strategy_returned_flat"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": false
+        },
+        {
+          "strategy": "gold_breakout_retest",
+          "before_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "reason_codes": [
+            "strategy_returned_flat"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": false
+        },
+        {
+          "strategy": "gold_liquidity_sweep",
+          "before_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "reason_codes": [
+            "strategy_returned_flat"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": false
+        },
+        {
+          "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)",
+          "before_filters": {
+            "side": "sell",
+            "confidence": 0.18200833705856706
+          },
+          "reason_codes": [
+            "low_energy_directional_suppression"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": true
+        },
+        {
+          "strategy": "evolved_mhr_hr",
+          "before_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "reason_codes": [
+            "strategy_returned_flat"
+          ],
+          "after_filters": {
+            "side": "flat",
+            "confidence": 0.0
+          },
+          "suppressed": false
+        }
+      ],
+      "directional_before_filters": 3,
+      "directional_after_filters": 0,
+      "suppressed_count": 3,
+      "policy_note": "Observability only; existing signal-generation filters are unchanged."
+    },
+    "win_rate_focus": {
+      "enabled": true,
+      "target": 0.55,
+      "recent_win_rate": 0.4,
+      "samples": 30,
+      "confidence_bump": 0.08,
+      "weak_strategies_blocked": [
+        "ema_crossover severe_blocked wr=0.21 n=3204 pnl=-14557.48",
+        "pullback_trend wr=0.21 n=84 pnl=-77.38"
+      ]
+    }
+  },
+  "live_trades_today": 0,
+  "why": {
+    "ok": true,
+    "why": {
+      "cycle": {
+        "action": "hold",
+        "symbol": "XAUUSD",
+        "timeframe": "M1",
+        "updated_at": "2026-11-04T20:57:14.091743+00:00"
+      },
+      "decision_trace": {
+        "bias_breakdown": {
+          "chart_structure_bias": "sell",
+          "conflict": false,
+          "explanation": "Signal, chart structure, higher-timeframe, and final trade bias are tracked separately.",
+          "final_trade_bias": "neutral",
+          "higher_timeframe_bias": "buy",
+          "signal_bias": "neutral"
+        },
+        "blocker_class": "signal_quality",
+        "blocker_recoverability": "wait_for_setup_or_review_signal_fit",
+        "blocker_summary": {
+          "class": "signal_quality",
+          "context": {
+            "regime": "range",
+            "session": "late_us",
+            "volatility_state": "low"
+          },
+          "primary": "No high-confidence trade found.",
+          "recoverability": "wait_for_setup_or_review_signal_fit",
+          "risk": {
+            "daily_loss_pct": 0.0,
+            "open_positions": 0,
+            "spread_points": 56.0,
+            "weekly_loss_pct": 0.0
+          },
+          "signal": {
+            "confidence": 0.43,
+            "confidence_gap": -0.01,
+            "side": "flat",
+            "threshold": 0.44
+          }
+        },
+        "context": {
+          "chart_structure_bias": "sell",
+          "higher_timeframe_bias": "buy",
+          "liquidity_state": "poor",
+          "regime": "range",
+          "session": "late_us",
+          "spread_state": "wide",
+          "trend_strength": 0.0554,
+          "volatility_state": "low"
+        },
+        "evidence_separation": {
+          "blocker_class": "signal_quality",
+          "confidence": 0.43,
+          "confidence_ready": false,
+          "execution_permission": "not_allowed",
+          "execution_reason": "No high-confidence trade found.",
+          "final_trade_bias": "neutral",
+          "higher_timeframe_bias": "buy",
+          "market_bias": "sell",
+          "policy_note": "Evidence lanes are explanatory only; they do not change strategy, risk, or execution policy.",
+          "primary_blocker": "No high-confidence trade found.",
+          "setup_readiness": "forming_waiting_for_confirmations",
+          "signal_direction": "neutral",
+          "threshold": 0.44
+        },
+        "execution_gate": {
+          "decision_id": "",
+          "environment": "",
+          "execute_trades": true,
+          "request_id": "",
+          "result": {}
+        },
+        "filters": {
+          "guards": [],
+          "hard_blockers": [],
+          "reason_codes": [
+            "no_high_confidence_trade_found"
+          ]
+        },
+        "final_action": "hold",
+        "final_decision": "block",
+        "message": "No high-confidence trade found.",
+        "primary_blocker": "No high-confidence trade found.",
+        "ranking": {
+          "best_actionable": {},
+          "chosen_score": 0.0,
+          "top": [
+            {
+              "advisory_setup_quality_score": 57.0,
+              "factor": 1.0,
+              "reasons": [
+                "meta_model_candidate_disabled",
+                "flat_signal"
+              ],
+              "score": 0.0,
+              "setup_quality_score": 0.0,
+              "setup_quality_source": "setup_playbook_advisory",
+              "strategy": "momentum_continuation"
+            },
+            {
+              "advisory_setup_quality_score": 57.0,
+              "factor": 1.0,
+              "reasons": [
+                "meta_model_candidate_disabled",
+                "flat_signal"
+              ],
+              "score": 0.0,
+              "setup_quality_score": 0.0,
+              "setup_quality_source": "setup_playbook_advisory",
+              "strategy": "gold_micro_impulse"
+            },
+            {
+              "advisory_setup_quality_score": 57.0,
+              "factor": 1.0,
+              "reasons": [
+                "meta_model_candidate_disabled",
+                "flat_signal"
+              ],
+              "score": 0.0,
+              "setup_quality_score": 0.0,
+              "setup_quality_source": "setup_playbook_advisory",
+              "strategy": "gold_breakout_retest"
+            }
+          ]
+        },
+        "risk": {
+          "consecutive_losses": 0,
+          "daily_loss_pct": 0.0,
+          "max_open_trades": null,
+          "open_positions": 0,
+          "spread_points": 56.0,
+          "trades_today": 0,
+          "weekly_loss_pct": 0.0
+        },
+        "schema": "atlas_decision_trace_v1",
+        "selected_candidate": {
+          "confidence": 0.43,
+          "side": "flat",
+          "signal_confidence_seed": 0.0,
+          "stop_loss_points": 115.0,
+          "strategy": "momentum_continuation",
+          "take_profit_points": 175.0
+        },
+        "signal": {
+          "active": [
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "momentum_continuation"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_micro_impulse"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_breakout_retest"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_liquidity_sweep"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)"
+            }
+          ],
+          "generation": {
+            "candidates": [
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.15644088452802016,
+                  "side": "sell"
+                },
+                "reason_codes": [
+                  "low_energy_directional_suppression"
+                ],
+                "strategy": "ema_crossover",
+                "suppressed": true
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "momentum_continuation",
+                "suppressed": false
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.025346063574139193,
+                  "side": "sell"
+                },
+                "reason_codes": [
+                  "low_energy_directional_suppression"
+                ],
+                "strategy": "pullback_trend",
+                "suppressed": true
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "gold_micro_impulse",
+                "suppressed": false
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "gold_breakout_retest",
+                "suppressed": false
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "gold_liquidity_sweep",
+                "suppressed": false
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)",
+                "suppressed": false
+              },
+              {
+                "after_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "before_filters": {
+                  "confidence": 0.0,
+                  "side": "flat"
+                },
+                "reason_codes": [
+                  "strategy_returned_flat"
+                ],
+                "strategy": "evolved_mhr_hr",
+                "suppressed": false
+              }
+            ],
+            "context": {
+              "allowed_session": false,
+              "entry_expansion": 0.0,
+              "entry_location_state": "mid_range",
+              "entry_momentum_state": "weak",
+              "entry_position": 0.3597,
+              "entry_trend_state": "downtrend",
+              "entry_trend_strength": 0.0554,
+              "entry_wickiness": 0.479,
+              "regime": "range",
+              "regime_label": "low_volatility",
+              "regime_label_detail": {
+                "confidence": 0.35,
+                "label": "low_volatility",
+                "metrics": {
+                  "atr_pct": 0.017538,
+                  "high_volatility_atr_pct": 0.06,
+                  "low_volatility_atr_pct": 0.02,
+                  "range_pct": 0.223153,
+                  "samples": 60,
+                  "slope_pct": 0.055449,
+                  "trend_threshold_pct": 0.12
+                },
+                "policy_note": "regime label is observational only; ranking weights are unchanged",
+                "reason": "ATR proxy 0.0175% <= low volatility threshold 0.0200% and slope is muted"
+              },
+              "session": "late_us",
+              "trend_strength": 0.0554,
+              "volatility_pct": 0.0175,
+              "volatility_state": "low"
+            },
+            "directional_after_filters": 0,
+            "directional_before_filters": 2,
+            "policy_note": "Observability only; existing signal-generation filters are unchanged.",
+            "schema": "atlas_signal_generation_diagnostics_v1",
+            "suppressed_count": 2
+          },
+          "raw": [
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "ema_crossover"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "momentum_continuation"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "pullback_trend"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_micro_impulse"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_breakout_retest"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "gold_liquidity_sweep"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)"
+            },
+            {
+              "confidence": 0.0,
+              "score": 0.0,
+              "side": "flat",
+              "strategy": "evolved_mhr_hr"
+            }
+          ],
+          "raw_stage": "after_signal_generation_filters",
+          "summary": {
+            "active_count": 6,
+            "evolved_active_count": 1,
+            "evolved_raw_count": 1,
+            "filtered_out_count": 2,
+            "raw_count": 8
+          }
+        },
+        "symbol": "XAUUSD",
+        "timeframe": "M1",
+        "trace_notes": [
+          "read_only_observability",
+          "does_not_modify_strategy_risk_or_execution"
+        ]
+      },
+      "first_blocked_stage": "signal_generation",
+      "generated_at": "2026-11-04T20:57:58.910395+00:00",
+      "read_only": true,
+      "schema": "atlas_why_trace_v1",
+      "sources": {
+        "execution_snapshot": true,
+        "runtime_flags": true,
+        "status": true
+      },
+      "stages": [
+        {
+          "data": {
+            "active_count": 5,
+            "chosen": {
+              "confidence": 0.43,
+              "side": "flat",
+              "signal_confidence_seed": 0.0,
+              "stop_loss_points": 115.0,
+              "strategy": "momentum_continuation",
+              "take_profit_points": 175.0
+            },
+            "generation": {
+              "candidates": [
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.15644088452802016,
+                    "side": "sell"
+                  },
+                  "reason_codes": [
+                    "low_energy_directional_suppression"
+                  ],
+                  "strategy": "ema_crossover",
+                  "suppressed": true
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "momentum_continuation",
+                  "suppressed": false
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.025346063574139193,
+                    "side": "sell"
+                  },
+                  "reason_codes": [
+                    "low_energy_directional_suppression"
+                  ],
+                  "strategy": "pullback_trend",
+                  "suppressed": true
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "gold_micro_impulse",
+                  "suppressed": false
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "gold_breakout_retest",
+                  "suppressed": false
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "gold_liquidity_sweep",
+                  "suppressed": false
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "evolved_rule(fast=18,slow=87,rsi_buy=47.8,rsi_sell=56.9)",
+                  "suppressed": false
+                },
+                {
+                  "after_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "before_filters": {
+                    "confidence": 0.0,
+                    "side": "flat"
+                  },
+                  "reason_codes": [
+                    "strategy_returned_flat"
+                  ],
+                  "strategy": "evolved_mhr_hr",
+                  "suppressed": false
+                }
+              ],
+              "context": {
+                "allowed_session": false,
+                "entry_expansion": 0.0,
+                "entry_location_state": "mid_range",
+                "entry_momentum_state": "weak",
+                "entry_position": 0.3597,
+                "entry_trend_state": "downtrend",
+                "entry_trend_strength": 0.0554,
+                "entry_wickiness": 0.479,
+                "regime": "range",
+                "regime_label": "low_volatility",
+                "regime_label_detail": {
+                  "confidence": 0.35,
+                  "label": "low_volatility",
+                  "metrics": {
+                    "atr_pct": 0.017538,
+                    "high_volatility_atr_pct": 0.06,
+                    "low_volatility_atr_pct": 0.02,
+                    "range_pct": 0.223153,
+                    "samples": 60,
+                    "slope_pct": 0.055449,
+                    "trend_threshold_pct": 0.12
+                  },
+                  "policy_note": "regime label is observational only; ranking weights are unchanged",
+                  "reason": "ATR proxy 0.0175% <= low volatility threshold 0.0200% and slope is muted"
+                },
+                "session": "late_us",
+                "trend_strength": 0.0554,
+                "volatility_pct": 0.0175,
+                "volatility_state": "low"
+              },
+              "directional_after_filters": 0,
+              "directional_before_filters": 2,
+              "policy_note": "Observability only; existing signal-generation filters are unchanged.",
+              "schema": "atlas_signal_generation_diagnostics_v1",
+              "suppressed_count": 2
+            },
+            "raw_count": 8
+          },
+          "reason": "Low market energy filtered out 2 directional candidates.",
+          "stage": "signal_generation",
+          "status": "blocked"
+        },
+        {
+          "data": {},
+          "reason": "No generated signal was available to rank.",
+          "stage": "signal_ranking",
+          "status": "not_reached"
+        },
+        {
+          "data": {},
+          "reason": "Pipeline stopped at signal_generation.",
+          "stage": "conservative_filter",
+          "status": "not_reached"
+        },
+        {
+          "data": {},
+          "reason": "Pipeline stopped at signal_generation.",
+          "stage": "risk_management",
+          "status": "not_reached"
+        },
+        {
+          "data": {},
+          "reason": "Pipeline stopped at signal_generation.",
+          "stage": "execution",
+          "status": "not_reached"
+        }
+      ]
+    }
+  },
+  "live_voice_checks": {
+    "checked_at": "2026-11-04T20:54:15.686160+00:00",
+    "checks": [
+      {
+        "query": "What can you do?",
+        "domain": "self_model",
+        "intent": "capabilities",
+        "result": "My capabilities include explaining status, blockers, readiness, comparisons, market concepts, and strategy rules using grounded evidence.",
+        "relevance_passed": true
+      },
+      {
+        "query": "What are your limitations?",
+        "domain": "self_model",
+        "intent": "limitations",
+        "result": "My limitations: I do not invent facts, place trades from Ask Atlas, or guarantee outcomes.",
+        "relevance_passed": true
+      },
+      {
+        "query": "How much do you know about the markets?",
+        "domain": "self_model",
+        "intent": "self_knowledge",
+        "result": "Knowledge level: I explain market and strategy concepts using Atlas's structured knowledge and available evidence.",
+        "relevance_passed": true
+      }
+    ]
+  },
+  "forced_orders_sent": 0,
+  "remaining_limits": [
+    "Raw broker and naive historical timestamps need an explicit UTC/DST migration; runtime freshness is a cycle-age check, not verified tick age.",
+    "Original historical event-journal LFS body remains unavailable.",
+    "Physical microphone capture and natural live broker fills not forced or demonstrated.",
+    "Prior instrumented native crash cause was not established; full audit suite passed with faulthandler instrumentation disabled."
+  ],
+  "backend_heartbeat": {
+    "schema": "atlas_backend_heartbeat_v1",
+    "component": "backend_trader",
+    "last_heartbeat": "2026-11-04T20:59:18.192805+00:00",
+    "last_heartbeat_ts": 1793825958.1928053,
+    "mode": "live",
+    "pid": 22300,
+    "cycle_count": 38975,
+    "cycle_status": "running"
+  },
+  "remaining_pytest_workers": [],
+  "supplemental_new_test_file": "tests/test_voice_self_model_relevance.py",
+  "supplemental_new_test_sha256": "5e43618b8b2bb52a8a7c623c741480355f276cef00710977519fa9f29a7aea55"
+}

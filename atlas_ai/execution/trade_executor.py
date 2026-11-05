@@ -7,6 +7,7 @@ import re
 import MetaTrader5 as mt5
 
 from atlas_ai.config.settings import Settings
+from atlas_ai.data.broker_clock import broker_time_to_utc
 from atlas_ai.execution.comment_codec import build_broker_comment
 from atlas_ai.models import TradeSignal
 
@@ -18,11 +19,27 @@ class ExecutionResult:
     comment: str
     order_id: int = 0
     deal_id: int = 0
+    status: str = ""
+    fill_qty: float = 0.0
+    avg_fill_price: float = 0.0
 
 
 class TradeExecutor:
     def __init__(self, settings: Settings):
         self.settings = settings
+
+    def _account_rejection(self, account) -> str:
+        if account is None:
+            return "No account info"
+        configured_login = int(getattr(self.settings, "hfm_login", 0) or 0)
+        configured_server = str(getattr(self.settings, "hfm_server", "") or "")
+        if not configured_login or not configured_server:
+            return "Configured broker account is missing"
+        if getattr(account, "login", None) != configured_login or getattr(account, "server", None) != configured_server:
+            return "Connected broker account does not match configuration"
+        if getattr(account, "trade_mode", None) != mt5.ACCOUNT_TRADE_MODE_DEMO:
+            return "Demo account required; real account execution is disabled"
+        return ""
 
     @staticmethod
     def _stop_buffer_points(symbol_info, spread_points: float = 0.0, extra_points: int = 0) -> int:
@@ -241,18 +258,38 @@ class TradeExecutor:
                         break
                     continue
 
-                result = mt5.order_send(request)
+                try:
+                    result = mt5.order_send(request)
+                except Exception as exc:
+                    # An exception after dispatch is not proof of rejection.
+                    return ExecutionResult(False, -2, f"order_send outcome unknown: {exc}", status="unknown")
                 if result is None:
-                    last_send_error = f"order_send none: {mt5.last_error()}"
-                    continue
+                    return ExecutionResult(False, -2, f"order_send outcome unknown: {mt5.last_error()}", status="unknown")
                 last_result = result
-                if result.retcode == mt5.TRADE_RETCODE_DONE:
+                accepted_status = {
+                    mt5.TRADE_RETCODE_DONE: "filled",
+                    mt5.TRADE_RETCODE_DONE_PARTIAL: "partially_filled",
+                    mt5.TRADE_RETCODE_PLACED: "submitted",
+                }.get(result.retcode)
+                if accepted_status:
                     return ExecutionResult(
                         True,
                         result.retcode,
                         getattr(result, "comment", ""),
                         order_id=int(getattr(result, "order", 0) or 0),
                         deal_id=int(getattr(result, "deal", 0) or 0),
+                        status=accepted_status,
+                        fill_qty=float(getattr(result, "volume", 0.0) or 0.0),
+                        avg_fill_price=float(getattr(result, "price", 0.0) or 0.0),
+                    )
+                if result.retcode in {
+                    mt5.TRADE_RETCODE_TIMEOUT, mt5.TRADE_RETCODE_CONNECTION,
+                    mt5.TRADE_RETCODE_LOCKED, mt5.TRADE_RETCODE_ERROR,
+                } or getattr(result, "order", 0) or getattr(result, "deal", 0):
+                    return ExecutionResult(
+                        False, result.retcode, str(getattr(result, "comment", "Outcome unknown")),
+                        order_id=int(getattr(result, "order", 0) or 0),
+                        deal_id=int(getattr(result, "deal", 0) or 0), status="unknown",
                     )
                 if extra_stop_points == 0 and str(getattr(result, "comment", "") or "").lower() == "invalid stops":
                     break
@@ -273,8 +310,9 @@ class TradeExecutor:
         if tick is None:
             return False, "No market tick"
         account = mt5.account_info()
-        if account is None:
-            return False, "No account info"
+        account_rejection = self._account_rejection(account)
+        if account_rejection:
+            return False, account_rejection
         if not getattr(account, "trade_allowed", True):
             return False, "Account trade not allowed"
         if not getattr(symbol_info, "visible", True):
@@ -343,12 +381,15 @@ class TradeExecutor:
         # upstream guarded safety checks (kill switch/sleep/gate sync).
         if not bool(allow_close):
             return []
+        account_rejection = self._account_rejection(mt5.account_info())
+        if account_rejection:
+            return [ExecutionResult(False, -4, f"Close blocked: {account_rejection}")]
         positions = mt5.positions_get(symbol=self.settings.symbol) or []
         today_utc = datetime.now(timezone.utc).date()
         closed: list[ExecutionResult] = []
 
         for pos in positions:
-            opened = datetime.fromtimestamp(pos.time, tz=timezone.utc).date()
+            opened = broker_time_to_utc(pos.time, self.settings).date()
             if opened >= today_utc:
                 continue
 

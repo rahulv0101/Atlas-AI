@@ -1,0 +1,21 @@
+{
+  "verified_at": "2026-11-05T13:21:25.627655+00:00",
+  "role": "advisory_only",
+  "default_influence_enabled": false,
+  "runtime_influence_enabled": false,
+  "live_cycle_influence_enabled": false,
+  "live_cycle_updated_at": "2026-11-05T13:20:34.414226+00:00",
+  "change_at": "2026-11-05T13:19:25.196821+00:00",
+  "live_cycle_after_change": true,
+  "advisor_available": true,
+  "backend_ok": true,
+  "frontend_ok": true,
+  "action": "hold",
+  "message": "No directional trade signal selected.",
+  "tests": {
+    "passed": 17,
+    "scope": "Advisory-only confidence/veto boundary, deterministic vetoes, pipeline, replay and Gemini helper"
+  },
+  "risk_and_strategy_parameters_changed": false,
+  "orders_forced": 0
+}
