@@ -7,6 +7,7 @@ import MetaTrader5 as mt5
 
 from atlas_ai.execution.broker_adapter import BrokerAdapter, BrokerOrderResponse
 from atlas_ai.execution.trade_executor import TradeExecutor
+from atlas_ai.execution.cost_evidence import send_observed
 from atlas_ai.models import TradeSignal
 
 
@@ -135,7 +136,8 @@ class MT5BrokerAdapter(BrokerAdapter):
             if self._executor._account_rejection(mt5.account_info()):
                 return response(False, "rejected", "account_changed_before_close")
             dispatched = True
-            result = mt5.order_send(request)  # A single position-specific close; never blind retry.
+            result = send_observed(mt5.order_send, request, self._executor.settings,
+                source="intraday_close", tick=tick)  # One close dispatch; never blind retry.
             if result is None:
                 return response(False, "unknown", "close_result_unknown")
             remaining = mt5.positions_get(ticket=ticket)

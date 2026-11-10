@@ -1,4 +1,5 @@
 from atlas_ai import native_diagnostics
+import json
 
 
 def test_existing_fault_handler_is_preserved(monkeypatch,tmp_path):
@@ -17,4 +18,8 @@ def test_native_trace_uses_durable_process_specific_file(monkeypatch,tmp_path):
     assert result["enabled"] and seen["all_threads"]
     assert not stream.closed
     assert '"mode": "live"' in open(result["path"],encoding="utf-8").read()
+    header=json.loads(open(result["path"],encoding="utf-8").readline())
+    assert "pandas" in header["native_dependency_versions"]
+    native_diagnostics._mark_orderly_exit(stream)
+    assert "orderly_python_exit_at" in open(result["path"],encoding="utf-8").read()
     stream.close()

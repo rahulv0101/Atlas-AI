@@ -1675,7 +1675,9 @@ def main() -> None:
         logging.warning("Native fault tracing unavailable: %s", type(exc).__name__)
 
     if args.mode == "live":
-        run_live(args.poll_seconds, mode_override=args.mode_override)
+        from atlas_ai.runtime_power import live_power_guard
+        with live_power_guard(load_settings().storage_dir):
+            run_live(args.poll_seconds, mode_override=args.mode_override)
     elif args.mode == "backtest":
         run_backtest(mode_override=args.mode_override)
     elif args.mode == "paper-compare":

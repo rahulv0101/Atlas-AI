@@ -10,6 +10,7 @@ import MetaTrader5 as mt5
 from atlas_ai.config.settings import Settings
 from atlas_ai.data.broker_clock import broker_time_to_utc
 from atlas_ai.execution.comment_codec import build_broker_comment
+from atlas_ai.execution.cost_evidence import send_observed
 from atlas_ai.models import TradeSignal
 from atlas_ai.risk.volume import floor_volume
 
@@ -219,6 +220,7 @@ class TradeExecutor:
                 latest_tick = mt5.symbol_info_tick(self.settings.symbol)
                 if latest_tick is not None:
                     price = latest_tick.ask if signal.side == "buy" else latest_tick.bid
+                    tick = latest_tick
                 request_base = self._build_request(
                     signal,
                     price=price,
@@ -248,7 +250,8 @@ class TradeExecutor:
                     continue
 
                 try:
-                    result = mt5.order_send(request)
+                    result = send_observed(mt5.order_send, request, self.settings,
+                        source="entry", strategy=signal.strategy, decision_id=decision_id, tick=tick)
                 except Exception as exc:
                     # An exception after dispatch is not proof of rejection.
                     return ExecutionResult(False, -2, f"order_send outcome unknown: {exc}", status="unknown")
@@ -423,7 +426,7 @@ class TradeExecutor:
                 "type_time": mt5.ORDER_TIME_GTC,
                 "type_filling": mt5.ORDER_FILLING_IOC,
             }
-            result = mt5.order_send(request)
+            result = send_observed(mt5.order_send, request, self.settings, source="legacy_close", tick=tick)
             if result is None:
                 closed.append(ExecutionResult(False, -2, f"Close failed {pos.ticket}"))
                 continue

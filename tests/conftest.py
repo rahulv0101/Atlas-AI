@@ -4,6 +4,12 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def isolate_execution_cost_telemetry(monkeypatch):
+    from atlas_ai.execution import cost_evidence
+    monkeypatch.setattr(cost_evidence, "_append_row", lambda settings, row: None)
+
+
+@pytest.fixture(autouse=True)
 def forbid_unmocked_broker_operations(monkeypatch):
     def blocked(*args, **kwargs):
         raise AssertionError("Real MT5 initialization, login, or order submission is forbidden in tests; supply an explicit fake")

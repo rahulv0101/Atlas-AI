@@ -54,14 +54,15 @@ class SpeechOutput:
         self._bridge_port = int(str(os.getenv("ATLAS_AUDIO_BRIDGE_PORT", "47291")).strip() or "47291")
         self._bridge_queue = queue.Queue()
         self._bridge_thread_started = False
-        self._ensure_bridge_thread()
+        self._bridge_start_lock = threading.Lock()
 
     def _ensure_bridge_thread(self) -> None:
-        if not self._bridge_enabled or self._bridge_thread_started:
-            return
-        self._bridge_thread_started = True
-        t = threading.Thread(target=self._bridge_sender_loop, daemon=True)
-        t.start()
+        with self._bridge_start_lock:
+            if not self._bridge_enabled or self._bridge_thread_started:
+                return
+            t = threading.Thread(target=self._bridge_sender_loop, daemon=True)
+            t.start()
+            self._bridge_thread_started = True
 
     def _bridge_sender_loop(self) -> None:
         while True:
@@ -239,6 +240,7 @@ class SpeechOutput:
             return
         if self._bridge_enabled:
             try:
+                self._ensure_bridge_thread()
                 self._bridge_queue.put_nowait(line)
                 return
             except Exception:
