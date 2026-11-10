@@ -718,8 +718,12 @@ def _build_compact_status_payload(
     risk = dict(status_payload.get("risk", {}) or {})
     market = dict(status_payload.get("market", {}) or {})
     status_visual = dict(status_payload.get("visual_chart_read", {}) or {})
-    latest_visual = load_latest_visual_read(Path(store.base) / "chart_vision", max_age_seconds=900)
+    latest_visual = load_latest_visual_read(Path(store.base) / "chart_vision", max_age_seconds=900,
+        expected_symbol=status_payload.get("symbol"), expected_timeframe=status_payload.get("timeframe"))
     visual_chart_read = latest_visual if bool(latest_visual.get("available", False)) and not bool(latest_visual.get("stale", False)) else status_visual
+    from atlas_ai.vision.evidence_alignment import build_evidence_alignment
+    evidence_alignment = build_evidence_alignment(status_payload, visual_chart_read,
+        indicator_momentum=dict(dict(status_payload.get("timing_discipline", {}) or {}).get("observed", {}) or {}).get("momentum"))
     status_for_readiness = dict(status_payload)
     status_for_readiness["visual_chart_read"] = dict(visual_chart_read or {})
     operator_readiness = _build_operator_readiness(
@@ -839,6 +843,9 @@ def _build_compact_status_payload(
         "winner_playbook": dict(status_payload.get("winner_playbook", {}) or {}),
         "learning_loop": _build_learning_loop_status(store),
         "visual_chart_read": dict(visual_chart_read or {}),
+        "visual_evidence_alignment": evidence_alignment,
+        "distance_unit_review": dict(status_payload.get("distance_unit_review", {}) or {}),
+        "closed_bar_entry_preview": dict(status_payload.get("closed_bar_entry_preview", {}) or {}),
         "chosen": chosen,
         "atlas_conviction": dict(status_payload.get("atlas_conviction", {}) or {}),
         "confidence_diagnostics": dict(status_payload.get("confidence_diagnostics", {}) or {}),
@@ -929,7 +936,7 @@ def _build_compact_status_payload(
         "daily_profit_objective": dict(status_payload.get("daily_profit_objective", {}) or {}),
         "timing_discipline": {
             key: dict(status_payload.get("timing_discipline", {}) or {}).get(key)
-            for key in ("hard_block", "missing", "passed", "detail", "observed")
+            for key in ("hard_block", "missing", "passed", "detail", "observed", "evidence_alignment")
         },
         "system_health": {
             "effective_mode": effective_mode,

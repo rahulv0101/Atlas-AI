@@ -39,6 +39,16 @@ def test_replay_harness_reports_exact_diffs():
         assert "action: expected 'blocked', got 'paper'" in text
 
 
+def test_replay_does_not_write_research_reports_into_working_directory(tmp_path,monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    from dataclasses import replace
+    scenario=replace(default_replay_scenarios()[0],risk_allowed=False,risk_reason="Daily drawdown limit reached")
+    result=run_replay_scenario(scenario)
+    assert result["action"]=="blocked"
+    assert not (tmp_path/"missed_entry_audits.jsonl").exists()
+    assert not list(tmp_path.glob("blocker_selectivity*.json"))
+
+
 def test_replay_is_isolated_from_current_macro_data_and_refresh(monkeypatch):
     from unittest.mock import Mock
     from atlas_ai.trader import AtlasTrader

@@ -1224,7 +1224,7 @@ def test_attach_visual_chart_read_prefers_fresh_visual_watch_payload(tmp_path):
         "timeframe": "M1",
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "live_chart_window_confirmed": True,
-        "image": {"path": str(image_path)},
+        "image": {"path": str(image_path), "available": True},
         "visual_confirmation": "does_not_confirm",
         "visual_features": {"status": "parsed"},
         "capture": {"capture_source": "mt5_window"},

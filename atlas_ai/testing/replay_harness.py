@@ -3,6 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import TemporaryDirectory, gettempdir
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
@@ -45,6 +46,10 @@ class ReplayDiffError(AssertionError):
 
 class _ReplayStore:
     def __init__(self, runtime_flags: dict[str, Any]):
+        self._temporary = TemporaryDirectory(prefix="atlas_replay_")
+        self._base = Path(self._temporary.name).resolve()
+        if self._base.parent != Path(gettempdir()).resolve():
+            raise RuntimeError("replay_storage_must_be_inside_temporary_root")
         self._runtime_flags = dict(runtime_flags)
         self.saved_status: dict[str, Any] = {}
         self.events: list[dict[str, Any]] = []
@@ -89,7 +94,7 @@ class _ReplayStore:
 
     @property
     def base(self) -> str:
-        return ""
+        return str(self._base)
 
 
 def _fixture_df() -> pd.DataFrame:
@@ -293,6 +298,7 @@ def default_replay_scenarios() -> list[ReplayScenario]:
 def _build_trader(scenario: ReplayScenario) -> tuple[AtlasTrader, _ReplayStore]:
     store = _ReplayStore(scenario.runtime_flags)
     settings = _base_settings(execute_trades=bool(scenario.runtime_flags.get("execute_trades", False)))
+    settings.storage_dir = str(store.base)
     trader = AtlasTrader.__new__(AtlasTrader)
     trader.settings = settings
     trader.store = store

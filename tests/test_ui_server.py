@@ -1179,6 +1179,7 @@ def test_compact_status_includes_decision_panels_payload(tmp_path, monkeypatch):
                 "explanation_text": "No valid setup is confirmed yet.",
                 "reason_codes": ["no_clear_setup"],
             },
+            "timing_discipline": {"evidence_alignment": {"screen_bar_matches_current": None, "momentum_relation": "different"}},
             "decision_trace": {
                 "schema": "atlas_decision_trace_v1",
                 "final_action": "hold",
@@ -1202,6 +1203,7 @@ def test_compact_status_includes_decision_panels_payload(tmp_path, monkeypatch):
     payload = create_ui_app(store).test_client().get("/api/status/compact").get_json()
 
     assert payload["decision_explanation"]["candidate_id"] == "candidate-1"
+    assert payload["timing_discipline"]["evidence_alignment"]["screen_bar_matches_current"] is None
     assert payload["decision_trace"]["schema"] == "atlas_decision_trace_v1"
     assert payload["decision_trace"]["selected_candidate"]["strategy"] == "momentum_continuation"
     assert payload["decision_trace"]["signal"]["active"][0]["strategy"] == "ema_crossover"

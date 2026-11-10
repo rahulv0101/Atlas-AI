@@ -449,6 +449,7 @@ def analyze_chart_visual_context(
     image_path: str | Path | None = None,
     timeframe: str | None = None,
     symbol: str | None = None,
+    parsed_observation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a bounded visual chart read.
 
@@ -460,8 +461,9 @@ def analyze_chart_visual_context(
 
     st = dict(status or {})
     features = dict(chart_features or st.get("chart_features") or {})
-    image = _image_probe(image_path)
-    visual_features = _parse_visual_price_action(image_path) if image.get("available") else {"available": False, "status": image.get("status", "no_screenshot_supplied")}
+    image = dict(parsed_observation.get("image",{}) or {}) if parsed_observation is not None else _image_probe(image_path)
+    visual_features = (dict(parsed_observation.get("visual_features",{}) or {}) if parsed_observation is not None else
+        _parse_visual_price_action(image_path) if image.get("available") else {"available": False, "status": image.get("status", "no_screenshot_supplied")})
     pattern, cleanliness, reasons = _pattern_from_chart_features(features)
     trend = _text(features.get("trend_state"), "unclear").lower()
     structure = _text(features.get("trend_structure"), "mixed")
@@ -536,10 +538,12 @@ def analyze_chart_visual_context(
     if pattern not in VALID_PATTERN_TYPES:
         pattern = "unclear"
 
+    from atlas_ai.vision.evidence_alignment import candle_evidence
     return {
         "enabled": True,
         "advisory_only": True,
         "source": source,
+        "candle_evidence": candle_evidence(st),
         "symbol": _text(symbol or st.get("symbol"), "XAUUSD"),
         "timeframe": _text(timeframe or st.get("timeframe") or features.get("timeframe"), "unknown"),
         "captured_at": _utc_now(),
@@ -562,6 +566,32 @@ def analyze_chart_visual_context(
         ],
         "policy_note": "Visual chart reading is advisory evidence only; it cannot place trades, bypass guards, or rewrite strategy/risk/execution policy.",
     }
+
+
+def rebase_visual_observation(observation: dict[str, Any], status: dict[str, Any], *, max_age_seconds: int = 10) -> dict[str, Any]:
+    """Re-evaluate a validated recent screenshot against current candle context.
+
+    Parsed pixels and their capture clock remain unchanged. Candle context is
+    rebuilt instead of reusing a previous decision's blended confirmation.
+    """
+    from atlas_ai.vision.evidence_alignment import aware_time, build_evidence_alignment
+    captured=aware_time(observation.get("captured_at"))
+    age=(datetime.now(timezone.utc)-captured).total_seconds() if captured else None
+    if (observation.get("stale") or age is None or not 0<=age<=max(1,int(max_age_seconds))
+            or observation.get("source")!="screenshot_plus_chart_features"
+            or not observation.get("live_chart_window_confirmed")
+            or str(observation.get("symbol","")).upper()!=str(status.get("symbol","")).upper()
+            or str(observation.get("timeframe","")).upper()!=str(status.get("timeframe","")).upper()
+            or not (observation.get("image") or {}).get("available")):
+        raise ValueError("validated_recent_visual_observation_required")
+    result=analyze_chart_visual_context(status=status,chart_features=status.get("chart_features",{}),
+        parsed_observation=observation)
+    result.update(captured_at=observation["captured_at"],capture=dict(observation.get("capture",{}) or {}),
+        available=True,stale=False,live_chart_window_confirmed=True,visual_watch_used_for_decision=True,
+        real_screenshot_attempted=observation.get("real_screenshot_attempted",True),
+        context_rebased_at=_utc_now())
+    result["evidence_alignment"]=build_evidence_alignment(status,result)
+    return result
 
 
 def capture_desktop_screenshot(

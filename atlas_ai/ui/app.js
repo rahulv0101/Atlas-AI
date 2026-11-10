@@ -1290,6 +1290,7 @@ function renderVisualChartRead(status) {
   setText("visual-status", statusText);
   setText("visual-source", source);
   setText("visual-reason", compactText(review.headline, "") || (reasons.length ? `${reasons.slice(0, 2).join(" | ")} (${source})` : `Waiting for visual chart evidence (${source}).`));
+  setText("visual-alignment", ((status || {}).visual_evidence_alignment || {}).summary || "Evidence clocks and comparison are being checked.");
 }
 
 function renderSetupHunter(status) {
@@ -2519,6 +2520,19 @@ function renderShadowAdvice(view) {
   );
 }
 
+function renderCandidateEvidenceReview(status) {
+  const alignment = (status || {}).visual_evidence_alignment || {};
+  const preview = (status || {}).closed_bar_entry_preview || {};
+  const distance = (status || {}).distance_unit_review || {};
+  const forming = (alignment.indicator || {}).bar_closed_at_evaluation === false;
+  setText("candidate-evidence-summary", preview.available
+    ? `Entry evidence: ${forming ? "the decision used a forming candle" : "see the decision candle clock"}. Last closed-candle preview: ${preview.momentum || "unknown"} momentum, ${String(preview.location || "unknown").replace(/_/g, " ")}. Preview only; current entry rules remain active.`
+    : "Closed-candle entry preview is unavailable; current entry rules remain active.");
+  setText("distance-review-summary", distance.available && !distance.matches_reviewed_atr_units
+    ? "Distance review (advisory): the corrected ATR model is still being validated in research. It has not been activated for trading."
+    : distance.available ? "Distance review: this candidate's distances match the reviewed ATR calculation." : "Distance review: evidence is unavailable for this candidate.");
+}
+
 function renderCostResearch(status) {
   const r = (status || {}).cost_research || {};
   const age = Date.now() - Date.parse(r.checked_at || "");
@@ -2691,6 +2705,7 @@ function renderStatus(s, runtime) {
     const chosen = view.chosen || {};
     renderTradeConfidence(view);
     renderCostResearch(view);
+    renderCandidateEvidenceReview(view);
     const freshnessEl = document.getElementById("stat-freshness");
     if (freshnessEl) {
       const freshness = getFreshnessRuntime(view);

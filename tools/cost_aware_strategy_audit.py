@@ -28,23 +28,18 @@ from atlas_ai.learning.trade_labeling import _simulate_trade_path
 from atlas_ai.models import TradeSignal
 from atlas_ai.strategies.built_in import EMACrossoverStrategy
 from atlas_ai.strategies.indicators import atr
+from atlas_ai.strategies.distance_units import ATR_DISTANCE_RULES, corrected_atr_signal
 from atlas_ai.strategies.minute_pack import (PullbackTrendStrategy, MomentumContinuationStrategy,
     GoldMicroImpulseStrategy, GoldBreakoutRetestStrategy, GoldLiquiditySweepStrategy)
 
 # Existing formulas' ATR multipliers and point floors. Changed distances remain
 # research variants; live strategy classes and their parameters are untouched.
-DISTANCES = {
-    "ema_crossover": (2., 3., 100., 150.),
-    "pullback_trend": (1.8, 2.6, 110., 170.),
-    "momentum_continuation": (1.9, 2.8, 115., 175.),
-    "gold_micro_impulse": (1.25, 1.9, 85., 120.),
-    "gold_breakout_retest": (1.45, 2.15, 100., 145.),
-    "gold_liquidity_sweep": (1.3, 2., 90., 125.),
-}
+DISTANCES = {key: value for key, value in ATR_DISTANCE_RULES.items() if key != "evolved_rule"}
 VARIANTS = ("current_immediate", "atr_points_immediate", "atr_points_confirmed_retest")
 SOURCES = ("tools/cost_aware_strategy_audit.py", "atlas_ai/strategies/built_in.py",
     "atlas_ai/strategies/minute_pack.py", "atlas_ai/strategies/indicators.py",
-    "atlas_ai/learning/trade_labeling.py", "atlas_ai/execution/session_control.py")
+    "atlas_ai/learning/trade_labeling.py", "atlas_ai/execution/session_control.py",
+    "atlas_ai/strategies/distance_units.py")
 
 
 def stamp(value):
@@ -62,11 +57,7 @@ def strategies():
 
 
 def corrected(signal, atr_price, point):
-    if not all(math.isfinite(v) and v > 0 for v in (atr_price, point)):
-        raise ValueError("positive_finite_atr_and_point_required")
-    sl, tp, sl_floor, tp_floor = DISTANCES[signal.strategy]
-    return replace(signal, stop_loss_points=max(atr_price * sl / point, sl_floor),
-                   take_profit_points=max(atr_price * tp / point, tp_floor))
+    return corrected_atr_signal(signal, atr_price, point)
 
 
 def confirmation(frame, i, side):
@@ -212,13 +203,19 @@ def attach(settings):
         raise ValueError("broker_point_mismatch")
 
 
-def audit(directory, fee_file):
+def audit(directory, fee_file, *, train_start="2026-11-02T00:00:00Z", train_end="2026-11-05T00:00:00Z",
+          holdout_end="2026-11-07T00:00:00Z", recent_start="2026-11-09T00:00:00Z",
+          minimum_training=12, minimum_holdout=10):
     directory.mkdir(parents=True, exist_ok=False)
     settings = replace(load_settings(), execute_trades=False, timeframe="M1")
     fee = json.loads(fee_file.read_text())
     if fee.get("roundtrip_fee_points_estimate") is None:
         raise ValueError("fee_evidence_required")
     now = datetime.now(timezone.utc)
+    if not (stamp(train_start)<stamp(train_end)<stamp(holdout_end)<=stamp(recent_start)<stamp(now)):
+        raise ValueError("disjoint_increasing_research_windows_required")
+    if minimum_training<12 or minimum_holdout<10:
+        raise ValueError("research_sample_requirements_may_not_be_lowered")
     if settings.symbol != "XAUUSD":
         raise ValueError("research_pack_requires_XAUUSD")
     rules = {"point": settings.backtest_point_size, "hold_bars": settings.backtest_max_hold_bars,
@@ -232,10 +229,11 @@ def audit(directory, fee_file):
             "backtest_trailing_r_trigger", "backtest_trailing_buffer_r", "backtest_stale_exit_bars",
             "backtest_stale_min_progress_r")},
         "sources": hashes(), "variants": VARIANTS, "distance_rules": DISTANCES, "rules": rules,
-        "training": ["2026-11-02T00:00:00Z", "2026-11-05T00:00:00Z"],
-        "holdout": ["2026-11-05T00:00:00Z", "2026-11-07T00:00:00Z"],
-        "recent_already_inspected": ["2026-11-09T00:00:00Z", now.replace(second=0,microsecond=0).isoformat()],
-        "selection_rule": "training only: >=12 trades, >=2 days, positive mean, PF>=1.1 (or all wins), drawdown<=6R; highest mean; otherwise none. Holdout requires >=10 trades; forward evidence requires >=30. Research qualification never authorizes broker trading.",
+        "training": [stamp(train_start).isoformat(), stamp(train_end).isoformat()],
+        "holdout": [stamp(train_end).isoformat(), stamp(holdout_end).isoformat()],
+        "recent_already_inspected": [stamp(recent_start).isoformat(), now.replace(second=0,microsecond=0).isoformat()],
+        "minimum_cases":{"training":minimum_training,"holdout":minimum_holdout,"forward":30},
+        "selection_rule": f"Training only: >={minimum_training} trades, >=2 days, positive mean, PF>=1.1 (or all wins), drawdown<=6R; highest mean; otherwise none. Holdout requires >={minimum_holdout} trades; forward evidence requires >=30. Research qualification never authorizes broker trading.",
         "live_eligibility": False, "auto_promotion": False, "orders_sent": 0,
         "limitations": ["Isolated strategy comparisons, not a replay of the entire trading engine.",
             "Strategy raw scores are not Atlas conviction; only nonzero directional signals are compared.",
@@ -246,7 +244,7 @@ def audit(directory, fee_file):
             "No matching of live macro, HTF, visual, performance, sizing or execution gates is claimed."]}
     atomic_json(directory/"manifest.json", manifest)
     attach(settings)
-    raw = MarketDataFeed(settings).get_rates_range(datetime(2026,10,30,tzinfo=timezone.utc), now)
+    raw = MarketDataFeed(settings).get_rates_range((stamp(train_start)-pd.Timedelta(days=4)).to_pydatetime(), now)
     raw = raw[pd.to_datetime(raw.time,utc=True)+pd.Timedelta(minutes=1) <= pd.Timestamp(now)].reset_index(drop=True)
     raw.to_csv(directory/"candles.csv", index=False)
     frame = prepare_frame(raw)
@@ -265,7 +263,7 @@ def audit(directory, fee_file):
             rows = evaluate(frame,cache,strategy,variant,*manifest["training"],settings,rules)
             results[key] = {"training":report_lane(rows)}; samples[key] = {"training":rows}
             stats = metrics(rows)
-            if qualifies(stats, minimum_trades=12): candidates.append((stats["mean_r"],key))
+            if qualifies(stats, minimum_trades=minimum_training): candidates.append((stats["mean_r"],key))
     winner = max(candidates)[1] if candidates else None
     selection = {"frozen_at": datetime.now(timezone.utc).isoformat(), "selected_from_training_only":winner,
         "qualified_training_lanes": len(candidates), "broker_eligible":False, "auto_promotion":False}
@@ -275,7 +273,7 @@ def audit(directory, fee_file):
         for phase in ("holdout","recent_already_inspected"):
             rows = evaluate(frame,cache,strategy,variant,*manifest[phase],settings,rules)
             results[key][phase] = report_lane(rows); samples[key][phase] = rows
-    winner_passed = bool(winner and qualifies(results[winner]["holdout"]["configured_costs"],minimum_trades=10))
+    winner_passed = bool(winner and qualifies(results[winner]["holdout"]["configured_costs"],minimum_trades=minimum_holdout))
     atomic_json(directory/"results.json", {"lanes":results, "selection":selection,
         "selected_candidate_passed_holdout":winner_passed,"broker_eligible":False,"orders_sent":0})
     atomic_json(directory/"samples.json",samples)
@@ -318,8 +316,19 @@ def main():
     parser.add_argument("--run-dir",type=Path,required=True)
     parser.add_argument("--fee-file",type=Path)
     parser.add_argument("--hours",type=float,default=24)
+    parser.add_argument("--train-start",default="2026-11-02T00:00:00Z")
+    parser.add_argument("--train-end",default="2026-11-05T00:00:00Z")
+    parser.add_argument("--holdout-end",default="2026-11-07T00:00:00Z")
+    parser.add_argument("--recent-start",default="2026-11-09T00:00:00Z")
+    parser.add_argument("--minimum-training",type=int,default=12)
+    parser.add_argument("--minimum-holdout",type=int,default=10)
     args=parser.parse_args()
-    if args.mode=="audit":audit(args.run_dir,args.fee_file);return
+    if args.mode=="audit":
+        if args.fee_file is None:parser.error("--fee-file is required for audit")
+        audit(args.run_dir,args.fee_file,train_start=args.train_start,train_end=args.train_end,
+            holdout_end=args.holdout_end,recent_start=args.recent_start,
+            minimum_training=args.minimum_training,minimum_holdout=args.minimum_holdout)
+        return
     if args.mode=="forward-once":forward_once(args.run_dir);return
     deadline=time.monotonic()+args.hours*3600
     while time.monotonic()<deadline:

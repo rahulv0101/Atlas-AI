@@ -42,3 +42,18 @@ def test_research_ui_shows_stale_and_failed_observation(age,state,expected):
     script="let text='';function setText(k,v){text=v;}"+helper+"\nrenderCostResearch("+json.dumps(status)+");process.stdout.write(JSON.stringify(text));"
     result=json.loads(subprocess.run([node,"-"],input=script,text=True,encoding="utf-8",capture_output=True,check=True,timeout=15).stdout)
     assert expected in result and "No broker activation" in result or expected in result and "no broker activation" in result
+
+
+def test_candidate_evidence_ui_keeps_closed_bar_preview_separate_from_active_rules():
+    node=shutil.which("node")
+    if not node:pytest.skip("Node required")
+    source=(Path(__file__).resolve().parents[1]/"atlas_ai/ui/app.js").read_text(encoding="utf-8")
+    helper=source[source.index("function renderCandidateEvidenceReview("):source.index("function renderCostResearch(")]
+    payload={"visual_evidence_alignment":{"indicator":{"bar_closed_at_evaluation":False}},
+        "closed_bar_entry_preview":{"available":True,"momentum":"strong","location":"pullback"},
+        "distance_unit_review":{"available":True,"matches_reviewed_atr_units":False}}
+    script="const values={};function setText(k,v){values[k]=v;}"+helper+"\nrenderCandidateEvidenceReview("+json.dumps(payload)+");process.stdout.write(JSON.stringify(values));"
+    values=json.loads(subprocess.run([node,"-"],input=script,text=True,encoding="utf-8",capture_output=True,check=True,timeout=15).stdout)
+    assert "forming candle" in values["candidate-evidence-summary"]
+    assert "Preview only" in values["candidate-evidence-summary"]
+    assert "has not been activated" in values["distance-review-summary"]

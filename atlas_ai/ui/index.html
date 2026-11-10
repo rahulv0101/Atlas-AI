@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atlas AI Command Deck</title>
-  <link rel="stylesheet" href="/style.css?v=20261110-7" />
+  <link rel="stylesheet" href="/style.css?v=20261110-8" />
 </head>
 <body class="command-view">
   <a class="skip-link" href="#ask-atlas-card">Skip to Ask Atlas</a>
@@ -170,6 +170,8 @@
         <p id="hunter-next" class="muted">Scanning for forming setups.</p>
           <p id="strategy-research-summary" class="muted">Strategy research is being checked.</p>
           <p id="cost-research-summary" class="muted">Cost-aware paper research is being checked.</p>
+          <p id="candidate-evidence-summary" class="muted">Entry evidence is being checked.</p>
+          <p id="distance-review-summary" class="muted">Strategy distances are being checked.</p>
       </article>
 
       <article class="card top-card top-card-chart">
@@ -188,6 +190,7 @@
           <li>Source: <span id="visual-source">-</span></li>
         </ul>
         <p id="visual-reason" class="muted">Waiting for visual chart evidence.</p>
+        <p id="visual-alignment" class="muted">Evidence clocks and comparison are being checked.</p>
       </article>
 
       <article class="card top-card diagnostics-panel">
@@ -850,6 +853,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js?v=20261110-7"></script>
+  <script src="/app.js?v=20261110-8"></script>
 </body>
 </html>

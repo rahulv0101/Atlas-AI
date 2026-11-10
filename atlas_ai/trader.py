@@ -95,7 +95,7 @@ from atlas_ai.strategies.evolution_drawdown_guard import EvolutionDrawdownGuard
 from atlas_ai.strategies.evolution_integration import load_demo_chromosome_pool
 from atlas_ai.system_health import build_system_health
 from atlas_ai.gold_knowledge import apply_gold_knowledge_to_signal
-from atlas_ai.vision.chart_vision import analyze_chart_visual_context, capture_desktop_screenshot, load_latest_visual_read, save_visual_read
+from atlas_ai.vision.chart_vision import analyze_chart_visual_context, capture_desktop_screenshot, load_latest_visual_read, save_visual_read, rebase_visual_observation
 
 logger = logging.getLogger(__name__)
 
@@ -1341,6 +1341,34 @@ class AtlasTrader:
             "atr_ratio": round(max(0.0, atr_proxy), 4),
         }
 
+    def _attach_candidate_evidence_review(self, status, df, chosen, regime):
+        """Read-only distance review and closed-candle preview, outside selection."""
+        from pandas import to_datetime
+        from atlas_ai.strategies.indicators import atr
+        from atlas_ai.strategies.distance_units import distance_unit_review
+        from atlas_ai.vision.evidence_alignment import candle_evidence, aware_time
+        status["indicator_evidence"] = candle_evidence(status)
+        try:
+            symbol_info = mt5.symbol_info(self.settings.symbol)
+            point = float(getattr(symbol_info, "point", 0) or 0)
+            status["distance_unit_review"] = distance_unit_review(chosen, float(atr(df).iloc[-1]), point)
+            minutes = {"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}.get(str(self.settings.timeframe).upper())
+            if minutes is None:raise ValueError("unsupported_preview_timeframe")
+            evaluated = aware_time(status.get("market_data_clock", {}).get("ended_at")) or datetime.now(timezone.utc)
+            closed = df.loc[to_datetime(df["time"],utc=True)+timedelta(minutes=minutes) <= evaluated]
+            if len(closed)<25:raise ValueError("insufficient_closed_candles")
+            context = self._entry_timing_context(closed, regime)
+            preview_signals = [s.generate_signal(closed) for s in getattr(self,"base_strategies",())
+                if self._strategy_enabled(str(getattr(s,"name","")))]
+            status["closed_bar_entry_preview"] = {"available":True,"advisory_only":True,
+                "bar_utc":to_datetime(closed["time"].iloc[-1],utc=True).isoformat(),
+                "momentum":context["entry_momentum_state"],"location":context["entry_location_state"],
+                "signals":[asdict(s) for s in preview_signals],
+                "policy_note":"Closed-bar shadow preview only; it cannot replace the selected signal or bypass current gates."}
+        except Exception as exc:
+            status.setdefault("distance_unit_review",{"available":False,"advisory_only":True,"reason":type(exc).__name__})
+            status["closed_bar_entry_preview"]={"available":False,"advisory_only":True,"reason":type(exc).__name__}
+
     def _attach_visual_chart_read(self, status: dict[str, Any]) -> None:
         # Advisory-only visual read. This adds inspectable evidence without
         # changing strategy, risk, gates, or execution policy.
@@ -1367,8 +1395,8 @@ class AtlasTrader:
                 and not bool(latest.get("stale", False))
                 and latest_image.get("path")
             ):
-                visual = dict(latest)
-                visual["visual_watch_used_for_decision"] = True
+                visual = rebase_visual_observation(latest, status,
+                    max_age_seconds=int(os.getenv("ATLAS_VISUAL_WATCH_MAX_AGE_SECONDS", "10") or "10"))
                 status["visual_chart_read"] = visual
                 return
             if capture_enabled and now - float(self._last_visual_chart_capture_at or 0.0) >= cooldown_seconds:
@@ -4153,9 +4181,13 @@ class AtlasTrader:
             },
         )
 
+        from atlas_ai.vision.evidence_alignment import build_evidence_alignment
+        alignment = build_evidence_alignment(status, visual, indicator_momentum=momentum or "unknown")
+
         return {
             "enabled": True,
             "status": "timing_block" if hard_block else "timing_clear_for_existing_gates",
+            "evidence_alignment": alignment,
             "score": int(score),
             "side": str(getattr(signal, "side", "flat") or "flat"),
             "missing": unique_missing,
@@ -4787,6 +4819,9 @@ class AtlasTrader:
             "signal_summary": dict(status.get("signal_summary", {}) or {}),
             "atlas_conviction": dict(status.get("atlas_conviction", {}) or {}),
             "confidence_diagnostics": dict(status.get("confidence_diagnostics", {}) or {}),
+            "distance_unit_review": dict(status.get("distance_unit_review", {}) or {}),
+            "indicator_evidence": dict(status.get("indicator_evidence", {}) or {}),
+            "closed_bar_entry_preview": dict(status.get("closed_bar_entry_preview", {}) or {}),
             "min_confidence_threshold": status.get("min_confidence_threshold"),
             "signal_generation": dict(status.get("signal_generation", {}) or {}),
             "higher_timeframe": dict(status.get("higher_timeframe", {}) or {}),
@@ -5432,6 +5467,8 @@ class AtlasTrader:
                 contextual_scores=contextual_scores,
             ),
         }
+        status["market_data_clock"] = dict(self._current_cycle_timing.get("market_fetch", {}) or {})
+        self._attach_candidate_evidence_review(status, df, chosen, regime)
         self._attach_visual_chart_read(status)
         self._current_cycle_timing["decision_pre_checks_completed_at"] = datetime.now(timezone.utc).isoformat()
         self._current_cycle_timing["cycle_elapsed_ms_before_gates"] = round((time.perf_counter() - cycle_started_mono) * 1000.0, 2)
@@ -5489,8 +5526,8 @@ class AtlasTrader:
                 and bool(latest_visual.get("live_chart_window_confirmed", False))
                 and not bool(latest_visual.get("stale", False))
             ):
-                status["visual_chart_read"] = dict(latest_visual)
-                status["visual_chart_read"]["visual_watch_used_for_decision"] = True
+                status["visual_chart_read"] = rebase_visual_observation(latest_visual, status,
+                    max_age_seconds=int(os.getenv("ATLAS_VISUAL_WATCH_MAX_AGE_SECONDS", "10") or "10"))
         timing_context = context_snapshot
         if chosen.strategy == "gold_breakout_retest":
             timing_context, resolution = resolve_retest_timing_context(
