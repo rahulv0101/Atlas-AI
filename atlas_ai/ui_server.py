@@ -679,6 +679,8 @@ def _build_compact_status_payload(
     runtime_flags = dict(runtime_flags or {})
     settings = load_settings()
     desktop_window = _reconcile_desktop_window_state(dict(runtime_flags.get("ui_desktop_window", {}) or {}), store)
+    from atlas_ai.learning.cost_research_status import load_cost_research_status
+    cost_research = load_cost_research_status(store.base)
     automation_payload = _load_automation_payload(store)
     status_payload["intraday_exit"] = _intraday_exit_view(status_payload, automation_payload)
     structured_blocker = _build_structured_blocker(status_payload, automation_payload)
@@ -840,6 +842,7 @@ def _build_compact_status_payload(
         "chosen": chosen,
         "atlas_conviction": dict(status_payload.get("atlas_conviction", {}) or {}),
         "confidence_diagnostics": dict(status_payload.get("confidence_diagnostics", {}) or {}),
+        "cost_research": cost_research,
         "best_actionable_candidate": dict(status_payload.get("best_actionable_candidate", {}) or {}),
         "min_confidence_threshold": float(status_payload.get("min_confidence_threshold", dict(status_payload.get("thresholds", {}) or {}).get("confidence", 0.0)) or 0.0),
         "thresholds": dict(status_payload.get("thresholds", {}) or {}),

@@ -1153,6 +1153,7 @@ def test_signal_selection_review_explains_raw_candidate_not_selected(tmp_path, m
 
     assert compact["atlas_conviction"]["score"] == 45
     assert compact["confidence_diagnostics"]["chosen_side"] == "flat"
+    assert compact["cost_research"]["broker_eligible"] is False
     assert compact["signal_selection_review"]["status"] == "raw_candidate_not_selected"
     assert review["status"] == "raw_candidate_not_selected"
     assert review["selected_signal"]["side"] == "flat"

@@ -2483,6 +2483,24 @@ function renderShadowAdvice(view) {
   );
 }
 
+function renderCostResearch(status) {
+  const r = (status || {}).cost_research || {};
+  const age = Date.now() - Date.parse(r.checked_at || "");
+  let text = "Cost research: not started.";
+  if (r.state === "observing_frozen_rules") {
+    text = Number.isFinite(age) && age >= 0 && age <= 180000
+      ? `Cost research: paper observation active · ${r.comparisons || 0} frozen comparisons · ${r.paper_outcomes || 0} paper outcomes (may overlap) · ${r.training_qualified || 0} qualified in training. No broker activation.`
+      : "Cost research: observation heartbeat is stale or unavailable. No broker activation.";
+  } else if (r.state === "waiting_for_fresh_broker_bars") {
+    text = "Cost research: waiting for fresh closed broker bars. No broker activation.";
+  } else if (r.state === "observation_window_completed") {
+    text = "Cost research: paper observation window completed. Results require review; no broker activation.";
+  } else if (r.state && r.state !== "not_started") {
+    text = "Cost research: observation unavailable or stopped. Review required; no broker activation.";
+  }
+  setText("cost-research-summary", text);
+}
+
 function renderTradeConfidence(status) {
   const chosen = (status || {}).chosen || {};
   const el = document.getElementById("stat-confidence");
@@ -2636,6 +2654,7 @@ function renderStatus(s, runtime) {
     document.getElementById("stat-action").textContent = readinessLabel;
     const chosen = view.chosen || {};
     renderTradeConfidence(view);
+    renderCostResearch(view);
     const freshnessEl = document.getElementById("stat-freshness");
     if (freshnessEl) {
       const freshness = getFreshnessRuntime(view);
