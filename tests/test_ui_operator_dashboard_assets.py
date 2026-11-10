@@ -89,7 +89,7 @@ def test_operator_dashboard_uses_existing_endpoints_and_polling() -> None:
     assert "const OPERATOR_REFRESH_MS = 60000;" in app_js
     assert "const REFRESH_INTERVAL_MS = 10000;" in app_js
     assert "lastAuxRefreshAt" in app_js
-    assert "if (document.hidden) return;" in app_js
+    assert 'if (document.hidden || dashboardView !== "diagnostics" || !firstRefreshDone) return;' in app_js
     assert "function mergedExecutionState(status, runtime)" in app_js
     assert "const statusExec" in app_js
     assert "automation_truth" in app_js

@@ -1,0 +1,9 @@
+# Chart and Pilot Runbook display repair
+
+The session-cutoff early return omitted market history, leaving the gold canvas as an empty grid. It now reads up to 80 broker bars for display without invoking signal generation, sizing or order submission. History failures are reported as unavailable and leave cutoff monitoring intact. The compact API retains bar times and chart error metadata. The chart shows an explicit empty-state message rather than an unexplained grid and clears previous prices when the current payload lacks usable data.
+
+Pilot Runbook counters previously always showed REVIEW, including zero losses and unused limits. Known counters below their configured caps now show OK; reached caps show BLOCKED and missing limits remain REVIEW. Daily loss uses percentage units. Outside-session status is WAITING. Informational counters explain that order attempts are not completed strategy trades. Zero minutes remaining is preserved for the near-close warning instead of being replaced with -1.
+
+Validation: 39 focused UI/cutoff/refresh tests, 97 broader UI-server/runbook tests, and 9 cutoff tests including unavailable broker history passed. JavaScript syntax and whitespace checks passed. These changes do not alter trading strategies, risk limits or execution rules. Local deployment evidence is kept under docs/diagnostics.
+
+Live verification: the guarded demo was confirmed flat before the normal reload. Startup completed successfully with a native desktop and no browser fallback. The compact API returned 80 bars with timestamps and no chart error (approximately 562 ms). Direct desktop inspection showed the gold line, then a newer line after London-session analysis resumed. The Runbook displayed OK for 0/8 trades, 0.000%/0.600% pilot daily loss and 0/8 consecutive losses, with two order attempts separately labelled as informational. No test orders were submitted for this UI repair.

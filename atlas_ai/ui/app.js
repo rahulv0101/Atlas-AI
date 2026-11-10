@@ -20,6 +20,7 @@ let refreshFailureCount = 0;
 let lastSuccessfulRefreshAt = 0;
 let refreshStartedAt = 0;
 let lastAuxRefreshAt = 0;
+let auxiliaryRefreshInFlight = false;
 let askAtlasHistory = [];
 const STATUS_STALE_MS = 5 * 60 * 1000;
 const EVENTS_WINDOW_MS = 30 * 60 * 1000;
@@ -887,7 +888,7 @@ function renderRunbookRows(elementId, rows, emptyLabel = "No checklist items") {
   el.innerHTML = values.map((row) => {
     const status = String((row || {}).status || "REVIEW").toUpperCase();
     const text = String((row || {}).text || "").trim();
-    const cls = status === "OK" ? "runbook-ok" : (status === "BLOCKED" ? "runbook-blocked" : "runbook-review");
+    const cls = status === "OK" ? "runbook-ok" : status === "BLOCKED" ? "runbook-blocked" : (status === "INFO" || status === "WAITING") ? "runbook-info" : "runbook-review";
     return `<div class="detail-row ${cls}"><strong>${escapeHtml(status)}</strong> - ${escapeHtml(text || "-")}</div>`;
   }).join("");
 }
@@ -1256,6 +1257,14 @@ function renderVisualChartRead(status) {
 }
 
 function renderSetupHunter(status) {
+  if (((status || {}).intraday_exit || {}).entries_blocked && ((status || {}).intraday_exit || {}).flat_verified) {
+    setText("hunter-state", "Paused for session cutoff");
+    setText("hunter-closest", "Not evaluated while entries are paused");
+    setText("hunter-handoff", "No new entries");
+    setText("hunter-count", "Not evaluated");
+    setText("hunter-next", "Broker monitoring continues. Setup selection resumes in the next eligible session.");
+    return;
+  }
   const hunter = ((status || {}).setup_hunter || {});
   const handoff = ((status || {}).setup_execution_handoff || {});
   const closest = ((hunter || {}).closest_setup || {});
@@ -1765,13 +1774,17 @@ function renderOperatorLivePilotReview(status, runtime, queuePayload, reviewPayl
 }
 
 function renderPilotRunbook(status, runtime) {
-  const exec = (((runtime || {}).execution) || {});
+  const exec = mergedExecutionState(status, runtime);
   const pilot = ((exec.tiny_live_pilot) || {});
   const session = ((exec.session_control) || {});
   const realSessionActive = Boolean(session.session_active);
   const simulatedSessionActive = Boolean(exec.session_override_simulated_session_active);
   const effectiveSessionActive = realSessionActive || simulatedSessionActive;
   const openPositions = Number((runtime || {}).open_positions ?? (status || {}).open_positions ?? 0);
+  const minutes = Number(session.minutes_to_session_close ?? -1);
+  const nearClose = minutes >= 0 && minutes <= 15;
+  const limitState = (used, cap) => used == null || cap == null || !Number.isFinite(Number(used)) || !Number.isFinite(Number(cap)) || Number(cap) <= 0
+    ? "REVIEW" : Number(used) >= Number(cap) ? "BLOCKED" : "OK";
   const pre = [
     {
       status: (Boolean(exec.execution_gate_enabled) && !Boolean(exec.kill_switch_active)) ? "OK" : "BLOCKED",
@@ -1782,8 +1795,8 @@ function renderPilotRunbook(status, runtime) {
       text: `Pilot readiness: enabled=${Boolean(pilot.enabled)} approved=${Boolean(pilot.approved)}`,
     },
     {
-      status: effectiveSessionActive ? "OK" : "BLOCKED",
-      text: `Session active (effective): ${effectiveSessionActive} | real=${realSessionActive} | simulated=${simulatedSessionActive} (${compactText(session.current_session, "none")})`,
+      status: effectiveSessionActive ? "OK" : "WAITING",
+      text: effectiveSessionActive ? `Session open: ${compactText(session.current_session, "unknown")}${simulatedSessionActive ? " (simulated override)" : ""}` : "Outside the configured entry session; waiting for the next eligible session.",
     },
     {
       status: Boolean(exec.reconciliation_required) ? "BLOCKED" : "OK",
@@ -1794,8 +1807,8 @@ function renderPilotRunbook(status, runtime) {
       text: `Orphan orders: ${Number(exec.orphan_order_count || 0)}`,
     },
     {
-      status: (Number(exec.tiny_live_pilot_attempts_today || 0) === 0 && Number(exec.tiny_live_pilot_trade_count || 0) === 0) ? "OK" : "REVIEW",
-      text: `Risk counters reset check: attempts=${Number(exec.tiny_live_pilot_attempts_today || 0)} trades=${Number(exec.tiny_live_pilot_trade_count || 0)}`,
+      status: "INFO",
+      text: `Today's counters: ${Number(exec.tiny_live_pilot_attempts_today || 0)} order attempts, ${Number(exec.tiny_live_pilot_trade_count || 0)} pilot trades. Attempts are not completed trades.`,
     },
     {
       status: Boolean(exec.forced_flat_pending) ? "REVIEW" : "OK",
@@ -1804,12 +1817,12 @@ function renderPilotRunbook(status, runtime) {
   ];
 
   const during = [
-    { status: "REVIEW", text: `Trades used: ${Number(exec.tiny_live_pilot_trade_count || 0)} / ${Number(pilot.max_trades_per_day || 0)}` },
-    { status: "REVIEW", text: `Daily loss used: ${Number(exec.tiny_live_pilot_daily_loss_used || 0).toFixed(3)} / ${Number(pilot.daily_loss_cap || 0).toFixed(3)}` },
-    { status: "REVIEW", text: `Consecutive losses: ${Number(exec.tiny_live_pilot_consecutive_losses || 0)} / ${Number(pilot.max_consecutive_losses || 0)}` },
-    { status: "REVIEW", text: `Session/time: ${compactText(session.current_session, "none")} | mins to close=${Number(session.minutes_to_session_close || -1)}` },
+    { status: limitState(exec.tiny_live_pilot_trade_count, pilot.max_trades_per_day), text: `Pilot trades used: ${exec.tiny_live_pilot_trade_count ?? "unknown"} / ${pilot.max_trades_per_day ?? "unknown"}` },
+    { status: limitState(exec.tiny_live_pilot_daily_loss_used, pilot.daily_loss_cap), text: `Pilot daily loss: ${exec.tiny_live_pilot_daily_loss_used == null ? "unknown" : Number(exec.tiny_live_pilot_daily_loss_used).toFixed(3) + "%"} / ${pilot.daily_loss_cap == null ? "unknown" : Number(pilot.daily_loss_cap).toFixed(3) + "%"}` },
+    { status: limitState(exec.tiny_live_pilot_consecutive_losses, pilot.max_consecutive_losses), text: `Consecutive losses: ${exec.tiny_live_pilot_consecutive_losses ?? "unknown"} / ${pilot.max_consecutive_losses ?? "unknown"}` },
+    { status: nearClose ? "REVIEW" : "INFO", text: minutes >= 0 ? `Session closes in ${minutes} minutes.` : "No active session countdown." },
     { status: Boolean(pilot.paused) ? "BLOCKED" : "OK", text: `Pilot paused: ${Boolean(pilot.paused)} (${compactText(pilot.pause_reason, "none")})` },
-    { status: (Number(session.minutes_to_session_close || -1) >= 0 && Number(session.minutes_to_session_close || -1) <= 15) ? "REVIEW" : "OK", text: `Near session close warning: ${(Number(session.minutes_to_session_close || -1) >= 0 && Number(session.minutes_to_session_close || -1) <= 15)}` },
+    { status: nearClose ? "REVIEW" : "OK", text: nearClose ? "Session close is approaching; entry and exit rules still apply." : "No near-close warning." },
     { status: Boolean(exec.forced_flat_pending) ? "BLOCKED" : "OK", text: `Forced-flat urgency: ${compactText(exec.forced_flat_urgency, "none")}` },
   ];
 
@@ -1824,7 +1837,7 @@ function renderPilotRunbook(status, runtime) {
     { status: Number(exec.pending_live_orders_count || 0) > 0 ? "REVIEW" : "OK", text: `Pending live orders: ${Number(exec.pending_live_orders_count || 0)}` },
     { status: Boolean(exec.reconciliation_required) ? "REVIEW" : "OK", text: `Reconciliation required: ${Boolean(exec.reconciliation_required)}` },
     { status: Number(exec.orphan_order_count || 0) > 0 ? "REVIEW" : "OK", text: `Orphan orders: ${Number(exec.orphan_order_count || 0)}` },
-    { status: "REVIEW", text: `Today summary: attempts=${Number(exec.tiny_live_pilot_attempts_today || 0)} | last=${compactText(exec.last_live_order_status, "none")} | paused=${Boolean(pilot.paused)} | anomalies=${(Boolean(exec.reconciliation_required) || Number(exec.orphan_order_count || 0) > 0) ? "yes" : "no"}` },
+    { status: "INFO", text: `Last order result: ${compactText(exec.last_live_order_status, "none")}. See verified trade evidence for completed strategy trades.` },
   ];
 
   renderRunbookRows("op-runbook-pre", pre, "No pre-session checklist.");
@@ -1835,9 +1848,29 @@ function renderPilotRunbook(status, runtime) {
 
 async function refreshOperatorPanels() {
   if (operatorRefreshInFlight) return;
-  if (document.hidden) return;
+  if (document.hidden || dashboardView !== "diagnostics" || !firstRefreshDone) return;
   operatorRefreshInFlight = true;
   try {
+    const panelLoaders = [
+      () => askAtlas(OPERATOR_QUERIES.recommendation),
+      () => askAtlas(OPERATOR_QUERIES.feedback),
+      () => askAtlas(OPERATOR_QUERIES.tuning),
+      () => askAtlas(OPERATOR_QUERIES.live_review),
+      () => askAtlas(OPERATOR_QUERIES.queue),
+      () => loadSelfImprovementProposals(),
+      () => loadSelfImprovementRollouts(),
+      () => loadSelfImprovementAudit(),
+      () => loadAIDecisionLatest(),
+      () => loadAIDecisionReviews(),
+      () => loadAIStrategyPreferences(),
+      () => loadAIPromotionRecommendations(),
+      () => loadAIResearchQueue()
+    ];
+    const panelResults = [];
+    for (const load of panelLoaders) {
+      if (document.hidden || dashboardView !== "diagnostics") return;
+      panelResults.push(await load());
+    }
     const [
       recommendation,
       feedback,
@@ -1852,21 +1885,7 @@ async function refreshOperatorPanels() {
       aiPreferences,
       aiPromotion,
       aiResearchQueue,
-    ] = await Promise.all([
-      askAtlas(OPERATOR_QUERIES.recommendation),
-      askAtlas(OPERATOR_QUERIES.feedback),
-      askAtlas(OPERATOR_QUERIES.tuning),
-      askAtlas(OPERATOR_QUERIES.live_review),
-      askAtlas(OPERATOR_QUERIES.queue),
-      loadSelfImprovementProposals(),
-      loadSelfImprovementRollouts(),
-      loadSelfImprovementAudit(),
-      loadAIDecisionLatest(),
-      loadAIDecisionReviews(),
-      loadAIStrategyPreferences(),
-      loadAIPromotionRecommendations(),
-      loadAIResearchQueue(),
-    ]);
+    ] = panelResults;
     operatorPanelCache = {
       recommendation,
       feedback,
@@ -2021,6 +2040,7 @@ function setDashboardView(view) {
   if (commandBtn) commandBtn.setAttribute("aria-pressed", String(dashboardView === "command"));
   if (diagnosticsBtn) diagnosticsBtn.setAttribute("aria-pressed", String(dashboardView === "diagnostics"));
   requestAnimationFrame(drawGoldChart);
+  if (dashboardView === "diagnostics") refreshOperatorPanels().catch((err) => console.warn("[Atlas UI] diagnostics refresh failed", err));
 }
 
 async function runCommandDeckAction(command) {
@@ -2480,7 +2500,12 @@ function drawGoldChart() {
     chartCtx.stroke();
   }
 
-  if (priceHistory.length < 2) return;
+  if (priceHistory.length < 2) {
+    chartCtx.fillStyle = "#b4c6d4";
+    chartCtx.font = "14px Segoe UI";
+    chartCtx.fillText("No broker chart data available", 16, h / 2);
+    return;
+  }
 
   const minPrice = Math.min(...priceHistory);
   const maxPrice = Math.max(...priceHistory);
@@ -2637,10 +2662,14 @@ function renderStatus(s, runtime) {
       attentionEl.title = flags.length ? "Safety attention flags are active." : "No active safety attention flags.";
     }
     const market = view.market || {};
-    if (Array.isArray(market.recent_close) && market.recent_close.length > 1) {
-      priceHistory = market.recent_close.map(Number).filter((x) => Number.isFinite(x));
-      drawGoldChart();
-    }
+    priceHistory = (Array.isArray(market.recent_close) ? market.recent_close : [])
+      .filter((x) => x !== null && x !== "" && x !== undefined)
+      .map(Number).filter((x) => Number.isFinite(x) && x > 0);
+    drawGoldChart();
+    const chartTimes = Array.isArray(market.recent_time) ? market.recent_time : [];
+    setText("gold-chart-status", priceHistory.length > 1
+      ? `${view.timeframe || "Broker"} closing prices · ${priceHistory.length} bars · Latest bar: ${chartTimes.at(-1) || "time unavailable"} UTC${((view.intraday_exit || {}).entries_blocked) ? " · Entries paused; chart observation continues." : ""}`
+      : "Broker chart data unavailable. No price line is shown; retrying on the next refresh.");
 
     const simpleDecision = (((view.execution_readiness || {}).display || {}).label === "WAITING")
       ? entryWaitingSummary(view) : null;
@@ -2654,10 +2683,11 @@ function renderStatus(s, runtime) {
     setText("overview-updated", stale ? `Data needs refreshing · ${updatedAt}` : `Decision updated ${updatedAt}`);
     const research = (runtime || {}).evolution || {};
     const researchAge = Date.now() - Date.parse(research.checked_at || "");
+    const researchState = research.scheduler_status === "idle" ? "watching new bars" : String(research.scheduler_status || "checking").replace(/_/g, " ");
     setText("strategy-research-summary", research.research_only
       ? (!Number.isFinite(researchAge) || researchAge < 0 || researchAge > 180000
         ? "Strategy research: heartbeat unavailable or stale."
-        : `Strategy research: ${research.scheduler_status || "checking"} | ${research.candidate_count || 0} generated candidates | ${research.forward_trades || 0} forward paper outcomes. Candidates are outside broker trading.`)
+        : `Strategy research: ${researchState} | ${research.candidate_count || 0} generated candidates | ${research.forward_trades || 0} forward paper outcomes. Candidates are outside broker trading.`)
       : "Bounded strategy research is not active.");
     const proof = (runtime || {}).lifecycle_acceptance || {};
     const proofAge = Date.now() - Date.parse(proof.checked_at || "");
@@ -2869,6 +2899,25 @@ function updateUIConnection() {
   }
 }
 
+async function refreshAuxiliaryPanels() {
+  if (auxiliaryRefreshInFlight || document.hidden) return;
+  auxiliaryRefreshInFlight = true;
+  lastAuxRefreshAt = Date.now();
+  try {
+    const results = await Promise.allSettled([loadEvents(), loadLearningInsights()]);
+    const events = getSettledValue(results[0], null);
+    const learning = getSettledValue(results[1], null);
+    if (events) renderEvents(events);
+    if (learning) renderLearningInsights(learning);
+    lastRichStatus = { ...lastRichStatus,
+      events: events || lastRichStatus.events, learning: learning || lastRichStatus.learning };
+  } catch (err) {
+    console.warn("[Atlas UI] optional panel refresh failed", err);
+  } finally {
+    auxiliaryRefreshInFlight = false;
+  }
+}
+
 async function refresh() {
   if (refreshInFlight) return;
   refreshInFlight = true;
@@ -2876,14 +2925,12 @@ async function refresh() {
   try {
     const now = Date.now();
     const loadAuxiliary = !firstRefreshDone || (now - lastAuxRefreshAt) >= 30000;
-    const requests = loadAuxiliary
-      ? [loadStatus(), loadRuntime(), loadEvents(), loadLearningInsights()]
-      : [loadStatus(), loadRuntime()];
-    const results = await Promise.allSettled(requests);
+    const initialRefresh = !firstRefreshDone;
+    const results = await Promise.allSettled([loadStatus(), loadRuntime()]);
     const s = getSettledValue(results[0], null);
     const r = getSettledValue(results[1], {});
-    const e = loadAuxiliary ? getSettledValue(results[2], []) : null;
-    const l = loadAuxiliary ? getSettledValue(results[3], null) : null;
+    const e = lastRichStatus.events || null;
+    const l = lastRichStatus.learning || null;
 
     if (!s) {
       throw new Error("Core status endpoint unavailable");
@@ -2897,7 +2944,6 @@ async function refresh() {
       lastLearningSignature = "";
     }
     firstRefreshDone = true;
-    if (loadAuxiliary) lastAuxRefreshAt = now;
     dismissStartup();
     renderStatus(s, r);
     if (e) renderEvents(e);
@@ -2917,6 +2963,8 @@ async function refresh() {
     lastSuccessfulRefreshAt = Date.now();
     updateUIConnection();
     console.debug("[Atlas UI] refresh complete", s.updated_at || "no-status-timestamp");
+    if (loadAuxiliary) refreshAuxiliaryPanels().catch((err) => console.warn("[Atlas UI] optional panels delayed", err));
+    if (initialRefresh && dashboardView === "diagnostics") refreshOperatorPanels().catch((err) => console.warn("[Atlas UI] diagnostics delayed", err));
   } catch (err) {
     refreshFailureCount += 1;
     setText("ui-connection", "Connection lost - retrying automatically");

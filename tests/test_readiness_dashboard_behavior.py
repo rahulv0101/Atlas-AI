@@ -113,3 +113,16 @@ def test_cutoff_summary_does_not_claim_scanning_or_disconnection():
     script=helper+"\nprocess.stdout.write(JSON.stringify(entryWaitingSummary("+json.dumps(payload)+")));"
     result=json.loads(subprocess.run([node,"-"],input=script,text=True,capture_output=True,check=True).stdout)
     assert result["headline"]=="Session cutoff" and "paused" in result["detail"]
+
+
+def test_setup_hunter_does_not_show_phantom_candidates_during_flat_cutoff():
+    node=shutil.which("node")
+    if not node:pytest.skip("Node required")
+    source=(Path(__file__).resolve().parents[1]/"atlas_ai/ui/app.js").read_text(encoding="utf-8")
+    helper=source[source.index("function renderSetupHunter("):source.index("function renderLearningCritic(")]
+    payload={"intraday_exit":{"entries_blocked":True,"flat_verified":True},"setup_hunter":{"state":"forming","candidates":[{"name":"old"}]}}
+    script="const values={};function setText(k,v){values[k]=v;}\n"+helper+"\nrenderSetupHunter("+json.dumps(payload)+");process.stdout.write(JSON.stringify(values));"
+    values=json.loads(subprocess.run([node,"-"],input=script,text=True,capture_output=True,check=True).stdout)
+    assert values["hunter-state"]=="Paused for session cutoff"
+    assert values["hunter-count"]=="Not evaluated"
+    assert "next eligible session" in values["hunter-next"]

@@ -9,3 +9,12 @@ The dashboard recognises broker-confirmed-flat cutoff state and explains that en
 Validation: 159 trader/UI/intraday regression cases and 31 focused health/dashboard checks passed. New regressions include real disconnection, account mismatch, symbol visibility, preserved risk/AI evidence, and cutoff-specific user wording.
 
 The reload uses the normal launcher after checking an idle matching demo account. No broker test order is part of this repair. Raw deployment, runtime and browser evidence stays local under `docs/diagnostics/`.
+
+
+## Live-window follow-up
+
+Direct inspection of the Atlas desktop found three more incomplete cutoff displays: the daily goal remained Checking, the Gemini note fell back to unavailable, and Setup search displayed fallback candidates even though entry selection was paused. The cutoff path now uses the same daily-objective calculation as the normal path, explains that market analysis is paused, and labels the setup card as paused/not evaluated. The research idle label is rendered as watching new bars. This changes reporting only.
+
+The follow-up passed 140 regression cases and 32 focused UI/health checks. Overview/Diagnostics navigation and scrolling were checked on the actual app. The daily goal displayed -R6 / R1,000 and MT5 connection evidence was visible after reload.
+
+Cold-start observation also exposed unnecessary diagnostic fan-out and optional learning requests delaying the core refresh. Core status polling now completes independently of events/learning. Operator panels load only after the first successful refresh on the visible Diagnostics tab, issuing requests sequentially. Tests hold optional requests pending and verify that core refresh still completes without declaring a connection failure. All 35 focused refresh/cutoff/dashboard tests passed. Duplicate fallback browser tabs were closed and the desktop interface was reloaded separately from the trading backend. Intermittent reconnection was observed before that reload; a successful startup alone is not evidence of sustained UI availability.

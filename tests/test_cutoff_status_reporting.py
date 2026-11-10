@@ -1,16 +1,23 @@
 from types import SimpleNamespace as NS
 import MetaTrader5 as mt5
 import pytest
+import pandas as pd
 from atlas_ai.config.settings import Settings
 from atlas_ai.risk.risk_manager import RiskSnapshot
 from atlas_ai.trader import AtlasTrader
 
 
 @pytest.mark.parametrize("connected,login,visible,ready",[(True,1,True,True),(False,1,True,False),(True,2,True,False),(True,1,False,True)])
-def test_cutoff_preserves_fresh_broker_risk_and_ai_evidence(monkeypatch,connected,login,visible,ready):
+@pytest.mark.parametrize("chart_available", [True, False])
+def test_cutoff_preserves_fresh_broker_risk_and_ai_evidence(monkeypatch,connected,login,visible,ready,chart_available):
     trader=AtlasTrader.__new__(AtlasTrader)
-    trader.settings=Settings(hfm_login=1,hfm_password="test",hfm_server="Demo",symbol="XAUUSD",timeframe="M1")
+    trader.settings=Settings(hfm_login=1,hfm_password="test",hfm_server="Demo",symbol="XAUUSD",timeframe="M1",daily_profit_target_zar=1000)
     trader.gemini=NS(enabled=True,health_summary=lambda:{"enabled":True})
+    trader.feed=NS(get_rates=lambda bars:pd.DataFrame({"close":[4100.0,4101.5],"time":["2026-11-10 07:00:00","2026-11-10 07:01:00"]}))
+    if not chart_available:
+        def unavailable(bars):
+            raise RuntimeError("broker_history_unavailable")
+        trader.feed.get_rates = unavailable
     trader._intraday_exit_status={"entries_blocked":True,"flat_verified":True,"session":"asia"}
     trader._risk_snapshot=lambda flags:RiskSnapshot(9995,9995,.0005,0,30,.0005)
     monkeypatch.setattr(mt5,"terminal_info",lambda:NS(connected=connected))
@@ -25,6 +32,15 @@ def test_cutoff_preserves_fresh_broker_risk_and_ai_evidence(monkeypatch,connecte
     health=build_system_health(result,trader.settings,{"execute_trades":True})
     assert health["broker_connectivity_status"]["connected"] is ready
     assert "Session cutoff" in result["message"]
+    assert result["daily_profit_objective"]["enabled"] and result["daily_profit_objective"]["target_zar"]==1000
+    assert result["daily_profit_objective"]["equity_change_zar"]==-5
+    assert not result["daily_profit_objective"]["guaranteed"] and not result["daily_profit_objective"]["force_trades"]
+    assert "paused" in result["gemini_note"]
+    if chart_available:
+        assert result["market"]["recent_close"] == [4100.0,4101.5]
+    else:
+        assert result["market"]["recent_close"] == []
+        assert result["market"]["chart_error"] == "RuntimeError"
 
 
 def test_broker_read_failure_does_not_invent_connection(monkeypatch):

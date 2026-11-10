@@ -717,6 +717,10 @@ ul { list-style:none; padding:0; margin:10px 0 0; display:grid; gap:6px; }
   border-color: rgba(255,208,84,.55);
   background: rgba(255,208,84,.10);
 }
+.detail-row.runbook-info {
+  border-color: rgba(141,168,191,.4);
+  background: rgba(141,168,191,.06);
+}
 .detail-row.runbook-blocked {
   border-color: rgba(255,107,107,.60);
   background: rgba(255,107,107,.12);

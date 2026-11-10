@@ -2083,6 +2083,16 @@ class AtlasTrader:
             result["error"] = type(exc).__name__
         return result
 
+    def _daily_profit_objective(self, equity, starting_balance):
+        target = float(self.settings.daily_profit_target_zar)
+        progress = float(equity) - float(starting_balance)
+        return {"enabled": target > 0, "target_zar": target,
+            "equity_change_zar": round(progress, 2),
+            "remaining_zar": round(max(0.0, target - progress), 2) if target > 0 else None,
+            "reached": target > 0 and progress >= target, "day_timezone": "UTC",
+            "accounting_basis": "equity minus tracked daily starting balance; includes unrealised P/L and account cash flows",
+            "on_target_reached": "existing_defensive_sizing; no forced pause", "force_trades": False, "guaranteed": False}
+
     def _session_cutoff_status(self, runtime_flags, *, execute_trades, gemini_influence_enabled):
         exit_status = dict(self._intraday_exit_status)
         risk = asdict(self._risk_snapshot(runtime_flags))
@@ -2090,6 +2100,16 @@ class AtlasTrader:
         risk["trades_today"] = int(guard.get("trades_today", 0))
         if float(guard.get("start_balance", 0) or 0) > 0:
             risk["daily_profit_zar"] = risk["equity"] - float(guard["start_balance"])
+        # Chart observation stays available while strategy selection is paused.
+        # No signals, sizing or order submission are invoked here.
+        market = {"recent_close": [], "recent_time": []}
+        try:
+            recent = self.feed.get_rates(80).tail(80)
+            market = self._market_status_view(
+                [float(x) for x in recent["close"].tolist()],
+                [str(x) for x in recent["time"].tolist()], limit=80)
+        except Exception as exc:
+            market["chart_error"] = type(exc).__name__
         return {"symbol": self.settings.symbol, "timeframe": self.settings.timeframe,
             "action": "hold" if exit_status.get("flat_verified") else "blocked",
             "message": ("Session cutoff: Atlas exposure is broker-confirmed flat."
@@ -2097,7 +2117,10 @@ class AtlasTrader:
             "intraday_exit": exit_status, "execute_trades": execute_trades,
             "gemini_enabled": bool(self.gemini.enabled), "gemini_influence_enabled": gemini_influence_enabled,
             "health": {"broker": self._broker_status_snapshot(), "llm": self.gemini.health_summary()},
-            "risk": risk, "session": exit_status.get("session", "none"),
+            "risk": risk, "session": exit_status.get("session", "none"), "market": market,
+            "daily_profit_objective": self._daily_profit_objective(risk["equity"],
+                float(guard.get("start_balance", 0) or risk["balance"])),
+            "gemini_note": "Market analysis is paused for the session cutoff; broker monitoring remains active.",
             "updated_at": datetime.now(timezone.utc).isoformat()}
 
     def _risk_snapshot(self, flags: dict[str, Any] | None = None) -> RiskSnapshot:
@@ -5429,20 +5452,8 @@ class AtlasTrader:
         status["risk"]["trades_today"] = guard_state["trades_today"]
         status["risk"]["consecutive_losses"] = guard_state["consecutive_losses"]
         status["risk"]["daily_profit_zar"] = round(float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance)), 2)
-        daily_target = float(self.settings.daily_profit_target_zar)
-        daily_progress = float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance))
-        status["daily_profit_objective"] = {
-            "enabled": daily_target > 0,
-            "target_zar": daily_target,
-            "equity_change_zar": round(daily_progress, 2),
-            "remaining_zar": round(max(0.0, daily_target - daily_progress), 2) if daily_target > 0 else None,
-            "reached": daily_target > 0 and daily_progress >= daily_target,
-            "day_timezone": "UTC",
-            "accounting_basis": "equity minus tracked daily starting balance; includes unrealised P/L and account cash flows",
-            "on_target_reached": "existing_defensive_sizing; no forced pause",
-            "force_trades": False,
-            "guaranteed": False,
-        }
+        status["daily_profit_objective"] = self._daily_profit_objective(
+            snapshot.equity, guard_state.get("start_balance", snapshot.balance))
         status["risk"]["weekly_loss_pct"] = round(float(snapshot.weekly_loss_pct), 4)
         account_profile = self._account_tier_profile(snapshot.balance)
         size_tier_profile = self._size_tier_profile(snapshot.balance)

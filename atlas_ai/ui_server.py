@@ -739,6 +739,8 @@ def _build_compact_status_payload(
         warnings.append("broker_reconciliation_mismatch")
     compact_market = {
         "recent_close": list(market.get("recent_close", []) or [])[-80:],
+        "recent_time": list(market.get("recent_time", []) or [])[-80:],
+        "chart_error": str(market.get("chart_error", "") or ""),
     }
     loss_pattern_block = _build_loss_pattern_block_status(status_payload)
     recovery_status = _build_recovery_status(status_payload, structured_blocker, loss_pattern_block)
