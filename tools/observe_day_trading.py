@@ -19,6 +19,7 @@ from atlas_ai.execution.trade_executor import TradeExecutor
 from atlas_ai.learning.decision_index import GuardedDecisionIndex
 from atlas_ai.learning.closed_position_ledger import _decisions
 from atlas_ai.learning.evidence_provenance import is_manual_broker_test
+from atlas_ai.learning.observation_checkpoint import observation_lock,load_checkpoint,save_checkpoint
 
 
 def broker_snapshot(settings, api=mt5, now=None):
@@ -130,6 +131,7 @@ def main():
     parser.add_argument("--interval-seconds",type=int,default=60)
     parser.add_argument("--output",type=Path,required=True)
     parser.add_argument("--once",action="store_true")
+    parser.add_argument("--resume",action="store_true",help="Resume the same journal using its matching account-scoped checkpoint")
     args=parser.parse_args()
     if not 0<args.minutes<=10080 or not 10<=args.interval_seconds<=300:parser.error("Invalid observation interval")
     settings=load_settings();args.output.parent.mkdir(parents=True,exist_ok=True)
@@ -137,7 +139,20 @@ def main():
     summary={"pid":os.getpid(),"started_at":started,"samples":0,"broker_unavailable_samples":0,
         "stale_status_samples":0,"verified_natural_cycles":[],"orders_sent":0,"status":"running"}
     deadline=time.monotonic()+args.minutes*60;baseline=None;seen={};known_decisions={};management_ids=set()
-    with args.output.open("x",encoding="utf-8",buffering=1) as stream:
+    checkpoint_path=args.output.with_suffix(".checkpoint.json")
+    with observation_lock(Path(settings.storage_dir)/"lifecycle_observer.lock"):
+        if args.resume:
+            if not args.output.is_file():raise ValueError("resume_journal_missing")
+            baseline,seen,management_ids,summary=load_checkpoint(checkpoint_path,settings,journal=args.output)
+            summary.update(pid=os.getpid(),resumed_at=started,status="running")
+        elif checkpoint_path.exists():
+            raise FileExistsError("checkpoint_already_exists_use_resume")
+        summary["window_ends_at"]=(datetime.now(timezone.utc)+timedelta(minutes=args.minutes)).isoformat()
+        _observe(args,settings,summary,summary_path,checkpoint_path,deadline,baseline,seen,known_decisions,management_ids)
+
+
+def _observe(args,settings,summary,summary_path,checkpoint_path,deadline,baseline,seen,known_decisions,management_ids):
+    with args.output.open("a" if args.resume else "x",encoding="utf-8",buffering=1) as stream:
         while time.monotonic()<deadline:
             now=datetime.now(timezone.utc);row={"observed_at":now.isoformat()}
             try:
@@ -173,19 +188,34 @@ def main():
                     if broker["history_ok"] else {"state":"broker_history_unavailable","verified_end_to_end_cycles":[]})
                 publish_json(Path(settings.storage_dir)/"lifecycle_acceptance.json",{
                     **summary["lifecycle_acceptance"],"checked_at":now.isoformat(),"observer_pid":os.getpid(),
+                    "observer_state":"running","window_ends_at":summary["window_ends_at"],
                     "broker_ok":True,"history_ok":broker["history_ok"],"orders_sent":0},summary)
             except Exception as exc:
                 row.update(broker_ok=False,broker_error=type(exc).__name__);summary["broker_unavailable_samples"]+=1
                 publish_json(Path(settings.storage_dir)/"lifecycle_acceptance.json",{
-                    "state":"broker_evidence_unavailable","checked_at":now.isoformat(),"broker_ok":False,"orders_sent":0},summary)
+                    "state":"broker_evidence_unavailable","checked_at":now.isoformat(),"broker_ok":False,"orders_sent":0,
+                    "observer_pid":os.getpid(),"observer_state":"running","window_ends_at":summary["window_ends_at"]},summary)
             stream.write(json.dumps(row)+"\n")
             summary.update(baseline_history_ready=baseline is not None,samples=summary["samples"]+1,last_observed_at=now.isoformat(),last_broker_ok=row.get("broker_ok"),
                 last_positions=len(row.get("positions",[])) if row.get("broker_ok") else None,
                 last_pending_orders=len(row.get("pending_orders",[])) if row.get("broker_ok") else None)
             publish_json(summary_path,summary,summary)
+            try:
+                save_checkpoint(checkpoint_path,settings,baseline,seen,management_ids,summary,journal=args.output)
+            except OSError as exc:
+                summary["persistence_error_count"]=summary.get("persistence_error_count",0)+1
+                summary["last_checkpoint_error"]=type(exc).__name__
             if args.once:break
             time.sleep(min(args.interval_seconds,max(0,deadline-time.monotonic())))
-    summary["status"]="completed";publish_json(summary_path,summary,summary);mt5.shutdown()
+    summary["status"]="completed";publish_json(summary_path,summary,summary)
+    final=dict(summary.get("lifecycle_acceptance") or {"state":"broker_evidence_unavailable","verified_end_to_end_cycles":[]})
+    if not summary.get("last_broker_ok"):
+        final={"state":"broker_evidence_unavailable","verified_end_to_end_cycles":[]}
+    publish_json(Path(settings.storage_dir)/"lifecycle_acceptance.json",{
+        **final,"checked_at":summary.get("last_observed_at"),"broker_ok":bool(summary.get("last_broker_ok")),
+        "observer_pid":os.getpid(),"observer_state":"completed","window_ends_at":summary["window_ends_at"],
+        "completed_at":datetime.now(timezone.utc).isoformat(),"orders_sent":0},summary)
+    mt5.shutdown()
 
 
 if __name__=="__main__":main()
