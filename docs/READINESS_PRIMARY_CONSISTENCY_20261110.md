@@ -1,0 +1,11 @@
+# Freshness and primary-blocker consistency
+
+The dashboard could show BLOCKED for stale market data while the adjacent Primary blocker card showed an earlier timing rejection. Readiness came from the API's execution-readiness contract, but the adjacent card independently used legacy strategy/blocker fields. Both statements could exist, but the timing rejection was not the current primary reason execution was unavailable.
+
+The card and Live Decision summary now use execution_readiness.primary_blocker, with concise names for freshness, broker, safety and automation conditions. The prior strategy message remains inspectable in technical detail. The existing safety overrides update both cards together. An automation review state cannot downgrade an API BLOCKED state. Normal setup/timing waits retain their concise explanation. Execution guards and freshness thresholds are unchanged.
+
+Live investigation found a genuine host pause. The backend had a 448-second interval between recorded cycles at 10:46:47 and 10:54:15 UTC. The independent observer had a 376-second sampling gap at 10:47:08–10:53:24 UTC. Windows System events included Kernel-Power sleep event 42 at 12:47:13 SAST and a Power-Troubleshooter resume event at 12:53:22 SAST. Subsequent broker ticks/bars and API status were fresh, with MT5 connected. The exact screenshot timestamp was not recorded; the host pause establishes one real stale-data cause in the retained window, not proof that every freshness warning has the same cause.
+
+The Windows event's recorded SleepTime was 10:47:09.548 UTC and WakeTime 10:53:20.985 UTC (12:47–12:53 SAST). Windows sleep suspends the local process and feed. The freshness safeguard must remain active through resume until new evidence arrives. This repair does not override a user sleep command or alter Windows power settings.
+
+Validation: all 125 selected readiness-renderer, UI assets, refresh-isolation and UI-server cases passed. A final 35-case renderer/assets/refresh run also passed after extending the same priority rule to Live Decision. New regressions cover stale market data, stale decisions, unavailable broker evidence, old timing text and an automation state that must not downgrade a hard block. Deployment reloads only the frontend, leaving the backend and paper/broker observers running.

@@ -1146,6 +1146,38 @@ function entryWaitingSummary(status) {
   return null;
 }
 
+function readinessBlockerSummary(status) {
+  const readiness = (status || {}).execution_readiness || {};
+  const primary = readiness.primary_blocker || {};
+  if (!primary.code) return null;
+  const names = {
+    stale_market_data: "Market data needs refreshing",
+    stale_decision: "Decision needs refreshing",
+    invalid_decision_time: "Decision clock needs review",
+    broker_not_ready: "Broker connection unavailable",
+    execute_trades_disabled: "Execution is disabled",
+    kill_switch_active: "Kill switch active",
+    reconciliation_required: "Broker reconciliation required",
+    safety_lock_active: "Safety lock active",
+    forced_flat_required: "Position exit required",
+    intraday_exit_unconfirmed: "Position exit unconfirmed",
+    automation_not_enabled: "Automation paused or disabled",
+    auto_trade_not_allowed: "Automation entry checks",
+    outside_active_session: "Outside the entry session"
+  };
+  const timing = (primary.lane === "timing" || String(primary.code).startsWith("timing_discipline"))
+    ? entryWaitingSummary(status) : null;
+  return { headline: names[primary.code] || (timing && timing.headline) || String(primary.code).replace(/_/g, " "),
+    detail: (timing && timing.detail) || primary.detail || readiness.display?.detail || "Review current readiness evidence." };
+}
+
+function operatorDecisionSummary(status) {
+  const label = ((status || {}).execution_readiness || {}).display?.label;
+  if (label === "BLOCKED") return readinessBlockerSummary(status);
+  if (label === "WAITING") return entryWaitingSummary(status);
+  return null;
+}
+
 function renderOperatorOverview(status) {
   const objective = (status || {}).daily_profit_objective || {};
   const evidence = (status || {}).strategy_evidence || {};
@@ -1215,25 +1247,29 @@ function renderCommandStrip(status, runtime) {
   let readinessState = compactText(readinessDisplay.state, "review");
   let readiness = compactText(readinessDisplay.label, "REVIEW");
   let readinessDetail = compactText(readinessDisplay.detail, "Execution readiness is unavailable; refreshing current evidence.");
+  let overrideBlocker = null;
   if (killActive || recon || forcedFlat) {
     readiness = "BLOCKED";
     readinessDetail = killActive ? "Kill switch active" : (recon ? "Reconciliation required" : "Forced-flat required");
     readinessState = "blocked";
-  } else if (!automationEnabled || automationPaused) {
+    overrideBlocker = readinessDetail;
+  } else if ((!automationEnabled || automationPaused) && readiness !== "BLOCKED") {
     readiness = "REVIEW";
     readinessDetail = automationPaused ? compactText(exec.automation_pause_reason, "Automation paused") : "Automation disabled";
     readinessState = "review";
+    overrideBlocker = readinessDetail;
   }
 
   const waiting = readiness === "WAITING" ? entryWaitingSummary(status) : null;
+  const primary = readinessBlockerSummary(status);
   if (waiting) readinessDetail = waiting.detail;
 
   setText("cmd-readiness", readiness);
   setText("cmd-readiness-detail", readinessDetail);
   setCommandTileState("cmd-readiness-card", readinessState);
   setText("cmd-blocker-label", readiness === "WAITING" ? "Why Atlas is waiting" : "Primary blocker");
-  setText("cmd-blocker", waiting ? waiting.headline : blockerName);
-  setText("cmd-blocker-detail", waiting ? waiting.next : blockerDelta);
+  setText("cmd-blocker", overrideBlocker || (waiting ? waiting.headline : primary ? primary.headline : blockerName));
+  setText("cmd-blocker-detail", overrideBlocker ? readinessDetail : (waiting ? waiting.next : primary ? primary.detail : blockerDelta));
   renderReadinessLanes(status);
   renderOperatorOverview(status);
 }
@@ -2701,8 +2737,7 @@ function renderStatus(s, runtime) {
       ? `${view.timeframe || "Broker"} closing prices · ${priceHistory.length} bars · Latest bar: ${chartTimes.at(-1) || "time unavailable"} UTC${((view.intraday_exit || {}).entries_blocked) ? " · Entries paused; chart observation continues." : ""}`
       : "Broker chart data unavailable. No price line is shown; retrying on the next refresh.");
 
-    const simpleDecision = (((view.execution_readiness || {}).display || {}).label === "WAITING")
-      ? entryWaitingSummary(view) : null;
+    const simpleDecision = operatorDecisionSummary(view);
     decision.textContent = simpleDecision ? `${simpleDecision.headline}. ${simpleDecision.detail}` : (view.message || "No message");
     setText("decision-technical", view.message || "No message");
     gemini.textContent = compactGeminiNote(view.gemini_note);

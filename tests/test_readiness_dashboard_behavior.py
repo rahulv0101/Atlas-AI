@@ -45,6 +45,46 @@ function titleCase(value) { return value; }
         assert values["cmd-readiness-detail"] == display["detail"]
 
 
+@pytest.mark.parametrize("code,headline,automation", [
+    ("stale_market_data", "Market data needs refreshing", True),
+    ("stale_decision", "Decision needs refreshing", True),
+    ("broker_not_ready", "Broker connection unavailable", True),
+    ("stale_market_data", "Market data needs refreshing", False),
+])
+def test_primary_card_uses_readiness_blocker_before_old_timing(code, headline, automation):
+    node=shutil.which("node")
+    if not node:pytest.skip("Node required")
+    source=(Path(__file__).resolve().parents[1]/"atlas_ai/ui/app.js").read_text(encoding="utf-8")
+    helper=source[source.index("function entryWaitingSummary("):source.index("function renderVisualChartRead(")]
+    payload={"message":"Old timing discipline rejection", "timing_discipline":{"hard_block":True},
+        "structured_blocker":{"code":"old_timing", "detail":"Old timing rejection"},
+        "execution_readiness":{"display":{"state":"blocked","label":"BLOCKED","detail":"Fresh evidence required"},
+            "primary_blocker":{"lane":"runtime","code":code,"detail":"Fresh evidence required"}}}
+    script='''const values={};const document={getElementById(){return null;}};
+function compactText(v,f){return v==null||v===''?f:String(v);}
+function setText(k,v){values[k]=v;}function setCommandTileState(){}
+function renderReadinessLanes(){}function titleCase(v){return v;}
+function mergedExecutionState(){return {automation_enabled:AUTOMATION};}
+'''.replace("AUTOMATION",json.dumps(automation))+helper+"\nrenderCommandStrip("+json.dumps(payload)+",{});process.stdout.write(JSON.stringify(values));"
+    result=json.loads(subprocess.run([node,"-"],input=script,text=True,encoding="utf-8",capture_output=True,check=True,timeout=15).stdout)
+    assert result["cmd-readiness"]=="BLOCKED"
+    assert result["cmd-blocker"]==headline
+    assert result["cmd-blocker-detail"]==result["cmd-readiness-detail"]=="Fresh evidence required"
+
+
+def test_live_decision_summary_also_prefers_freshness_over_previous_timing():
+    node=shutil.which("node")
+    if not node:pytest.skip("Node required")
+    source=(Path(__file__).resolve().parents[1]/"atlas_ai/ui/app.js").read_text(encoding="utf-8")
+    helper=source[source.index("function entryWaitingSummary("):source.index("function renderOperatorOverview(")]
+    payload={"timing_discipline":{"hard_block":True},"message":"Old timing rejection",
+        "execution_readiness":{"display":{"label":"BLOCKED"},"primary_blocker":{
+            "code":"stale_market_data","detail":"Fresh market data required","lane":"runtime"}}}
+    script=helper+"\nprocess.stdout.write(JSON.stringify(operatorDecisionSummary("+json.dumps(payload)+")));"
+    result=json.loads(subprocess.run([node,"-"],input=script,text=True,encoding="utf-8",capture_output=True,check=True,timeout=15).stdout)
+    assert result=={"headline":"Market data needs refreshing","detail":"Fresh market data required"}
+
+
 def test_operator_overview_shows_demo_goal_and_evidence_without_claiming_profit():
     node = shutil.which("node")
     if not node:
