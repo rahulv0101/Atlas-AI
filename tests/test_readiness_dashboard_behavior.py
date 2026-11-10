@@ -102,3 +102,14 @@ def test_waiting_explanation_preserves_raw_candidate_evidence(side, confidence, 
     script = helper + "\nprocess.stdout.write(entryWaitingSummary(" + json.dumps(payload) + ").headline);"
     result = subprocess.run([node, "-"], input=script, text=True, capture_output=True, timeout=15, check=True)
     assert result.stdout == expected
+
+
+def test_cutoff_summary_does_not_claim_scanning_or_disconnection():
+    node=shutil.which("node")
+    if not node:pytest.skip("Node required")
+    source=(Path(__file__).resolve().parents[1]/"atlas_ai/ui/app.js").read_text(encoding="utf-8")
+    helper=source[source.index("function entryWaitingSummary("):source.index("function renderOperatorOverview(")]
+    payload={"action":"hold","intraday_exit":{"entries_blocked":True,"flat_verified":True}}
+    script=helper+"\nprocess.stdout.write(JSON.stringify(entryWaitingSummary("+json.dumps(payload)+")));"
+    result=json.loads(subprocess.run([node,"-"],input=script,text=True,capture_output=True,check=True).stdout)
+    assert result["headline"]=="Session cutoff" and "paused" in result["detail"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from dataclasses import asdict
 
 import logging
 import math
@@ -2065,6 +2066,39 @@ class AtlasTrader:
             flags["open_feedback_seen"] = seen
             self.store.update_runtime_flags(lambda current: {**current,
                 "open_feedback_seen": {**current.get("open_feedback_seen", {}), **seen}})
+
+    def _broker_status_snapshot(self) -> dict[str, Any]:
+        """Fresh read-only connection evidence, including on early-return paths."""
+        result = {"connected": False, "symbol_selected": False,
+                  "checked_at": datetime.now(timezone.utc).isoformat()}
+        try:
+            terminal = mt5.terminal_info()
+            account = mt5.account_info()
+            symbol = mt5.symbol_info(self.settings.symbol)
+            result["terminal_connected"] = bool(terminal and getattr(terminal, "connected", False))
+            result["account_matches_configuration"] = not bool(TradeExecutor(self.settings)._account_rejection(account))
+            result["connected"] = result["terminal_connected"] and result["account_matches_configuration"]
+            result["symbol_selected"] = bool(symbol and getattr(symbol, "visible", False))
+        except Exception as exc:
+            result["error"] = type(exc).__name__
+        return result
+
+    def _session_cutoff_status(self, runtime_flags, *, execute_trades, gemini_influence_enabled):
+        exit_status = dict(self._intraday_exit_status)
+        risk = asdict(self._risk_snapshot(runtime_flags))
+        guard = dict(runtime_flags.get("risk_guard_state", {}) or {})
+        risk["trades_today"] = int(guard.get("trades_today", 0))
+        if float(guard.get("start_balance", 0) or 0) > 0:
+            risk["daily_profit_zar"] = risk["equity"] - float(guard["start_balance"])
+        return {"symbol": self.settings.symbol, "timeframe": self.settings.timeframe,
+            "action": "hold" if exit_status.get("flat_verified") else "blocked",
+            "message": ("Session cutoff: Atlas exposure is broker-confirmed flat."
+                if exit_status.get("flat_verified") else "Intraday exit pending: broker confirmation or operator attention required."),
+            "intraday_exit": exit_status, "execute_trades": execute_trades,
+            "gemini_enabled": bool(self.gemini.enabled), "gemini_influence_enabled": gemini_influence_enabled,
+            "health": {"broker": self._broker_status_snapshot(), "llm": self.gemini.health_summary()},
+            "risk": risk, "session": exit_status.get("session", "none"),
+            "updated_at": datetime.now(timezone.utc).isoformat()}
 
     def _risk_snapshot(self, flags: dict[str, Any] | None = None) -> RiskSnapshot:
         account = mt5.account_info()
@@ -5182,12 +5216,8 @@ class AtlasTrader:
                     self._sync_closed_trade_learning(runtime_flags)
                 except Exception as exc:
                     self._intraday_exit_status["outcome_sync_error"] = type(exc).__name__
-                status = {"symbol": self.settings.symbol, "timeframe": self.settings.timeframe,
-                    "action": "hold" if self._intraday_exit_status.get("flat_verified") else "blocked",
-                    "message": ("Session cutoff: Atlas exposure is broker-confirmed flat."
-                        if self._intraday_exit_status.get("flat_verified") else "Intraday exit pending: broker confirmation or operator attention required."),
-                    "intraday_exit": self._intraday_exit_status, "execute_trades": execute_trades,
-                    "updated_at": datetime.now(timezone.utc).isoformat()}
+                status = self._session_cutoff_status(runtime_flags, execute_trades=execute_trades,
+                    gemini_influence_enabled=gemini_influence_enabled)
                 self._log_status_event("day_trader", status)
                 self._publish_status(status)
                 return status
@@ -5469,7 +5499,7 @@ class AtlasTrader:
         status["safety_layer"] = dict(safety_layer)
         self._save_guard_state(guard_state, runtime_flags)
         status["health"] = {
-            "broker": {"connected": bool(mt5.account_info()), "symbol_selected": bool(mt5.symbol_info(self.settings.symbol))},
+            "broker": self._broker_status_snapshot(),
             "llm": self.gemini.health_summary(),
             "risk_guard": {
                 "max_trades_per_day": self.settings.max_trades_per_day,

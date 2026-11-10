@@ -1118,6 +1118,9 @@ function renderCognitiveState(status) {
 
 function entryWaitingSummary(status) {
   const data = status || {};
+  if ((data.intraday_exit || {}).entries_blocked && (data.intraday_exit || {}).flat_verified) {
+    return { headline: "Session cutoff", detail: "Atlas is flat. New entries are paused until the next eligible session.", next: "The broker remains monitored while Atlas waits for the next session." };
+  }
   const timing = data.timing_discipline || {};
   const timingBlocked = Array.isArray((data.execution_readiness || {}).blocker_chain)
     && data.execution_readiness.blocker_chain.some((item) => item.lane === "timing");
