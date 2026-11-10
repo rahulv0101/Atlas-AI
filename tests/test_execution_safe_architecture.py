@@ -53,12 +53,11 @@ def test_execution_request_requires_approval() -> None:
 def test_trader_has_no_direct_trade_executor_send_path() -> None:
     trader_py = Path("atlas_ai/trader.py").read_text(encoding="utf-8")
     assert "self.executor.execute(" not in trader_py
-    assert "close_stale_positions" in trader_py
-    assert "def _housekeeping_close_allowed" in trader_py
+    assert "self.executor.close_stale_positions(" not in trader_py
+    assert "self.execution_gate.enforce_intraday_exit(" in trader_py
+    assert "_intraday_exit_status" in trader_py
     assert "refresh_critical_controls_from_persisted_state()" in trader_py
-    assert "close_stale_positions(allow_close=True)" in trader_py
-    assert "Skipped overnight housekeeping close due to guarded control state." in trader_py
-    assert "guarded_boundary" in trader_py
+
 
 
 def test_trader_guarded_requests_are_not_marked_automation_origin() -> None:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import re
+import math
 
 import MetaTrader5 as mt5
 
@@ -10,6 +11,7 @@ from atlas_ai.config.settings import Settings
 from atlas_ai.data.broker_clock import broker_time_to_utc
 from atlas_ai.execution.comment_codec import build_broker_comment
 from atlas_ai.models import TradeSignal
+from atlas_ai.risk.volume import floor_volume
 
 
 @dataclass
@@ -50,21 +52,8 @@ class TradeExecutor:
 
     @staticmethod
     def _normalize_volume(volume: float, symbol_info) -> float:
-        vol = float(volume or 0.0)
-        vol_min = float(getattr(symbol_info, "volume_min", 0.0) or 0.0)
-        vol_max = float(getattr(symbol_info, "volume_max", 0.0) or 0.0)
-        vol_step = float(getattr(symbol_info, "volume_step", 0.0) or 0.0)
-
-        if vol_step > 0:
-            steps = round(vol / vol_step)
-            vol = steps * vol_step
-            # Keep decimals stable for common broker steps like 0.01 / 0.1.
-            step_text = f"{vol_step:.10f}".rstrip("0")
-            decimals = len(step_text.split(".", 1)[1]) if "." in step_text else 0
-            vol = round(vol, decimals)
-        if vol_max > 0:
-            vol = min(vol_max, vol)
-        return vol
+        return floor_volume(volume, getattr(symbol_info, "volume_step", 0),
+                            getattr(symbol_info, "volume_max", 0))
 
     @staticmethod
     def _safe_comment(raw: str, max_len: int = 31) -> str:
@@ -338,6 +327,10 @@ class TradeExecutor:
         vol_min = float(getattr(symbol_info, "volume_min", 0.0) or 0.0)
         vol_max = float(getattr(symbol_info, "volume_max", 0.0) or 0.0)
         vol_step = float(getattr(symbol_info, "volume_step", 0.0) or 0.0)
+        if not all(math.isfinite(v) for v in (vol, vol_min, vol_max, vol_step)):
+            return False, "Invalid nonfinite volume specification"
+        if vol_min <= 0 or vol_max < vol_min or vol_step <= 0:
+            return False, "Invalid broker volume specification"
         if vol_min and vol < vol_min:
             return False, f"Volume below min ({vol} < {vol_min})"
         if vol_max and vol > vol_max:
@@ -367,11 +360,28 @@ class TradeExecutor:
             )
             if margin is None:
                 return False, f"order_calc_margin failed: {mt5.last_error()}"
-            if float(margin) > float(getattr(account, "margin_free", 0.0) or 0.0):
+            free_margin = float(getattr(account, "margin_free", 0.0) or 0.0)
+            if not math.isfinite(float(margin)) or float(margin) < 0 or not math.isfinite(free_margin) or free_margin < 0:
+                return False, "Invalid margin data"
+            if float(margin) > free_margin:
                 return False, f"Insufficient free margin (need {margin:.2f})"
         except Exception as exc:
             return False, f"Margin precheck failed: {exc}"
 
+        try:
+            equity = float(getattr(account, "equity", 0.0))
+            risk_fraction = float(self.settings.max_risk_per_trade)
+            price, stop = float(request.get("price", 0)), float(request.get("sl", 0))
+            if not all(math.isfinite(v) and v > 0 for v in (equity, risk_fraction, price, stop)) or risk_fraction > 1:
+                return False, "Invalid account or stop-loss risk data"
+            loss = mt5.order_calc_profit(request["type"], request["symbol"], vol, price, stop)
+            if loss is None or not math.isfinite(float(loss)) or float(loss) >= 0:
+                return False, "Cannot verify stop-loss risk"
+            budget = equity * risk_fraction
+            if -float(loss) > budget + 1e-8:
+                return False, f"Stop-loss risk exceeds per-trade limit ({-float(loss):.2f} > {budget:.2f})"
+        except Exception:
+            return False, "Cannot verify stop-loss risk"
         return True, "ok"
 
     def close_stale_positions(self, *, allow_close: bool = False) -> list[ExecutionResult]:

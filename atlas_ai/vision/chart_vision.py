@@ -662,7 +662,7 @@ def save_visual_read(read: dict[str, Any], output_dir: str | Path = "storage/cha
     return payload
 
 
-def load_latest_visual_read(output_dir: str | Path = "storage/chart_vision", max_age_seconds: int = 600) -> dict[str, Any]:
+def load_latest_visual_read(output_dir: str | Path = "storage/chart_vision", max_age_seconds: int = 600, *, expected_symbol: str | None = None, expected_timeframe: str | None = None) -> dict[str, Any]:
     target = Path(output_dir) / "latest_visual_read.json"
     if not target.exists():
         return {"enabled": True, "available": False, "status": "no_visual_read_yet", "advisory_only": True}
@@ -670,15 +670,29 @@ def load_latest_visual_read(output_dir: str | Path = "storage/chart_vision", max
         payload = json.loads(target.read_text(encoding="utf-8"))
     except Exception as exc:
         return {"enabled": True, "available": False, "status": "visual_read_load_failed", "error": str(exc), "advisory_only": True}
+    if not isinstance(payload, dict):
+        return {"enabled": True, "available": False, "stale": True, "status": "invalid_visual_read", "advisory_only": True}
     captured = _text(payload.get("captured_at") or payload.get("saved_at"), "")
-    stale = False
+    rejection_reasons = []
     if captured:
         try:
             ts = datetime.fromisoformat(captured.replace("Z", "+00:00"))
-            stale = (datetime.now(timezone.utc) - ts).total_seconds() > max(1, int(max_age_seconds))
-        except Exception:
-            stale = False
+            if ts.tzinfo is None:
+                raise ValueError("timezone_required")
+            age = (datetime.now(timezone.utc) - ts).total_seconds()
+            if age < 0:
+                rejection_reasons.append("future_capture_timestamp")
+            elif age > max(1, int(max_age_seconds)):
+                rejection_reasons.append("capture_too_old")
+        except (ValueError, TypeError, OverflowError):
+            rejection_reasons.append("invalid_capture_timestamp")
+    else:
+        rejection_reasons.append("missing_capture_timestamp")
+    for key, expected in (("symbol", expected_symbol), ("timeframe", expected_timeframe)):
+        if expected is not None and str(payload.get(key, "")).strip().upper() != str(expected).strip().upper():
+            rejection_reasons.append(f"{key}_mismatch")
     payload["available"] = True
-    payload["stale"] = bool(stale)
+    payload["stale"] = bool(rejection_reasons)
+    payload["rejection_reasons"] = rejection_reasons
     payload["loaded_at_epoch"] = time.time()
     return payload

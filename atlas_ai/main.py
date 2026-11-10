@@ -1146,6 +1146,11 @@ def run_live(poll_seconds: int, mode_override: str = "") -> None:
         settings=settings,
     )
     scanner.start()
+    exit_watchdog = None
+    if bool(getattr(settings, "enforce_day_trading", False)):
+        from atlas_ai.execution.intraday_watchdog import IntradayExitWatchdog
+        exit_watchdog = IntradayExitWatchdog(trader.execution_gate, store)
+        exit_watchdog.start()
 
     # Start evolution scheduler if enabled
     evolution_stop = threading.Event()
@@ -1216,6 +1221,8 @@ def run_live(poll_seconds: int, mode_override: str = "") -> None:
     except KeyboardInterrupt:
         logging.info("Atlas AI stopped by user")
     finally:
+        if exit_watchdog is not None:
+            exit_watchdog.stop()
         scanner.stop()
         heartbeat_stop.set()
         evolution_stop.set()
@@ -1540,6 +1547,24 @@ def run_evolution_mode(
     })
 
     stop_event = threading.Event()
+    if settings.evolution_research_only:
+        from atlas_ai.strategies.research_worker import StrategyResearchWorker
+        worker = StrategyResearchWorker(settings, store, stop_event, interval_hours=interval_hours, dry_run=dry_run)
+        if once:
+            result = worker.run_once()
+            print(json.dumps({"mode": "research_only", "batches": len(result["batches"]), "orders_sent": 0}))
+        else:
+            worker.start()
+            try:
+                while not stop_event.wait(1):
+                    state = worker._load()
+                    if state.get("total_batches", 0) >= max(1, generations):
+                        break
+            except KeyboardInterrupt:
+                pass
+            finally:
+                worker.shutdown()
+        return
     scheduler = EvolutionScheduler(
         settings=settings,
         store=store,

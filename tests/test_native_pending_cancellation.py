@@ -15,7 +15,7 @@ from atlas_ai.execution.trade_executor import TradeExecutor
 def pending(monkeypatch):
     settings = Settings(hfm_login=1, hfm_password="test", hfm_server="Demo", execute_trades=True)
     adapter = MT5BrokerAdapter(TradeExecutor(settings))
-    order = SimpleNamespace(ticket=123, symbol=settings.symbol, magic=settings.magic_number, type=mt5.ORDER_TYPE_BUY_LIMIT)
+    order = SimpleNamespace(ticket=123, symbol=settings.symbol, magic=settings.magic_number, comment="AAI_Ddemo_Sema", type=mt5.ORDER_TYPE_BUY_LIMIT)
     monkeypatch.setattr(mt5, "terminal_info", lambda: SimpleNamespace(connected=True, trade_allowed=True, tradeapi_disabled=False))
     monkeypatch.setattr(mt5, "account_info", lambda: SimpleNamespace(login=1, server="Demo", trade_mode=mt5.ACCOUNT_TRADE_MODE_DEMO))
     monkeypatch.setattr(mt5, "orders_get", lambda **kwargs: [order])

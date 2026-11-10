@@ -1849,6 +1849,7 @@ class ExecutionGate:
         self._clear_stale_pilot_pause_under_explicit_resume(event="snapshot")
         kill = self._kill_switch.status()
         pending = self.pending_requests(limit=100)
+        intraday_exit = self._intraday_exit_manager().view()
         active_policy = self._automation_profiles.get(self._active_automation_policy_id) if self._active_automation_policy_id else None
         flags = dict(runtime_flags or {})
         session_state = self._session_control.to_dict(runtime_flags=flags)
@@ -1991,6 +1992,7 @@ class ExecutionGate:
             "reconciliation_status": self._reconciliation_status,
             "last_reconciled_at": float(self._last_reconciled_at or 0.0),
             "mismatch_detected": bool(self._mismatch_detected),
+            "intraday_exit": intraday_exit,
             "forced_flat_pending": bool(session_state.get("forced_flat_required", False)),
             "forced_flat_urgency": (
                 "immediate_review"
@@ -2230,6 +2232,28 @@ class ExecutionGate:
         self._tiny_live_pilot_daily_loss_used = 0.0
         self._tiny_live_pilot_consecutive_losses = 0
 
+    def _intraday_exit_manager(self):
+        from atlas_ai.execution.intraday_exit import IntradayExitManager
+        return IntradayExitManager(self._state_store.path.with_suffix(".intraday_exit.json"))
+
+    def enforce_intraday_exit(self, *, runtime_flags: dict[str, Any], now=None) -> dict[str, Any]:
+        """Worker-only risk reduction. Informational answering never calls this."""
+        now = now or datetime.now(timezone.utc)
+        sync = self.refresh_critical_controls_from_persisted_state()
+        decision = self._session_control.check(now=now, runtime_flags=runtime_flags, opening_new_trade=False)
+        calendar = self._session_control._detect_session(now)
+        cutoff = calendar.reason in {"near_session_close_no_new_trades", "early_close_no_new_trades", "outside_active_session", "market_closed_holiday"} or decision.forced_flat_required
+        def allowed():
+            fresh = self.refresh_critical_controls_from_persisted_state()
+            return bool(fresh.get("ok") and self._execution_environment == "demo"
+                and runtime_flags.get("execute_trades") and self._gate_enabled
+                and not self._kill_switch.status().active and not self._sleep_mode_active)
+        result = self._intraday_exit_manager().run(self._broker_adapter, cutoff_required=cutoff,
+            actions_allowed=allowed, reason=decision.reason or "active_session", now=now)
+        result.update(session=calendar.current_session,minutes_to_close=calendar.minutes_to_close,session_window_local=calendar.session_window_local)
+        self._audit.append("intraday_exit_check", "", dict(result))
+        return result
+
     def _preflight_gate(self, req: dict[str, Any], *, runtime_flags: dict[str, Any] | None, risk_policy: dict[str, Any] | None) -> dict[str, Any]:
         self._current_gate_request_id = str(req.get("id", "") or "")
         flags = dict(runtime_flags or {})
@@ -2252,6 +2276,10 @@ class ExecutionGate:
             return self._gate_block("sleep_mode_active_execution_blocked", gate="sleep_mode")
         if self._kill_switch.status().active:
             return self._gate_block("kill_switch_active", gate="kill_switch", detail={"kill_switch_reason": self._kill_switch.status().reason})
+        if self._is_live_like_environment(str(req.get("environment", "paper"))):
+            exit_reason = self._intraday_exit_manager().block_reason()
+            if exit_reason:
+                return self._gate_block(exit_reason, gate="intraday_exit")
         safety_reason = self._safety_gate_reason(flags=flags)
         if safety_reason:
             return self._gate_block(safety_reason, gate="safety_layer")
@@ -3055,6 +3083,9 @@ class ExecutionGate:
             return "auto_trading_demo_only"
         if self._execution_environment != "demo":
             return "execution_environment_not_demo"
+        exit_reason = self._intraday_exit_manager().block_reason()
+        if exit_reason:
+            return exit_reason
         if self._sleep_mode_active:
             return "sleep_mode_active_automation_blocked"
         if not self._operator_present:

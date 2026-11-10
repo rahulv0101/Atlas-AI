@@ -1220,6 +1220,8 @@ def test_attach_visual_chart_read_prefers_fresh_visual_watch_payload(tmp_path):
     trader._last_visual_chart_capture_at = 0.0
     read = {
         "source": "screenshot_plus_chart_features",
+        "symbol": "XAUUSD",
+        "timeframe": "M1",
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "live_chart_window_confirmed": True,
         "image": {"path": str(image_path)},
@@ -1265,3 +1267,17 @@ def test_live_loss_classifier_understands_pullback_and_late_entry(tmp_path):
 
     assert weak_pullback == "weak_pullback"
     assert late_entry == "late_entry"
+
+
+def test_risk_guard_write_cannot_restore_stale_startup_or_execution_controls(tmp_path):
+    from atlas_ai.memory.knowledge_store import KnowledgeStore
+    from atlas_ai.trader import AtlasTrader
+    store=KnowledgeStore(str(tmp_path));store.save_runtime_flags({"execute_trades":True,"startup_orchestration":{"startup_in_progress":True}})
+    stale=store.load_runtime_flags()
+    store.update_runtime_flags(lambda current:{**current,"execute_trades":False,"startup_orchestration":{"startup_in_progress":False},"voice_listener_orchestration":{"launch_dispatch_state":"completed"}})
+    trader=AtlasTrader.__new__(AtlasTrader);trader.store=store
+    trader._save_guard_state({"trades_today":0},stale)
+    fresh=store.load_runtime_flags()
+    assert not fresh["execute_trades"] and not fresh["startup_orchestration"]["startup_in_progress"]
+    assert fresh["voice_listener_orchestration"]["launch_dispatch_state"]=="completed"
+    assert fresh["risk_guard_state"]=={"trades_today":0}

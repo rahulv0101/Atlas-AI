@@ -145,10 +145,10 @@ def test_command_deck_prefers_blocker_classification_summary() -> None:
     assert "blocker_classification" in app_js
     assert "trace.blocker_summary" in app_js
     assert "blocker_recoverability" in app_js
-    assert "Fix Runtime" in app_js
-    assert "Safety Review" in app_js
-    assert "Review Gate" in app_js
-    assert "Wait For Setup" in app_js
+    assert "readinessDisplay.state" in app_js
+    assert "readinessDisplay.label" in app_js
+    assert "readinessDisplay.detail" in app_js
+    assert 'readiness = "BLOCKED"' in app_js
     assert "const hadRefreshFailure = refreshFailureCount > 0;" in app_js
     assert 'lastStatusSignature = "";' in app_js
     assert "refreshFailureCount >= 3 ? \"OFFLINE\" : \"RECONNECTING\"" in app_js
@@ -161,7 +161,8 @@ def test_ui_mode_label_uses_backend_execution_environment_label_or_display_mode(
     assert '"Unknown (safe fallback)"' in app_js
     assert 'const statModeEl = document.getElementById("stat-mode");' in app_js
     assert "const modeMeta = resolveDisplayModeMeta(execState, null);" in app_js
-    assert "MODE: ${modeLabel}" in app_js
+    assert "Answer received" in app_js
+    assert 'status.setAttribute("data-mode-source", modeMeta.source)' in app_js
 
 
 def test_ui_mode_label_no_longer_uses_legacy_execute_trades_for_stat_mode() -> None:

@@ -303,7 +303,7 @@ def _build_trader(scenario: ReplayScenario) -> tuple[AtlasTrader, _ReplayStore]:
     )
     trader.risk = SimpleNamespace(
         evaluate=lambda snapshot: (bool(scenario.risk_allowed), str(scenario.risk_reason)),
-        lot_size=lambda equity, stop_loss_points, tick_value: float(scenario.base_volume),
+        lot_size=lambda equity, stop_loss_points, tick_value, **_metadata: float(scenario.base_volume),
     )
     trader.executor = SimpleNamespace(
         execute=lambda signal, volume, decision_id="": scenario.execution_result,

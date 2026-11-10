@@ -43,6 +43,7 @@ class Candidate:
     location: str
     momentum: str
     source_file: str
+    recorded_spread_points: float | None = None
 
 
 def _parse_dt(value: str) -> datetime | None:
@@ -126,6 +127,12 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
     else:
         return None
 
+    try:
+        spread = float(_as_dict(meta.get("risk")).get("spread_points", meta.get("spread_points")))
+        if not math.isfinite(spread) or spread < 0:
+            spread = None
+    except (TypeError, ValueError):
+        spread = None
     return Candidate(
         group=group,
         timestamp=ts.isoformat(),
@@ -140,6 +147,7 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
         location=_context_value(meta, "location"),
         momentum=_context_value(meta, "momentum"),
         source_file=str(source_file.relative_to(PROJECT_ROOT)),
+        recorded_spread_points=spread,
     )
 
 
@@ -279,6 +287,10 @@ def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> t
                 "exit_bar_time": pd.Timestamp(df.iloc[min(exit_idx, len(df) - 1)]["time"]).isoformat(),
                 "hold_bars": max(1, exit_idx - entry_idx + 1),
                 "gross_r_multiple": float(outcome.get("r_multiple") or 0.0),
+                "recorded_spread_net_r_multiple": (None if candidate.recorded_spread_points is None else
+                    float(outcome.get("r_multiple") or 0.0) - candidate.recorded_spread_points / candidate.stop_loss_points
+                    - float(df.iloc[entry_idx]["open"]) * float(getattr(settings, "backtest_slippage_cost_bps", 0.0)) / 10000
+                    / (candidate.stop_loss_points * float(getattr(settings, "backtest_point_size", .01)))),
                 "r_multiple": float(outcome.get("r_multiple") or 0.0) - (
                     float(df.iloc[entry_idx]["open"]) * (float(getattr(settings, "backtest_spread_cost_bps", 0.0)) + float(getattr(settings, "backtest_slippage_cost_bps", 0.0))) / 10000.0
                     / (candidate.stop_loss_points * float(getattr(settings, "backtest_point_size", .01)))
@@ -329,6 +341,7 @@ def run_report(start: datetime | None, end: datetime | None, label: str, *, incl
             "spread_cost_bps": settings.backtest_spread_cost_bps,
             "slippage_cost_bps": settings.backtest_slippage_cost_bps,
             "commission_model": "not supplied; results do not establish executable net profitability",
+            "recorded_spread_sensitivity": "uses the spread recorded at each decision plus configured hypothetical slippage; commissions and live execution are not established",
             "simulation": "atlas_ai.learning.trade_labeling._simulate_trade_path",
             "entry_assumption": "candidate signal bar maps to nearest retained M1 bar at or before event timestamp; hypothetical entry uses next bar open, matching backtest simulator",
             "control_group": "broker-confirmed filled directional candidates; requests and submitted/pending orders are excluded",
@@ -346,6 +359,8 @@ def run_report(start: datetime | None, end: datetime | None, label: str, *, incl
         },
         "summaries": {
             "timing_blocked_hypothetical": _summarize(blocked_rows),
+            "timing_blocked_gross": _summarize([{**r, "r_multiple": r["gross_r_multiple"]} for r in blocked_rows]),
+            "timing_blocked_recorded_spread_sensitivity": _summarize([{**r, "r_multiple": r["recorded_spread_net_r_multiple"]} for r in blocked_rows if r["recorded_spread_net_r_multiple"] is not None]),
             "timing_passed_executed_control": _summarize(control_rows),
         },
         "samples": {

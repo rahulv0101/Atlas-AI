@@ -112,7 +112,12 @@ def _load_json_file(path: Path) -> dict:
 def _load_automation_payload(store: KnowledgeStore) -> dict[str, Any]:
     raw = _load_json_file(Path(store.base) / "automation_state.json")
     payload = raw.get("payload", {}) if isinstance(raw, dict) else {}
-    return dict(payload or {}) if isinstance(payload, dict) else {}
+    payload = dict(payload or {}) if isinstance(payload, dict) else {}
+    exit_path = Path(store.base) / "automation_state.intraday_exit.json"
+    if exit_path.exists():
+        from atlas_ai.execution.intraday_exit import IntradayExitManager
+        payload["intraday_exit"] = IntradayExitManager(exit_path).view()
+    return payload
 
 
 def _automation_truth_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -191,6 +196,10 @@ def _load_evolution_scheduler_state(store: KnowledgeStore) -> dict[str, Any]:
             "last_error": raw.get("last_error", ""),
             "total_runs": raw.get("total_runs", 0),
             "dry_run": raw.get("dry_run", False),
+            "research_only": raw.get("research_only", False),
+            "candidate_count": raw.get("candidate_count", 0),
+            "forward_trades": raw.get("forward_trades", 0),
+            "checked_at": raw.get("checked_at", ""),
         }
     except Exception:
         return {
@@ -647,6 +656,20 @@ def _build_blocker_summary(status_payload: dict[str, Any], near_setup_history: d
     }
 
 
+def _intraday_exit_view(status_payload: dict, automation_payload: dict) -> dict:
+    records=[dict(p.get("intraday_exit", {}) or {}) for p in (status_payload, automation_payload)]
+    for record in records:
+        if record.get("state") == "exit_monitor_error" and not record.get("checked_at"):
+            return record
+    def checked(record):
+        try:
+            stamp=datetime.fromisoformat(str(record.get("checked_at", "")).replace("Z", "+00:00"))
+            return stamp.timestamp() if stamp.tzinfo is not None else float("-inf")
+        except (TypeError,ValueError):
+            return float("-inf")
+    return max(records,key=checked)
+
+
 def _build_compact_status_payload(
     status_payload: dict[str, Any],
     runtime_flags: dict[str, Any],
@@ -657,6 +680,7 @@ def _build_compact_status_payload(
     settings = load_settings()
     desktop_window = _reconcile_desktop_window_state(dict(runtime_flags.get("ui_desktop_window", {}) or {}), store)
     automation_payload = _load_automation_payload(store)
+    status_payload["intraday_exit"] = _intraday_exit_view(status_payload, automation_payload)
     structured_blocker = _build_structured_blocker(status_payload, automation_payload)
     reconciled_runtime_flags = dict(runtime_flags)
     reconciled_runtime_flags["ui_desktop_window"] = desktop_window
@@ -893,6 +917,13 @@ def _build_compact_status_payload(
         },
         "freshness_runtime": _canonical_freshness_runtime(status_payload, settings),
         "market_data_clock": dict(status_payload.get("market_data_clock", {}) or {}),
+        "strategy_evidence": dict(status_payload.get("strategy_evidence", {}) or {}),
+        "intraday_exit": dict(status_payload.get("intraday_exit", {}) or {}),
+        "daily_profit_objective": dict(status_payload.get("daily_profit_objective", {}) or {}),
+        "timing_discipline": {
+            key: dict(status_payload.get("timing_discipline", {}) or {}).get(key)
+            for key in ("hard_block", "missing", "passed", "detail", "observed")
+        },
         "system_health": {
             "effective_mode": effective_mode,
             "effective_mode_label": effective_mode_label,
@@ -2353,6 +2384,9 @@ def _build_execution_readiness(
 
     # A rejected market candidate is normal waiting. Keep it distinct from a
     # broken broker, safety veto, or disabled execution, using one API/UI truth.
+    exit_state = _intraday_exit_view(status_payload, automation_payload)
+    if exit_state.get("entries_blocked") and not exit_state.get("flat_verified"):
+        blockers.insert(0, {"lane": "exit", "code": "intraday_exit_unconfirmed", "detail": "Intraday exit pending: Atlas exposure is not broker-confirmed flat."})
     system_blockers = [item for item in blockers if item["lane"] not in {"market", "timing", "session"}]
     if system_blockers:
         display_state = "blocked"
@@ -3457,6 +3491,7 @@ def create_ui_app(
         flags["self_improvement_runtime"] = build_self_improvement_runtime_guard(store)
         # Evolution scheduler state
         flags["evolution"] = _load_evolution_scheduler_state(store)
+        flags["lifecycle_acceptance"] = _load_json_file(Path(store.base) / "lifecycle_acceptance.json")
         flags["learning_summary"] = _cached_learning_summary()
         flags["near_setup_learning"] = _load_near_setup_learning_summary(store)
         if not isinstance(flags.get("startup_verification"), dict):

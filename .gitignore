@@ -33,6 +33,8 @@ storage_training_runs/
 *.log
 *.jsonl
 *.jsonl.tmp
+*.jsonl.lock
+decision_index/
 .last_paper_run_id.txt
 
 # Local model downloads and generated artifacts
@@ -59,3 +61,7 @@ build/
 *.temp
 tmp/
 temp/
+
+# New audit evidence can contain local broker/account and machine details.
+/docs/diagnostics/*
+!/docs/diagnostics/README.md

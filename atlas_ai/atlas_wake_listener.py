@@ -157,7 +157,7 @@ def _dispatch_start_in_background(config, trigger_text: str) -> dict[str, Any]:
     startup_state = dict(flags_snapshot.get("startup_orchestration", {}) or {})
     listener_state = dict(flags_snapshot.get("voice_listener_orchestration", {}) or {})
     launch_dispatch_state = str(listener_state.get("launch_dispatch_state", "") or "").strip().lower()
-    if launch_dispatch_state in {"started_async", "running"}:
+    if launch_dispatch_state in {"started_async", "running"} and not _startup_state_is_stale(startup_state):
         _update_listener_state(
             project_root,
             launch_dispatch_state="already_running",

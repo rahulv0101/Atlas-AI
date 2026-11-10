@@ -262,7 +262,7 @@ class EvolutionEngine:
     def _backtest_chromosome(self, chromosome: StrategyChromosome, df: pd.DataFrame) -> None:
         """Run a lightweight backtest on a single chromosome."""
         try:
-            strategy = StrategyFactory.build(chromosome)
+            strategy = StrategyFactory.build(chromosome, point_size=float(self.settings.backtest_point_size))
             result = self._run_single_strategy_backtest(df, strategy)
             self.scorer.update_chromosome(chromosome, result)
         except Exception as exc:

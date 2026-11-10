@@ -547,15 +547,19 @@ def start_evolution_scheduler(
             return None
         _active_schedulers.add(store_key)
 
-    scheduler = EvolutionScheduler(
-        settings=settings,
-        store=store,
-        stop_event=stop_event,
-        interval_hours=interval_hours,
-        dry_run=dry_run,
-    )
-    scheduler.start()
-    return scheduler
+    try:
+        if getattr(settings, "evolution_research_only", False) is True:
+            from atlas_ai.strategies.research_worker import StrategyResearchWorker
+            scheduler = StrategyResearchWorker(settings, store, stop_event, interval_hours=interval_hours, dry_run=dry_run)
+        else:
+            scheduler = EvolutionScheduler(settings=settings, store=store, stop_event=stop_event,
+                                           interval_hours=interval_hours, dry_run=dry_run)
+        scheduler.start()
+        return scheduler
+    except Exception:
+        with _scheduler_lock:
+            _active_schedulers.discard(store_key)
+        raise
 
 
 def stop_evolution_scheduler(scheduler: EvolutionScheduler | None) -> None:

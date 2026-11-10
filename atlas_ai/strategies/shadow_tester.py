@@ -37,7 +37,8 @@ class ShadowTester:
     and an outcome is recorded.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, point_size: float = 0.01) -> None:
+        self.point_size = point_size
         self.positions: dict[str, dict[str, Any]] = {}
         self.outcomes: list[ShadowOutcome] = []
 
@@ -55,7 +56,7 @@ class ShadowTester:
 
         Returns an outcome if a virtual position was closed this bar.
         """
-        strategy = StrategyFactory.build(chromosome)
+        strategy = StrategyFactory.build(chromosome, point_size=self.point_size)
         signal = strategy.generate_signal(df)
         uid = chromosome.uid
         pos = self.positions.get(uid)
@@ -91,19 +92,19 @@ class ShadowTester:
 
         # Stop loss
         if not exited and pos["sl_points"] > 0:
-            if pos["side"] == "buy" and current_price <= pos["entry_price"] - pos["sl_points"]:
+            if pos["side"] == "buy" and current_price <= pos["entry_price"] - pos["sl_points"] * self.point_size:
                 exited = True
                 exit_reason = "stop_loss"
-            elif pos["side"] == "sell" and current_price >= pos["entry_price"] + pos["sl_points"]:
+            elif pos["side"] == "sell" and current_price >= pos["entry_price"] + pos["sl_points"] * self.point_size:
                 exited = True
                 exit_reason = "stop_loss"
 
         # Take profit
         if not exited and pos["tp_points"] > 0:
-            if pos["side"] == "buy" and current_price >= pos["entry_price"] + pos["tp_points"]:
+            if pos["side"] == "buy" and current_price >= pos["entry_price"] + pos["tp_points"] * self.point_size:
                 exited = True
                 exit_reason = "take_profit"
-            elif pos["side"] == "sell" and current_price <= pos["entry_price"] - pos["tp_points"]:
+            elif pos["side"] == "sell" and current_price <= pos["entry_price"] - pos["tp_points"] * self.point_size:
                 exited = True
                 exit_reason = "take_profit"
 

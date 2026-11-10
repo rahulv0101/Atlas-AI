@@ -29,6 +29,12 @@ class BrokerAdapter(Protocol):
     def list_open_orders(self) -> list[dict[str, Any]]:
         ...
 
+    def intraday_inventory(self) -> list[dict[str, Any]]:
+        ...
+
+    def close_position(self, *, position_id: str) -> BrokerOrderResponse:
+        ...
+
 
 class InMemoryBrokerAdapter:
     """Deterministic broker adapter for tiny-live-pilot safety and testing."""
@@ -86,6 +92,19 @@ class InMemoryBrokerAdapter:
         raw["status"] = "cancelled"
         raw["updated_at"] = time.time()
         return BrokerOrderResponse(ok=True, status="cancelled", broker_order_id=broker_order_id, message="cancelled")
+
+    def intraday_inventory(self) -> list[dict[str, Any]]:
+        rows = self.list_open_orders()
+        for row in rows:
+            row["owned_by_atlas"] = True
+            row["status"] = "open" if row["status"] == "open" else "pending"
+        return rows
+
+    def close_position(self, *, position_id: str) -> BrokerOrderResponse:
+        if position_id not in self._orders:
+            return BrokerOrderResponse(True, "closed", position_id, "already_absent")
+        self._orders[position_id]["status"] = "filled"
+        return BrokerOrderResponse(True, "closed", position_id, "simulated_close")
 
     def query_order_status(self, *, broker_order_id: str) -> BrokerOrderResponse:
         override = self._status_overrides.get(broker_order_id)

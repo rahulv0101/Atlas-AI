@@ -14,6 +14,7 @@ def snapshot(storage):
         "decision_at": status.get("updated_at"), "action": status.get("action"),
         "message": status.get("message"), "chosen": status.get("chosen"),
         "signal_generation": status.get("signal_generation"),
+        "strategy_evidence": status.get("strategy_evidence"),
         "timing_discipline": status.get("timing_discipline"),
         "market_data_clock": status.get("market_data_clock"),
         "freshness_runtime": status.get("freshness_runtime"),

@@ -13,18 +13,18 @@
       "loss_pattern_state"
     ]
   },
-  "created_at": "2026-11-05T13:20:42.661088+00:00",
+  "created_at": "2026-11-09T20:11:38.706712+00:00",
   "metrics": {
-    "correct_block_false_unlock_risk_count": 0,
-    "false_unlock_risk_rate": 0.0,
-    "inconclusive_count": 175,
+    "correct_block_false_unlock_risk_count": 12,
+    "false_unlock_risk_rate": 0.0219,
+    "inconclusive_count": 537,
     "missed_opportunity_capture_count": 0,
-    "net_review_edge": 0.0,
+    "net_review_edge": -0.0219,
     "opportunity_capture_rate": 0.0,
-    "unknown_rate": 1.0
+    "unknown_rate": 0.9781
   },
   "mode": "shadow_review_only",
-  "next_step": "keep collecting reviewed blocker cases before proposing any rule",
+  "next_step": "continue monitoring; reviewed evidence does not justify even a shadow repair lane yet",
   "policy": {
     "does_not_allow_trade": true,
     "does_not_change_execution_policy": true,
@@ -35,18 +35,18 @@
     "requires_operator_approval_for_any_candidate_rule": true,
     "shadow_review_only": true
   },
-  "samples": 175,
+  "samples": 549,
   "schema": "atlas_blocker_selectivity_replay_v1",
   "source_review": {
     "proposal": {
       "candidate_change_class": "context_filter_or_confirmation_rule",
-      "focus": "collect more confirmations and replay borderline cases before proposing any tuning",
+      "focus": "keep the blocker unchanged and continue monitoring",
       "forbidden_change_class": "global_guard_disable_or_unapproved_threshold_loosen",
       "next_validation": "replay reviewed cases against a shadow-only candidate rule before any operator approval step",
       "type": "offline_selectivity_review"
     },
-    "review_priority": "medium"
+    "review_priority": "low"
   },
-  "target_blocker": "Higher-timeframe alignment required: chosen=buy, htf_bias=sell.",
-  "verdict": "collect_more_context"
+  "target_blocker": "Risk guard active: Daily drawdown limit reached. No trade executed.",
+  "verdict": "keep_blocker_unchanged"
 }

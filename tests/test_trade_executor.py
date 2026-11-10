@@ -1,3 +1,4 @@
+import pytest
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
@@ -237,3 +238,32 @@ def test_close_stale_positions_closes_buy_type_zero_with_sell_order(monkeypatch)
     assert out[0].success is True
     assert sent[0]["type"] == 1
     assert sent[0]["price"] == 4434.61
+
+
+@pytest.mark.parametrize("volume,expected", [(.019, .01), (.009, 0), (float("nan"), 0), (float("inf"), 0), (-1, 0)])
+def test_volume_normalization_never_rounds_up(volume, expected):
+    assert TradeExecutor(_settings())._normalize_volume(volume, _SymbolInfo()) == expected
+
+
+@pytest.mark.parametrize("loss,equity,margin,allowed", [
+    (-4.99, 1000, 1, True), (-5, 1000, 1, True), (-5.01, 1000, 1, False),
+    (None, 1000, 1, False), (float("nan"), 1000, 1, False),
+    (1, 1000, 1, False), (-1, 0, 1, False), (-1, 1000, float("nan"), False),
+])
+def test_preflight_enforces_final_stop_loss_risk(monkeypatch, loss, equity, margin, allowed):
+    ex = TradeExecutor(_settings())
+    monkeypatch.setattr(trade_executor_module.mt5, "account_info", lambda: SimpleNamespace(
+        login=1, server="demo", trade_mode=0, equity=equity, margin_free=10000, trade_allowed=True))
+    monkeypatch.setattr(trade_executor_module.mt5, "symbol_info_tick", lambda _: SimpleNamespace(ask=100.05, bid=100))
+    monkeypatch.setattr(trade_executor_module.mt5, "order_calc_margin", lambda *args: margin)
+    seen = []
+    def calculate(*args):
+        seen.append(args)
+        return loss
+    monkeypatch.setattr(trade_executor_module.mt5, "order_calc_profit", calculate)
+    request = dict(type=0, symbol="XAUUSD", volume=.01, price=100.05, sl=99, tp=102,
+                   magic=ex.settings.magic_number, comment="AAI_Dtest_Sgmi")
+    ok, reason = ex._preflight_order_request(request, _SymbolInfo())
+    assert ok is allowed, reason
+    if seen:
+        assert seen[0][-1] == request["sl"]

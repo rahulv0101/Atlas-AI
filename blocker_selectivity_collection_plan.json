@@ -12,13 +12,13 @@
     "separate correct protective blocks from missed opportunity blocks",
     "keep draft proposal parked until shadow_compare passes"
   ],
-  "created_at": "2026-11-05T13:20:42.669294+00:00",
+  "created_at": "2026-11-09T20:11:38.717155+00:00",
   "current_metrics": {
     "capture_rate": 0.0,
-    "false_unlock_risk_rate": 0.0,
-    "net_review_edge": 0.0,
+    "false_unlock_risk_rate": 0.0219,
+    "net_review_edge": -0.0219,
     "samples": 0,
-    "unknown_rate": 1.0
+    "unknown_rate": 0.9781
   },
   "failure_reasons": [
     "false_unlock_risk_exceeds_capture",

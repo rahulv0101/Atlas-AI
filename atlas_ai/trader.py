@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import logging
 import math
 import contextlib
@@ -31,6 +33,7 @@ from atlas_ai.execution.trade_executor import TradeExecutor
 from atlas_ai.learning.edge_building import score_live_forward_safe_setup
 from atlas_ai.learning.outcome_intelligence import refresh_trade_outcome_intelligence
 from atlas_ai.learning.online_allocator import OnlineAllocator
+from atlas_ai.learning.closed_position_ledger import ClosedPositionLedger
 from atlas_ai.learning.meta_model import SignalQualityModel, context_to_features
 from atlas_ai.learning.post_trade_lessons import build_post_trade_lesson
 from atlas_ai.learning.loss_lesson_backfill import rebuild_loss_pattern_lessons
@@ -97,11 +100,15 @@ logger = logging.getLogger(__name__)
 
 
 class AtlasTrader:
+    _GUARDED_DEMO_MAX_LOT = 0.01
+
     def __init__(self, settings: Settings, store: KnowledgeStore | None = None):
         self.settings = settings
         self.store = store or KnowledgeStore(settings.storage_dir)
         self.feed = MarketDataFeed(settings)
         self.allocator = OnlineAllocator(store=self.store)
+        self.closed_position_ledger = ClosedPositionLedger(settings)
+        self._closed_position_evidence = {"mode": "shadow_only", "available": False, "reason": "awaiting_broker_snapshot", "live_policy_changed": False}
         self.allocator.set_exploration(getattr(settings, "exploration_epsilon", 0.0))
         self.risk = RiskManager(settings)
         # Explicit exception: TradeExecutor remains for stale/open position management only.
@@ -284,7 +291,9 @@ class AtlasTrader:
             reasons.append("side_not_directional")
         if str(setup_family or "").lower() not in allowed_setups:
             reasons.append("setup_family_not_auto_approved")
-        if float(volume) > 0.01:
+        if not math.isfinite(float(volume)) or float(volume) <= 0:
+            reasons.append("invalid_order_volume")
+        elif float(volume) > self._GUARDED_DEMO_MAX_LOT:
             reasons.append("size_above_guarded_demo_cap")
         if confidence < max(min_conf, 0.55):
             reasons.append("confidence_below_auto_approval_floor")
@@ -300,7 +309,7 @@ class AtlasTrader:
             "approved": not reasons,
             "reasons": reasons,
             "policy": "guarded_demo_auto_approval_v1",
-            "max_size": 0.01,
+            "max_size": self._GUARDED_DEMO_MAX_LOT,
             "min_confidence": max(min_conf, 0.55),
         }
 
@@ -1345,7 +1354,10 @@ class AtlasTrader:
             capture_enabled = str(os.getenv("ATLAS_VISUAL_CHART_CAPTURE_ENABLED", "1")).strip().lower() not in {"0", "false", "no", "off"}
             cooldown_seconds = max(1.0, float(os.getenv("ATLAS_VISUAL_CHART_CAPTURE_SECONDS", "60") or "60"))
             now = time.time()
-            latest = load_latest_visual_read(visual_dir, max_age_seconds=int(os.getenv("ATLAS_VISUAL_WATCH_MAX_AGE_SECONDS", "10") or "10"))
+            latest = load_latest_visual_read(
+                visual_dir, max_age_seconds=int(os.getenv("ATLAS_VISUAL_WATCH_MAX_AGE_SECONDS", "10") or "10"),
+                expected_symbol=self.settings.symbol, expected_timeframe=self.settings.timeframe,
+            )
             latest_image = dict(latest.get("image", {}) or {})
             if (
                 capture_enabled
@@ -1894,7 +1906,9 @@ class AtlasTrader:
         )
         flags["drift_alert_last_at"] = now.isoformat()
         flags["drift_alert_last_delta"] = round(current_delta, 4)
-        self.store.save_runtime_flags(flags)
+        self.store.update_runtime_flags(lambda current: {**current,
+            "drift_alert_last_at": flags["drift_alert_last_at"],
+            "drift_alert_last_delta": flags["drift_alert_last_delta"]})
 
     def _drift_state(self, memory: dict[str, Any]) -> dict[str, Any]:
         outcomes = list(memory.get("recent_outcomes", []))
@@ -2000,7 +2014,8 @@ class AtlasTrader:
             flags["drift_throttle_next_trade_at"] = (now_utc + timedelta(seconds=hold_seconds)).isoformat()
         else:
             flags["drift_throttle_next_trade_at"] = ""
-        self.store.save_runtime_flags(flags)
+        self.store.update_runtime_flags(lambda current: {**current,
+            "drift_throttle_next_trade_at": flags["drift_throttle_next_trade_at"]})
 
     def _apply_open_position_feedback(self, flags: dict[str, Any] | None = None) -> None:
         if not bool(self.settings.open_feedback_enabled):
@@ -2048,7 +2063,8 @@ class AtlasTrader:
             changed = True
         if changed:
             flags["open_feedback_seen"] = seen
-            self.store.save_runtime_flags(flags)
+            self.store.update_runtime_flags(lambda current: {**current,
+                "open_feedback_seen": {**current.get("open_feedback_seen", {}), **seen}})
 
     def _risk_snapshot(self, flags: dict[str, Any] | None = None) -> RiskSnapshot:
         account = mt5.account_info()
@@ -2121,7 +2137,7 @@ class AtlasTrader:
     def _save_guard_state(self, state: dict[str, Any], flags: dict[str, Any] | None = None) -> None:
         flags = dict(flags) if isinstance(flags, dict) else self.store.load_runtime_flags()
         flags["risk_guard_state"] = state
-        self.store.save_runtime_flags(flags)
+        self.store.update_runtime_flags(lambda current: {**current, "risk_guard_state": state})
 
     def _load_loss_memory(self) -> dict[str, Any]:
         raw = self.store.load_learning_state().get("state", {})
@@ -2280,7 +2296,21 @@ class AtlasTrader:
                 self._closed_learning_synced_until = None
         if self._closed_learning_synced_until is not None:
             start = max(start, self._closed_learning_synced_until - timedelta(minutes=5))
-        deals = mt5.history_deals_get(utc_query_time(start, self.settings), utc_query_time(end, self.settings)) or []
+        broker_deals = mt5.history_deals_get(utc_query_time(start, self.settings), utc_query_time(end, self.settings))
+        if getattr(self, "closed_position_ledger", None) is not None:
+            try:
+                from atlas_ai.learning.decision_index import GuardedDecisionIndex
+                self._closed_position_evidence = self.closed_position_ledger.ingest_broker_snapshot(
+                    account=mt5.account_info(), deals=broker_deals, positions=mt5.positions_get(),
+                    decision_events=[*self.store.tail_events(limit=5000, event_type="decision_sample"),
+                                     *GuardedDecisionIndex(self.settings).events()],
+                    window_start=start.isoformat(), window_end=end.isoformat(),
+                )
+                self._closed_position_evidence["available"] = True
+            except Exception as exc:
+                self._closed_position_evidence = {"mode": "shadow_only", "available": False, "reason": type(exc).__name__, "live_policy_changed": False}
+                logger.warning("Closed-position evidence unavailable: %s", type(exc).__name__)
+        deals = broker_deals or []
         decision_strategy_map, decision_id_aliases, decision_meta_by_execution_ref = self._decision_sample_maps(limit=5000)
         owned_positions: set[str] = set()
         position_strategy: dict[str, str] = {}
@@ -2625,7 +2655,7 @@ class AtlasTrader:
         )
         if should_persist_sync:
             flags["closed_learning_synced_until"] = end.isoformat()
-            self.store.save_runtime_flags(flags)
+            self.store.update_runtime_flags(lambda current: {**current, "closed_learning_synced_until": end.isoformat()})
             self._closed_learning_sync_persisted_at = end
         return memory
 
@@ -3130,10 +3160,23 @@ class AtlasTrader:
             return 0.5, 0
         return wins / n, n
 
-    def _filter_weak_strategies(self, signals: list[TradeSignal]) -> tuple[list[TradeSignal], list[str]]:
+    def _filter_weak_strategies(self, signals: list[TradeSignal], *, statistics=None) -> tuple[list[TradeSignal], list[str]]:
         if not bool(self.settings.win_rate_focus_enabled):
             return signals, []
-        stats = self.allocator.stats()
+        if statistics is not None:
+            stats = statistics
+        else:
+            source = str(getattr(self.settings, "strategy_filter_evidence_source", "allocator_rewards"))
+            if source == "allocator_rewards":
+                stats = self.allocator.stats()
+            elif source == "confirmed_demo_positions":
+                from atlas_ai.learning.performance_filter_evidence import confirmed_demo_statistics
+                try:
+                    stats = confirmed_demo_statistics(getattr(self, "_closed_position_evidence", None))
+                except ValueError as exc:
+                    return [], [str(exc)]
+            else:
+                return [], ["strategy_filter_evidence_source_invalid"]
         min_n = max(1, int(self.settings.min_strategy_samples))
         min_wr = max(0.0, min(1.0, float(self.settings.min_strategy_win_rate)))
         hard_prune_enabled = bool(getattr(self.settings, "hard_prune_weak_strategies_enabled", True))
@@ -3166,6 +3209,45 @@ class AtlasTrader:
                 continue
             kept.append(s)
         return kept, blocked
+
+    def _strategy_evidence_comparison(self, names):
+        """Apply the same filter to two evidence sources without changing policy."""
+        from types import SimpleNamespace
+        evidence = dict(getattr(self, "_closed_position_evidence", {}) or {})
+        strict = evidence.get("strategy_statistics", {}) if evidence.get("available") else {}
+        shadow_stats = {
+            key: SimpleNamespace(wins=row["wins"], losses=row["losses"], pnl=row["pnl"],
+                                 win_rate=row["wins"] / max(1, row["wins"] + row["losses"]))
+            for key, row in strict.items()
+        }
+        comparisons = []
+        for name in sorted(set(names)):
+            signal = TradeSignal(name, "flat", 0.0, 0.0, 0.0)
+            current, reasons = self._filter_weak_strategies([signal])
+            row = strict.get(self._strategy_key(name), {})
+            samples = row.get("wins", 0) + row.get("losses", 0)
+            enough = samples >= max(1, int(self.settings.min_strategy_samples))
+            shadow, shadow_reasons = self._filter_weak_strategies([signal], statistics=shadow_stats)
+            comparisons.append({"strategy": name, "current_filter_eligible": bool(current),
+                                "current_reasons": reasons, "confirmed_samples": samples,
+                                "shadow_filter_eligible": bool(shadow) if enough else None,
+                                "confirmed_source_filter_would_allow": bool(shadow),
+                                "confirmed_source_assessment": "sufficient_evidence" if enough else "unproven_no_performance_veto",
+                                "shadow_reasons": shadow_reasons if enough else ["insufficient_broker_confirmed_strategy_evidence"]})
+        evidence["filter_comparison"] = comparisons
+        evidence["comparison_scope"] = "weak_strategy_filter_only; other entry/risk/execution gates still apply"
+        source = str(getattr(self.settings, "strategy_filter_evidence_source", "allocator_rewards"))
+        evidence["performance_filter_policy"] = source
+        evidence["current_statistics_source"] = (
+            "broker_confirmed_closed_positions_with_guarded_decision_links"
+            if source == "confirmed_demo_positions"
+            else "allocator_reward_observations_including_open_feedback_and_priors"
+        )
+        if source == "confirmed_demo_positions":
+            evidence["mode"] = "confirmed_demo_performance_filter"
+            evidence["live_policy_changed"] = True
+        evidence["shadow_statistics_source"] = "broker_confirmed_closed_positions_with_guarded_decision_links"
+        return evidence
 
     def _dynamic_min_confidence(self, base_min_conf: float, loss_memory: dict[str, Any]) -> tuple[float, dict[str, Any]]:
         if not bool(self.settings.win_rate_focus_enabled):
@@ -4653,6 +4735,7 @@ class AtlasTrader:
             "context_snapshot": dict(status.get("context_snapshot", {}) or {}),
             "decision_explanation": dict(status.get("decision_explanation", {}) or {}),
             "decision_trace": dict(status.get("decision_trace", {}) or {}),
+            "intraday_exit": dict(status.get("intraday_exit", {}) or {}),
             "timing_discipline": dict(status.get("timing_discipline", {}) or {}),
             "system_health": dict(status.get("system_health", {}) or {}),
             "shadow_advice": dict(status.get("shadow_advice", {}) or {}),
@@ -4791,16 +4874,30 @@ class AtlasTrader:
             "bounded_learning_only": True,
             "policy_note": "Decision sample is observability/learning evidence only; it does not change strategy, risk, guards, or execution policy.",
         }
+        payload["forced_demo_entry"] = bool(status.get("forced_demo_entry", False))
+        payload["forced_learning_probe"] = bool(status.get("forced_learning_probe", False))
         if execution:
             payload.update(dict(execution))
+        if payload.get("execution_success") is True and payload.get("execution_mode") == "demo":
+            try:
+                from atlas_ai.learning.decision_index import GuardedDecisionIndex
+                recorded = GuardedDecisionIndex(self.settings).record(payload)
+                status["decision_index_status"] = {"ok": True, "recorded": recorded}
+            except Exception as exc:
+                status["decision_index_status"] = {"ok": False, "reason": type(exc).__name__}
+                logger.warning("Durable decision evidence could not be recorded: %s", type(exc).__name__)
         return payload
 
     def _augment_status_layers(self, status: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(status, dict):
             return status
+        status["intraday_exit"] = dict(getattr(self, "_intraday_exit_status", {}) or {})
         generation = getattr(self, "_signal_generation_diagnostics", None)
         if generation is not None:
             status["signal_generation"] = generation
+        if getattr(self, "closed_position_ledger", None) is not None:
+            names = [row["strategy"] for row in (generation or {}).get("candidates", []) if row.get("strategy")]
+            status["strategy_evidence"] = self._strategy_evidence_comparison(names)
         runtime_flags = dict(self._last_runtime_flags or {})
         rollout = dict(runtime_flags.get("paper_rollout", {}) or {})
         if rollout and not status.get("lane"):
@@ -5041,7 +5138,7 @@ class AtlasTrader:
                 pass
         self.store.log_event("risk", "LLM provider is rate-limited; fallback/local logic active.", {"providers": flagged})
         flags["llm_alert_last_at"] = now.isoformat()
-        self.store.save_runtime_flags(flags)
+        self.store.update_runtime_flags(lambda current: {**current, "llm_alert_last_at": now.isoformat()})
 
     def _housekeeping_close_allowed(self) -> tuple[bool, str]:
         # Cross-process safety: refresh shared critical controls before any direct
@@ -5075,6 +5172,25 @@ class AtlasTrader:
         gemini_influence_enabled = self._gemini_influence_enabled(runtime_flags)
 
         # P1 — Worker heartbeat check: block trading if stale
+        if execute_trades and bool(getattr(self.settings, "enforce_day_trading", False)) and hasattr(self.execution_gate, "enforce_intraday_exit"):
+            self._intraday_exit_status = self.execution_gate.enforce_intraday_exit(
+                runtime_flags={**runtime_flags, "execute_trades": execute_trades})
+            if self._intraday_exit_status.get("entries_blocked"):
+                # Exit fills must reach the existing broker learning/ledger path even
+                # when no more entries or market analysis are allowed today.
+                try:
+                    self._sync_closed_trade_learning(runtime_flags)
+                except Exception as exc:
+                    self._intraday_exit_status["outcome_sync_error"] = type(exc).__name__
+                status = {"symbol": self.settings.symbol, "timeframe": self.settings.timeframe,
+                    "action": "hold" if self._intraday_exit_status.get("flat_verified") else "blocked",
+                    "message": ("Session cutoff: Atlas exposure is broker-confirmed flat."
+                        if self._intraday_exit_status.get("flat_verified") else "Intraday exit pending: broker confirmation or operator attention required."),
+                    "intraday_exit": self._intraday_exit_status, "execute_trades": execute_trades,
+                    "updated_at": datetime.now(timezone.utc).isoformat()}
+                self._log_status_event("day_trader", status)
+                self._publish_status(status)
+                return status
         heartbeat_check = evaluate_heartbeat_state(
             runtime_flags,
             component="backend_trader",
@@ -5104,23 +5220,6 @@ class AtlasTrader:
         self._apply_open_position_feedback(runtime_flags)
         self._maybe_emit_drift_alert(loss_memory, runtime_flags)
         drift = self._drift_state(loss_memory)
-
-        if self.settings.enforce_day_trading and execute_trades:
-            allow_housekeeping_close, housekeeping_reason = self._housekeeping_close_allowed()
-            if not allow_housekeeping_close:
-                self.store.log_event(
-                    "day_trader",
-                    "Skipped overnight housekeeping close due to guarded control state.",
-                    {"reason": housekeeping_reason, "guarded_boundary": "housekeeping_exception"},
-                )
-            else:
-                closed = self.executor.close_stale_positions(allow_close=True)
-                if closed:
-                    self.store.log_event(
-                        "day_trader",
-                        "Closed overnight positions to enforce day-trading mode.",
-                        {"closed": [c.__dict__ for c in closed], "guarded_boundary": "housekeeping_exception"},
-                    )
 
         df = self.feed.get_rates(1200)
         ingest_ended_at = datetime.now(timezone.utc)
@@ -5300,6 +5399,20 @@ class AtlasTrader:
         status["risk"]["trades_today"] = guard_state["trades_today"]
         status["risk"]["consecutive_losses"] = guard_state["consecutive_losses"]
         status["risk"]["daily_profit_zar"] = round(float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance)), 2)
+        daily_target = float(self.settings.daily_profit_target_zar)
+        daily_progress = float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance))
+        status["daily_profit_objective"] = {
+            "enabled": daily_target > 0,
+            "target_zar": daily_target,
+            "equity_change_zar": round(daily_progress, 2),
+            "remaining_zar": round(max(0.0, daily_target - daily_progress), 2) if daily_target > 0 else None,
+            "reached": daily_target > 0 and daily_progress >= daily_target,
+            "day_timezone": "UTC",
+            "accounting_basis": "equity minus tracked daily starting balance; includes unrealised P/L and account cash flows",
+            "on_target_reached": "existing_defensive_sizing; no forced pause",
+            "force_trades": False,
+            "guaranteed": False,
+        }
         status["risk"]["weekly_loss_pct"] = round(float(snapshot.weekly_loss_pct), 4)
         account_profile = self._account_tier_profile(snapshot.balance)
         size_tier_profile = self._size_tier_profile(snapshot.balance)
@@ -5324,6 +5437,7 @@ class AtlasTrader:
             latest_visual = load_latest_visual_read(
                 Path(str(self.settings.storage_dir)) / "chart_vision",
                 max_age_seconds=int(os.getenv("ATLAS_VISUAL_WATCH_MAX_AGE_SECONDS", "10") or "10"),
+                expected_symbol=self.settings.symbol, expected_timeframe=self.settings.timeframe,
             )
             if (
                 str(latest_visual.get("source", "") or "") == "screenshot_plus_chart_features"
@@ -5984,7 +6098,28 @@ class AtlasTrader:
 
         symbol_info = mt5.symbol_info(self.settings.symbol)
         tick_value = symbol_info.trade_tick_value if symbol_info else 1.0
-        base_volume = self.risk.lot_size(snapshot.equity, chosen.stop_loss_points, tick_value)
+        base_volume = self.risk.lot_size(
+            snapshot.equity, chosen.stop_loss_points, tick_value,
+            point_size=float(getattr(symbol_info, "point", 0.0) or 0.0),
+            tick_size=float(getattr(symbol_info, "trade_tick_size", getattr(symbol_info, "point", 0.0)) or 0.0),
+            volume_step=float(getattr(symbol_info, "volume_step", 0.0) or 0.0),
+            minimum_volume=float(getattr(symbol_info, "volume_min", 0.0) or 0.0),
+        )
+        if base_volume <= 0:
+            status["action"] = "blocked"
+            status["message"] = (
+                "Position sizing blocked: no broker-valid volume fits the per-trade risk budget, "
+                "or required sizing data is unavailable."
+            )
+            status["position_sizing"] = {
+                "reason": "no_valid_risk_bounded_volume",
+                "risk_fraction": float(self.settings.max_risk_per_trade),
+                "broker_min_lot": float(getattr(symbol_info, "volume_min", 0.0) or 0.0),
+                "broker_lot_step": float(getattr(symbol_info, "volume_step", 0.0) or 0.0),
+            }
+            self._log_status_event("risk", status)
+            self._publish_status(status)
+            return status
         vol_mult, vol_reason = self._volume_multiplier(guard_state, regime)
         size_band_mult, size_band_meta = self._size_band_multiplier(structured_analysis, guard_state, regime)
         volume = base_volume * vol_mult * size_band_mult
@@ -6002,6 +6137,26 @@ class AtlasTrader:
             "size_tier_reason": str(size_tier_profile.get("size_tier_reason", "")),
             "size_tier_cap_lot": round(size_tier_cap, 4),
         }
+        if not math.isfinite(float(volume)) or float(volume) <= 0:
+            status["action"] = "blocked"
+            status["message"] = "Position sizing blocked: invalid scaled order volume."
+            self._log_status_event("risk", status)
+            self._publish_status(status)
+            return status
+        proposed_volume = float(volume)
+        volume = min(proposed_volume, self._GUARDED_DEMO_MAX_LOT)
+        status["guarded_demo_size_cap"] = {
+            "max_lot": self._GUARDED_DEMO_MAX_LOT,
+            "proposed_lot": proposed_volume,
+            "effective_lot": volume,
+            "applied": volume < proposed_volume,
+        }
+        if volume < float(getattr(symbol_info, "volume_min", 0.0) or 0.0):
+            status["action"] = "blocked"
+            status["message"] = "Position sizing blocked: broker minimum exceeds the guarded demo size cap."
+            self._log_status_event("risk", status)
+            self._publish_status(status)
+            return status
         # Demo/live-like execution must route through ExecutionGate only.
         gate_env = "demo" if bool(execute_trades) else "paper"
         setup_family = self._strategy_to_setup_family(str(chosen.strategy))
@@ -6011,7 +6166,7 @@ class AtlasTrader:
             action_type="place_trade",
             payload_summary=(
                 f"instrument={self.settings.symbol} setup_family={setup_family} setup={setup_family} "
-                f"strategy={chosen.strategy} side={chosen.side} size={float(volume):.4f} "
+                f"strategy={chosen.strategy} side={chosen.side} size={format(Decimal(str(volume)), 'f')} "
                 f"confidence={float(chosen.confidence):.3f} stop_loss_points={float(chosen.stop_loss_points):.2f} "
                 f"take_profit_points={float(chosen.take_profit_points):.2f} data_source=broker_runtime "
                 f"environment_mode={gate_env} decision_id={decision_id}"
@@ -6095,6 +6250,8 @@ class AtlasTrader:
                 execution={
                     "execution_success": bool(result.success),
                     "execution_mode": gate_env,
+                    "request_origin": "trader_guarded",
+                    "broker_order_id": str(getattr(result, "broker_order_id", "") or ""),
                     "retcode": int(result.retcode),
                     "order_id": int(result.order_id),
                     "deal_id": int(result.deal_id),

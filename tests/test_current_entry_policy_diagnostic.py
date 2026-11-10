@@ -33,3 +33,14 @@ def test_auto_approval_has_independent_confidence_floor(confidence, approved):
     assert result["approved"] is approved
     assert result["min_confidence"] == 0.55
     assert result["reasons"] == ([] if approved else ["confidence_below_auto_approval_floor"])
+
+
+@pytest.mark.parametrize("volume", [0, -1, float("nan"), float("inf")])
+def test_auto_approval_rejects_invalid_volume(volume):
+    trader = AtlasTrader.__new__(AtlasTrader)
+    trader.settings = SimpleNamespace(symbol="XAUUSD")
+    result = trader._guarded_demo_auto_approval_decision(
+        environment="demo", setup_family="continuation", volume=volume, runtime_flags={},
+        status={"chosen": {"side": "buy", "confidence": .7}, "min_confidence_threshold": .44})
+    assert result["approved"] is False
+    assert "invalid_order_volume" in result["reasons"]

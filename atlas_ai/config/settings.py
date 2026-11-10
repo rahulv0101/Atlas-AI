@@ -106,6 +106,7 @@ class Settings:
     daily_profit_target_zar: float = 0.0
     require_ema_fresh_cross: bool = True
     adaptive_ema_side_switch: bool = True
+    strategy_filter_evidence_source: str = "allocator_rewards"
     win_rate_focus_enabled: bool = True
     target_win_rate: float = 0.55
     win_rate_lookback: int = 30
@@ -223,6 +224,7 @@ class Settings:
     evolved_candidate_min_win_rate: float = 0.52
     evolved_candidate_min_profit_component: float = 0.0
     evolution_enabled: bool = False
+    evolution_research_only: bool = True
     evolution_interval_hours: float = 6.0
     max_demo_strategies: int = 3
     evolved_max_risk_pct: float = 0.005
@@ -382,6 +384,7 @@ def load_settings() -> Settings:
         daily_profit_target_zar=float(os.getenv("DAILY_PROFIT_TARGET_ZAR", "0")),
         require_ema_fresh_cross=os.getenv("REQUIRE_EMA_FRESH_CROSS", "true").strip().lower() in {"1", "true", "yes", "on"},
         adaptive_ema_side_switch=os.getenv("ADAPTIVE_EMA_SIDE_SWITCH", "true").strip().lower() in {"1", "true", "yes", "on"},
+        strategy_filter_evidence_source=os.getenv("STRATEGY_FILTER_EVIDENCE_SOURCE", "allocator_rewards").strip().lower(),
         win_rate_focus_enabled=os.getenv("WIN_RATE_FOCUS_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"},
         target_win_rate=float(os.getenv("TARGET_WIN_RATE", "0.55")),
         win_rate_lookback=int(os.getenv("WIN_RATE_LOOKBACK", "30")),
@@ -512,6 +515,7 @@ def load_settings() -> Settings:
         evolved_candidate_min_win_rate=float(os.getenv("EVOLVED_CANDIDATE_MIN_WIN_RATE", "0.52")),
         evolved_candidate_min_profit_component=float(os.getenv("EVOLVED_CANDIDATE_MIN_PROFIT_COMPONENT", "0.0")),
         evolution_enabled=os.getenv("EVOLUTION_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"},
+        evolution_research_only=os.getenv("EVOLUTION_RESEARCH_ONLY", "true").strip().lower() in {"1", "true", "yes", "on"},
         evolution_interval_hours=float(os.getenv("EVOLUTION_INTERVAL_HOURS", "6.0")),
         max_demo_strategies=int(os.getenv("MAX_DEMO_STRATEGIES", "3")),
         evolved_max_risk_pct=float(os.getenv("EVOLVED_MAX_RISK_PCT", "0.005")),

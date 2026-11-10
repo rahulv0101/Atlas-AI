@@ -17,6 +17,8 @@ let lastLearningSignature = "";
 let refreshInFlight = false;
 let refreshTimer = null;
 let refreshFailureCount = 0;
+let lastSuccessfulRefreshAt = 0;
+let refreshStartedAt = 0;
 let lastAuxRefreshAt = 0;
 let askAtlasHistory = [];
 const STATUS_STALE_MS = 5 * 60 * 1000;
@@ -910,7 +912,7 @@ function renderAskAtlas(response, query = "") {
   const primaryLabel = document.querySelector(".ask-primary-label");
   if (ack) ack.textContent = fmtText((response || {}).acknowledge, "No acknowledgement available.");
   if (understanding) understanding.textContent = fmtText((response || {}).understanding, "No understanding available.");
-  if (result) result.textContent = fmtText((response || {}).result, "No result available.");
+  if (result) result.textContent = fmtText((response || {}).result, "Ask a question above to get started.");
   if (approval) approval.textContent = fmtText((response || {}).approval, "No approval guidance available.");
   renderChipList("ask-atlas-sources", (response || {}).data_sources || [], "No sources listed");
   if (primaryLabel) {
@@ -923,8 +925,8 @@ function renderAskAtlas(response, query = "") {
     const modeMeta = resolveDisplayModeMeta((response || {}).execution_state, (response || {}).debug);
     const modeLabel = modeMeta.label;
     status.textContent = query
-      ? `Handled: ${intent} | MODE: ${modeLabel}`
-      : `Awaiting operator prompt. MODE: ${modeLabel}`;
+      ? `Answer received${modeMeta.fallback ? "" : ` · ${modeLabel}`}`
+      : "Choose a suggestion or type your question.";
     status.setAttribute("data-mode-source", modeMeta.source);
     status.setAttribute("data-mode-fallback", String(modeMeta.fallback));
   }
@@ -1067,8 +1069,13 @@ function renderReadinessLanes(status) {
     el.classList.add(ready ? "lane-ready" : (name === "market" || name === "session" ? "lane-wait" : "lane-blocked"));
     const strong = el.querySelector("strong");
     const small = el.querySelector("small");
-    if (strong) strong.textContent = readinessLabel(ready);
-    if (small) small.textContent = laneDetail(name, lane);
+    if (strong) strong.textContent = !lane ? "Checking" : (ready
+      ? ({market: "Setup available", automation: "On", session: "Open", broker: "Connected", ui: "Connected"}[name])
+      : ({market: "Waiting", automation: "Paused / review", session: "Closed", broker: "Needs attention", ui: "Needs attention"}[name]));
+    if (small) {
+      small.textContent = name === "market" && lane && !ready ? "Entry checks are not yet satisfied" : laneDetail(name, lane);
+      small.title = laneDetail(name, lane);
+    }
   });
 }
 
@@ -1109,12 +1116,73 @@ function renderCognitiveState(status) {
   setText("mind-policy", compactText(cognitive.policy_note, "Coordinated intelligence. Risk and execution gates remain separate."));
 }
 
+function entryWaitingSummary(status) {
+  const data = status || {};
+  const timing = data.timing_discipline || {};
+  const timingBlocked = Array.isArray((data.execution_readiness || {}).blocker_chain)
+    && data.execution_readiness.blocker_chain.some((item) => item.lane === "timing");
+  if (timing.hard_block || timingBlocked) {
+    const missing = new Set(Array.isArray(timing.missing) ? timing.missing : []);
+    const needs = [];
+    if (missing.has("tradable_location") || missing.has("visual_tradable_location")) needs.push("a clear entry location");
+    if (missing.has("fresh_entry_or_retest")) needs.push("a fresh entry or retest");
+    if (missing.has("strong_or_turning_m1_momentum")) needs.push("M1 momentum");
+    if (missing.has("visual_confirmation")) needs.push("chart confirmation");
+    const detail = needs.length ? `Waiting for ${needs.join(", ")}.` : "Waiting for the entry checks to pass.";
+    return { headline: "Entry timing", detail, next: "Atlas will check the next market update." };
+  }
+  const message = String(data.message || "").toLowerCase();
+  if (data.action === "hold" && (message.includes("no directional") || message.includes("no trade signal"))) {
+    const candidates = (Array.isArray(data.signals) ? data.signals : []).filter(isActionableTrade);
+    if (candidates.length) {
+      return { headline: "Candidates under review", detail: "Buy/sell candidates exist, but none has passed trade selection.", next: "Atlas is scanning for a qualifying entry." };
+    }
+    return { headline: "Scanning for a setup", detail: "No buy or sell candidate is available in this cycle.", next: "Atlas continues checking the market for a qualifying entry." };
+  }
+  return null;
+}
+
+function renderOperatorOverview(status) {
+  const objective = (status || {}).daily_profit_objective || {};
+  const evidence = (status || {}).strategy_evidence || {};
+  const goal = document.getElementById("cmd-goal-value");
+  const track = document.getElementById("cmd-goal-track");
+  const fill = document.getElementById("cmd-goal-fill");
+  const amount = Number(objective.equity_change_zar);
+  const target = Number(objective.target_zar);
+  const rand = (value) => `R${new Intl.NumberFormat("en-ZA", { maximumFractionDigits: 0 }).format(value)}`;
+  if (objective.enabled && Number.isFinite(amount) && Number.isFinite(target) && target > 0) {
+    const percent = Math.max(0, Math.min(100, (amount / target) * 100));
+    if (goal) goal.textContent = `${amount < 0 ? "−" : ""}${rand(Math.abs(amount))} / ${rand(target)}`;
+    if (fill) fill.style.width = `${percent}%`;
+    if (track) track.setAttribute("aria-valuenow", String(Math.round(percent)));
+    setText("cmd-goal-detail", objective.reached
+      ? "Equity goal reached, including open trades. Defensive sizing is active."
+      : "Equity change today, including open trades. Resets at 02:00 SAST. A target, not a promise.");
+  } else {
+    if (goal) goal.textContent = objective.enabled === false ? "No goal set" : (objective.enabled ? "Unavailable" : "Checking");
+    if (fill) fill.style.width = "0%";
+    if (track) track.setAttribute("aria-valuenow", "0");
+    setText("cmd-goal-detail", objective.enabled === false ? "Set a demo goal in configuration." : "Daily progress is being checked.");
+  }
+  if (evidence.available) {
+    const linked = Number(evidence.strict_strategy_positions);
+    const closed = Number(evidence.closed_positions);
+    setText("cmd-evidence-count", Number.isFinite(linked) ? `${linked} verified` : "Unavailable");
+    setText("cmd-evidence-detail", Number.isFinite(closed)
+      ? `${closed} broker closed positions. Strategy results need confirmed decision links.`
+      : "Strategy results need confirmed decision links.");
+  } else {
+    setText("cmd-evidence-count", "Unavailable");
+    setText("cmd-evidence-detail", "Broker performance evidence is being checked.");
+  }
+}
+
 function renderCommandStrip(status, runtime) {
   const exec = mergedExecutionState(status, runtime);
   const session = ((exec.session_control) || {});
   const analysis = ((status || {}).decision_analysis || {});
   const trace = ((status || {}).decision_trace || {});
-  const operatorReadiness = ((status || {}).operator_readiness || {});
   const structuredBlocker = ((status || {}).structured_blocker || {});
   const blockerSummary = ((status || {}).blocker_classification || trace.blocker_summary || {});
   const topBlockers = Array.isArray(analysis.top_blockers) ? analysis.top_blockers : [];
@@ -1122,8 +1190,6 @@ function renderCommandStrip(status, runtime) {
   const message = compactText((status || {}).message, "Waiting for decision cycle");
   const automationEnabled = Boolean(exec.automation_enabled || exec.automation_explicit_resume_active);
   const automationPaused = Boolean(exec.automation_paused);
-  const liveAllowed = Boolean(exec.automation_live_allowed);
-  const sessionActive = Boolean(session.session_active);
   const killActive = Boolean(exec.kill_switch_active);
   const recon = Boolean(exec.reconciliation_required);
   const forcedFlat = Boolean(exec.forced_flat_pending || session.forced_flat_required);
@@ -1155,31 +1221,17 @@ function renderCommandStrip(status, runtime) {
     readinessState = "review";
   }
 
+  const waiting = readiness === "WAITING" ? entryWaitingSummary(status) : null;
+  if (waiting) readinessDetail = waiting.detail;
+
   setText("cmd-readiness", readiness);
   setText("cmd-readiness-detail", readinessDetail);
   setCommandTileState("cmd-readiness-card", readinessState);
-  setText("cmd-automation", automationEnabled && !automationPaused ? "Enabled" : "Paused");
-  setText("cmd-automation-detail", liveAllowed ? "Live demo gate allowed" : compactText(exec.automation_pause_reason || exec.auto_trade_reason, "Gate not allowed"));
-  setText("cmd-session", sessionActive ? compactText(session.current_session, "Active") : "Closed");
-  setText("cmd-session-detail", sessionActive
-    ? `${compactText(session.current_session_window_local, "session open")} | ${compactText(session.minutes_to_session_close, "-")}m left`
-    : `Next: ${compactText(session.next_session_local, "unknown")}`);
-  setText("cmd-blocker", blockerName);
-  setText("cmd-blocker-detail", blockerDelta);
-  let nextAction = sessionActive ? "Observe" : "Wait";
-  const primaryLane = compactText(operatorReadiness.primary_lane, "");
-  if (readiness === "READY") nextAction = "Review Signal";
-  else if (primaryLane === "automation") nextAction = "Resume/Review";
-  else if (primaryLane === "session") nextAction = "Wait Session";
-  else if (primaryLane === "broker") nextAction = "Fix Broker";
-  else if (primaryLane === "operator_ui") nextAction = "Fix UI";
-  else if (blockerClass === "runtime or data") nextAction = "Fix Runtime";
-  else if (blockerClass === "safety gate") nextAction = "Safety Review";
-  else if (blockerClass === "quality gate") nextAction = "Review Gate";
-  else if (blockerClass === "signal quality") nextAction = "Wait For Setup";
-  setText("cmd-next-action", nextAction);
-  setText("cmd-next-detail", compactText(((status || {}).execution_readiness || {}).next_action || operatorReadiness.next_action, readiness === "READY" ? "Approval still required by policy" : message));
+  setText("cmd-blocker-label", readiness === "WAITING" ? "Why Atlas is waiting" : "Primary blocker");
+  setText("cmd-blocker", waiting ? waiting.headline : blockerName);
+  setText("cmd-blocker-detail", waiting ? waiting.next : blockerDelta);
   renderReadinessLanes(status);
+  renderOperatorOverview(status);
 }
 
 function renderVisualChartRead(status) {
@@ -1963,6 +2015,9 @@ function setDashboardView(view) {
   const diagnosticsBtn = document.getElementById("view-diagnostics");
   if (commandBtn) commandBtn.classList.toggle("active", dashboardView === "command");
   if (diagnosticsBtn) diagnosticsBtn.classList.toggle("active", dashboardView === "diagnostics");
+  if (commandBtn) commandBtn.setAttribute("aria-pressed", String(dashboardView === "command"));
+  if (diagnosticsBtn) diagnosticsBtn.setAttribute("aria-pressed", String(dashboardView === "diagnostics"));
+  requestAnimationFrame(drawGoldChart);
 }
 
 async function runCommandDeckAction(command) {
@@ -1972,6 +2027,7 @@ async function runCommandDeckAction(command) {
     const result = await askAtlas(command, 20000);
     if (statusEl) statusEl.textContent = compactText(result.result, "Command completed.");
     renderAskAtlas(result, command);
+    document.getElementById("ask-atlas-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
     askAtlasHistory.unshift({
       query: command,
       result: compactText(result.result, "Command completed.").slice(0, 120),
@@ -1996,6 +2052,7 @@ function bindCommandDeckActions() {
     const el = document.getElementById(id);
     if (el) el.addEventListener("click", fn);
   };
+  on("refresh-now", () => refresh());
   on("view-command", () => {
     setDashboardView("command");
     if (window.location.hash) history.replaceState(null, "", window.location.pathname);
@@ -2015,6 +2072,15 @@ function bindCommandDeckActions() {
   });
   on("cmd-what-next", async () => {
     await runCommandDeckAction("what is the next safe step?");
+  });
+  document.querySelectorAll("[data-question]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById("ask-atlas-input");
+      if (input) {
+        input.value = button.dataset.question;
+        input.focus();
+      }
+    });
   });
   setDashboardView(window.location.hash === "#diagnostics" ? "diagnostics" : "command");
 }
@@ -2483,6 +2549,11 @@ function renderStatus(s, runtime) {
     contextual_ranking: view.contextual_ranking,
     visual_chart_read: view.visual_chart_read,
     setup_hunter: view.setup_hunter,
+    freshness_runtime: view.freshness_runtime,
+    execution_readiness: view.execution_readiness,
+    intraday_exit: view.intraday_exit,
+    research: (runtime || {}).evolution,
+    lifecycle_acceptance: (runtime || {}).lifecycle_acceptance,
   });
   const signalsSignature = stableStringify(view.signals || []);
   const shouldRenderStatus = statusSignature !== lastStatusSignature;
@@ -2491,7 +2562,8 @@ function renderStatus(s, runtime) {
   lastSignalsSignature = signalsSignature;
 
   if (shouldRenderStatus) {
-    status.textContent = `${(view.action || "idle").toUpperCase()} | ${view.symbol || "XAUUSD"}`;
+    const readinessLabel = (((view.execution_readiness || {}).display || {}).label || "CHECKING");
+    status.textContent = `${readinessLabel} | ${view.symbol || "XAUUSD"}`;
     status.classList.remove("state-connected", "state-training", "state-connecting", "state-error");
     const action = String(view.action || "").toLowerCase();
     if (action === "connected") status.classList.add("state-connected");
@@ -2509,7 +2581,7 @@ function renderStatus(s, runtime) {
       statModeEl.setAttribute("data-mode-source", modeMeta.source);
       statModeEl.setAttribute("data-mode-fallback", String(modeMeta.fallback));
     }
-    document.getElementById("stat-action").textContent = (view.action || "-").toUpperCase();
+    document.getElementById("stat-action").textContent = readinessLabel;
     const chosen = view.chosen || {};
     const bestActionable = view.best_actionable_candidate || ((view.contextual_ranking || {}).best_actionable) || {};
     const confidenceSource = isActionableTrade(chosen) ? chosen : (isActionableTrade(bestActionable) ? bestActionable : chosen);
@@ -2535,15 +2607,15 @@ function renderStatus(s, runtime) {
         freshnessEl.classList.add("freshness-unknown");
         freshnessEl.title = "Status freshness unavailable.";
       } else if (freshness.state === "fresh") {
-        freshnessEl.textContent = `${Math.round(ageMs)}ms (Fresh)`;
+        freshnessEl.textContent = `Fresh · ${Math.round(ageMs / 1000)}s`;
         freshnessEl.classList.add("freshness-green");
         freshnessEl.title = `Freshness: green (<= ${Math.round(freshness.agingThresholdMs)}ms)`;
       } else if (freshness.state === "aging") {
-        freshnessEl.textContent = `${Math.round(ageMs)}ms (Aging)`;
+        freshnessEl.textContent = `Aging · ${Math.round(ageMs / 1000)}s`;
         freshnessEl.classList.add("freshness-yellow");
         freshnessEl.title = `Freshness: yellow (${Math.round(freshness.agingThresholdMs + 1)}ms to ${Math.round(freshness.staleThresholdMs)}ms)`;
       } else {
-        freshnessEl.textContent = `${Math.round(ageMs)}ms (Stale)`;
+        freshnessEl.textContent = `Stale · ${Math.round(ageMs / 1000)}s`;
         freshnessEl.classList.add("freshness-red");
         freshnessEl.title = `Freshness: red (> ${Math.round(freshness.staleThresholdMs)}ms)`;
       }
@@ -2567,12 +2639,36 @@ function renderStatus(s, runtime) {
       drawGoldChart();
     }
 
-    decision.textContent = view.message || "No message";
+    const simpleDecision = (((view.execution_readiness || {}).display || {}).label === "WAITING")
+      ? entryWaitingSummary(view) : null;
+    decision.textContent = simpleDecision ? `${simpleDecision.headline}. ${simpleDecision.detail}` : (view.message || "No message");
+    setText("decision-technical", view.message || "No message");
     gemini.textContent = compactGeminiNote(view.gemini_note);
-    const updatedAt = view.updated_at ? new Date(view.updated_at).toLocaleString() : "-";
+    const updatedAt = view.updated_at ? new Date(view.updated_at).toLocaleString("en-ZA", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : "-";
     const freshness = getFreshnessRuntime(view);
     const stale = freshness.state === "stale";
     if (updated) updated.textContent = stale ? `Last update: ${updatedAt} (stale)` : `Last update: ${updatedAt}`;
+    setText("overview-updated", stale ? `Data needs refreshing · ${updatedAt}` : `Decision updated ${updatedAt}`);
+    const research = (runtime || {}).evolution || {};
+    const researchAge = Date.now() - Date.parse(research.checked_at || "");
+    setText("strategy-research-summary", research.research_only
+      ? (!Number.isFinite(researchAge) || researchAge < 0 || researchAge > 180000
+        ? "Strategy research: heartbeat unavailable or stale."
+        : `Strategy research: ${research.scheduler_status || "checking"} | ${research.candidate_count || 0} generated candidates | ${research.forward_trades || 0} forward paper outcomes. Candidates are outside broker trading.`)
+      : "Bounded strategy research is not active.");
+    const proof = (runtime || {}).lifecycle_acceptance || {};
+    const proofAge = Date.now() - Date.parse(proof.checked_at || "");
+    setText("lifecycle-proof-summary", !Number.isFinite(proofAge) || proofAge < 0 || proofAge > 180000
+      ? "Autonomous trade proof: observation unavailable or stale."
+      : proof.state === "verified" ? "Autonomous demo cycle verified: entry, broker protection and exit observed."
+      : `Autonomous trade proof: ${String(proof.state || "awaiting evidence").replace(/_/g, " ")}. Manual tests do not count.`);
+    const intraday = view.intraday_exit || {};
+    const exitAge = Date.now() - Date.parse(intraday.checked_at || "");
+    const exitFresh = Number.isFinite(exitAge) && exitAge >= 0 && exitAge <= 180000;
+    setText("intraday-exit-summary", !exitFresh ? "Intraday exit confirmation unavailable or stale."
+      : intraday.flat_verified ? "Atlas exposure: broker-confirmed flat at the last check."
+      : `Intraday exit: ${String(intraday.state || "checking").replace(/_/g, " ")} | positions ${intraday.positions ?? "?"}, pending ${intraday.pending_orders ?? "?"}.`);
+
     if (health) {
       const systemHealth = ((view || {}).system_health || {});
       const routing = systemHealth.routing_risk_detected ? "routing:risk" : "routing:clear";
@@ -2701,7 +2797,7 @@ function renderModeToggle(runtime, status) {
   const enabled = Boolean(runtime.execute_trades ?? status.execute_trades ?? false);
   btn.textContent = readOnly
     ? "Read-only (comparison)"
-    : (enabled ? "Switch to PAPER" : "Switch to LIVE");
+    : (enabled ? "Switch to PAPER" : "Switch to DEMO TRADING");
   btn.classList.toggle("live", enabled);
 }
 
@@ -2756,9 +2852,24 @@ async function toggleGeminiInfluence() {
   });
 }
 
+function updateUIConnection() {
+  const now = Date.now();
+  if (refreshFailureCount > 0) {
+    setText("ui-connection", "Connection lost - retrying automatically");
+  } else if ((lastSuccessfulRefreshAt && now - lastSuccessfulRefreshAt > 30000)
+      || (refreshInFlight && now - refreshStartedAt > 15000)) {
+    setText("ui-connection", "Status checks delayed - retrying");
+  } else if (lastSuccessfulRefreshAt) {
+    setText("ui-connection", `Connected - checked ${Math.max(0, Math.floor((now - lastSuccessfulRefreshAt) / 1000))}s ago`);
+  } else {
+    setText("ui-connection", "Connecting...");
+  }
+}
+
 async function refresh() {
   if (refreshInFlight) return;
   refreshInFlight = true;
+  refreshStartedAt = Date.now();
   try {
     const now = Date.now();
     const loadAuxiliary = !firstRefreshDone || (now - lastAuxRefreshAt) >= 30000;
@@ -2800,9 +2911,12 @@ async function refresh() {
     renderSelfImprovementReviewPacket(selfImprovementCache.reviewPacket);
     renderAICorePanel(aiCoreCache.latest, aiCoreCache.reviews, aiCoreCache.preferences, aiCoreCache.promotion, aiCoreCache.researchQueue);
     lastRichStatus = { status: s, runtime: r, events: e, learning: l };
+    lastSuccessfulRefreshAt = Date.now();
+    updateUIConnection();
     console.debug("[Atlas UI] refresh complete", s.updated_at || "no-status-timestamp");
   } catch (err) {
     refreshFailureCount += 1;
+    setText("ui-connection", "Connection lost - retrying automatically");
     lastStatusSignature = "";
     lastSignalsSignature = "";
     lastLearningSignature = "";
@@ -2828,7 +2942,6 @@ function startPolling() {
     clearInterval(refreshTimer);
   }
   refreshTimer = setInterval(() => {
-    if (document.hidden) return;
     refresh().catch((err) => console.warn("[Atlas UI] polling recovery failed", err));
   }, REFRESH_INTERVAL_MS);
 }
@@ -2860,8 +2973,13 @@ document.getElementById("gemini-influence-toggle").addEventListener("click", asy
   }
 });
 
+setInterval(updateUIConnection, 1000);
 startPolling();
 refresh();
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refresh();
+});
+window.addEventListener("focus", () => refresh());
 startOperatorPolling();
 refreshOperatorPanels();
 bindCommandDeckActions();

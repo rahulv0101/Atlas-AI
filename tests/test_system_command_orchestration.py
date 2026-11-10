@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import threading
 from pathlib import Path
 
@@ -301,7 +303,8 @@ def test_wake_listener_clears_startup_in_progress_after_async_completion(monkeyp
     assert orchestration.get("startup_finished_at")
 
 
-def test_wake_listener_recovers_stale_startup_in_progress_before_dispatch(monkeypatch, tmp_path):
+@pytest.mark.parametrize("dispatch", ["", "running", "started_async"])
+def test_wake_listener_recovers_stale_startup_in_progress_before_dispatch(monkeypatch, tmp_path, dispatch):
     from atlas_ai import atlas_wake_listener as listener
     from atlas_ai.memory.knowledge_store import KnowledgeStore
 
@@ -322,6 +325,7 @@ def test_wake_listener_recovers_stale_startup_in_progress_before_dispatch(monkey
 
     def _seed(flags: dict) -> dict:
         payload = dict(flags or {})
+        payload["voice_listener_orchestration"] = {"launch_dispatch_state": dispatch}
         payload["startup_orchestration"] = {
             "startup_in_progress": True,
             "startup_started_at": "2000-01-01T00:00:00+00:00",

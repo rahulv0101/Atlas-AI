@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atlas AI Command Deck</title>
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=20261109-8" />
 </head>
-<body>
+<body class="command-view">
+  <a class="skip-link" href="#ask-atlas-card">Skip to Ask Atlas</a>
   <div id="window-bar" class="window-bar">
     <div class="window-title">Atlas AI Command Deck</div>
     <div class="window-controls">
-      <button id="win-min" class="win-btn">_</button>
-      <button id="win-restore" class="win-btn">[]</button>
-      <button id="win-close" class="win-btn close">X</button>
+      <button id="win-min" class="win-btn" aria-label="Minimise window">_</button>
+      <button id="win-restore" class="win-btn" aria-label="Restore window">[]</button>
+      <button id="win-close" class="win-btn close" aria-label="Close window">X</button>
     </div>
   </div>
 
@@ -50,52 +51,53 @@
       <div class="header-right">
         <div class="pill" id="system-status">BOOTING</div>
         <div class="pill muted-pill" id="gemini-status">GEMINI: CHECKING</div>
-        <button id="mode-toggle" class="mode-btn">Switch to LIVE</button>
+        <details class="trading-settings"><summary>Trading settings</summary><div class="settings-content"><p>These controls affect trading behaviour.</p>
+        <button id="mode-toggle" class="mode-btn" title="Switch between paper simulation and guarded demo broker trading">Switch to DEMO TRADING</button>
         <button id="gemini-influence-toggle" class="mode-btn">Gemini Influence: OFF</button>
+        </div></details>
       </div>
     </header>
 
-    <section class="command-strip" aria-label="Operator command summary">
-      <article id="cmd-readiness-card" class="command-tile command-readiness">
-        <span>Execution Readiness</span>
-        <strong id="cmd-readiness">Checking</strong>
-        <small id="cmd-readiness-detail">Waiting for runtime state</small>
-      </article>
-      <article class="command-tile">
-        <span>Automation</span>
-        <strong id="cmd-automation">-</strong>
-        <small id="cmd-automation-detail">-</small>
-      </article>
-      <article class="command-tile">
-        <span>Session</span>
-        <strong id="cmd-session">-</strong>
-        <small id="cmd-session-detail">-</small>
-      </article>
-      <article class="command-tile command-wide">
-        <span>Primary Blocker</span>
-        <strong id="cmd-blocker">-</strong>
-        <small id="cmd-blocker-detail">-</small>
-      </article>
-      <article class="command-tile">
-        <span>Next Action</span>
-        <strong id="cmd-next-action">Observe</strong>
-        <small id="cmd-next-detail">-</small>
-      </article>
-    </section>
-
     <section class="command-actions-bar" aria-label="Command deck actions">
       <div class="view-switch" role="group" aria-label="Dashboard view">
-        <button id="view-command" type="button" class="mode-btn view-btn active">Command View</button>
-        <button id="view-diagnostics" type="button" class="mode-btn view-btn">Diagnostics View</button>
+        <button id="view-command" type="button" class="mode-btn view-btn active">Overview</button>
+        <button id="view-diagnostics" type="button" class="mode-btn view-btn">Diagnostics</button>
       </div>
       <div class="primary-command-actions">
         <button id="cmd-resume-automation" type="button" class="mode-btn">Resume Automation</button>
         <button id="cmd-pause-automation" type="button" class="mode-btn">Pause Automation</button>
-        <button id="cmd-why-blocked" type="button" class="mode-btn">Why Blocked?</button>
-        <button id="cmd-what-next" type="button" class="mode-btn">What Next?</button>
+        <button id="cmd-why-blocked" type="button" class="mode-btn">Explain this decision</button>
+        <button id="cmd-what-next" type="button" class="mode-btn">What happens next?</button>
       </div>
       <span id="cmd-action-status" class="muted">Command deck ready.</span>
     </section>
+
+    <p class="overview-intro">Your trading overview <span id="overview-updated">Connecting to Atlas...</span> <span id="ui-connection" role="timer" aria-live="off">Connecting...</span> <button id="refresh-now" type="button" class="mode-btn">Refresh now</button> <a href="#ask-atlas-card">Ask a question &darr;</a></p>
+    <section class="command-strip" aria-label="Operator command summary">
+      <article id="cmd-readiness-card" class="command-tile command-readiness">
+        <span>Trade readiness</span>
+        <strong id="cmd-readiness">Checking</strong>
+        <small id="cmd-readiness-detail">Waiting for runtime state</small>
+      </article>
+      <article class="command-tile command-reason">
+        <span id="cmd-blocker-label">Why Atlas is waiting</span>
+        <strong id="cmd-blocker">-</strong>
+        <small id="cmd-blocker-detail">-</small>
+      </article>
+      <article class="command-tile command-goal">
+        <span>Daily demo goal</span>
+        <strong id="cmd-goal-value">Checking</strong>
+        <div id="cmd-goal-track" class="goal-track" role="progressbar" aria-label="Daily demo goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="cmd-goal-fill"></span></div>
+        <small id="cmd-goal-detail">Waiting for today's balance</small>
+      </article>
+      <article class="command-tile command-evidence">
+        <span>Performance evidence</span>
+        <strong id="cmd-evidence-count">Checking</strong>
+        <small id="cmd-evidence-detail">Waiting for broker records</small>
+      </article>
+    </section>
+
+
 
     <section class="readiness-lanes" aria-label="Execution readiness lanes">
       <div id="lane-market" class="readiness-lane"><span>Market</span><strong>-</strong><small>-</small></div>
@@ -126,7 +128,7 @@
       <div class="stat"><span>Symbol</span><strong id="stat-symbol">XAUUSD</strong></div>
       <div class="stat"><span>Timeframe</span><strong id="stat-timeframe">M15</strong></div>
       <div class="stat"><span>Mode</span><strong id="stat-mode">PAPER</strong></div>
-      <div class="stat"><span>Action</span><strong id="stat-action">-</strong></div>
+      <div class="stat"><span>Entry status</span><strong id="stat-action">-</strong></div>
       <div class="stat"><span>Confidence</span><strong id="stat-confidence">-</strong></div>
       <div class="stat"><span>Freshness</span><strong id="stat-freshness" class="freshness-badge freshness-unknown">Unknown</strong></div>
       <div class="stat"><span>Safety Attention</span><strong id="stat-attention">CLEAR</strong></div>
@@ -136,13 +138,14 @@
       <article class="card top-card top-card-live">
         <h2>Live Decision</h2>
         <p id="decision">Waiting for data...</p>
+        <details class="decision-technical"><summary>Technical details</summary><p id="decision-technical">Waiting for data...</p></details>
         <p id="gemini-note" class="muted">Gemini note pending.</p>
         <p id="last-updated" class="muted">Last update: -</p>
         <p id="health-summary" class="muted">Health: -</p>
       </article>
 
-      <article class="card top-card">
-        <h2>Risk</h2>
+      <article class="card top-card account-card">
+        <h2>Account & risk</h2>
         <ul>
           <li>Equity: <span id="equity">-</span></li>
           <li>Balance: <span id="balance">-</span></li>
@@ -151,20 +154,21 @@
         </ul>
       </article>
 
-      <article class="card top-card">
+      <article class="card top-card diagnostics-panel">
         <h2>Signals</h2>
         <div id="signals" class="signals"></div>
       </article>
 
-      <article class="card top-card">
-        <h2>Setup Hunter</h2>
+      <article class="card top-card setup-search-card">
+        <h2>Setup search</h2>
         <ul>
           <li>State: <span id="hunter-state">-</span></li>
           <li>Closest: <span id="hunter-closest">-</span></li>
-          <li>Handoff: <span id="hunter-handoff">-</span></li>
+          <li>Entry review: <span id="hunter-handoff">-</span></li>
           <li>Candidates: <span id="hunter-count">-</span></li>
         </ul>
         <p id="hunter-next" class="muted">Scanning for forming setups.</p>
+          <p id="strategy-research-summary" class="muted">Strategy research is being checked.</p>
       </article>
 
       <article class="card top-card top-card-chart">
@@ -172,7 +176,7 @@
         <canvas id="gold-chart" width="560" height="220"></canvas>
       </article>
 
-      <article class="card top-card">
+      <article class="card top-card diagnostics-panel">
         <h2>Visual Chart Read</h2>
         <ul>
           <li>Status: <span id="visual-status">-</span></li>
@@ -184,7 +188,7 @@
         <p id="visual-reason" class="muted">Waiting for visual chart evidence.</p>
       </article>
 
-      <article class="card top-card">
+      <article class="card top-card diagnostics-panel">
         <h2>Learning Critic</h2>
         <ul>
           <li>Status: <span id="critic-status">-</span></li>
@@ -194,7 +198,7 @@
         <p id="critic-next-action" class="muted">Waiting for lesson memory.</p>
       </article>
 
-      <article class="card top-card">
+      <article class="card top-card diagnostics-panel">
         <h2>Learning Loop</h2>
         <ul>
           <li>Status: <span id="loop-status">-</span></li>
@@ -205,7 +209,7 @@
         <p id="loop-refresh" class="muted">Waiting for learning loop status.</p>
       </article>
 
-      <article class="card top-card learning-lanes-card">
+      <article class="card top-card learning-lanes-card diagnostics-panel">
         <h2>Learning Lanes</h2>
         <div id="learning-lanes-grid" class="learning-lanes-grid">
           <div class="learning-lane lane-wait"><span>Observe</span><strong>-</strong><small>Waiting</small></div>
@@ -218,7 +222,7 @@
         <p id="learning-lanes-note" class="muted">Waiting for learning lane status.</p>
       </article>
 
-      <article class="card top-card">
+      <article class="card top-card diagnostics-panel">
         <h2>Recovery</h2>
         <ul>
           <li>Block: <span id="recovery-block">-</span></li>
@@ -228,19 +232,62 @@
         <p id="recovery-next" class="muted">Waiting for recovery status.</p>
       </article>
 
-      <article class="card top-card">
-        <h2>Safety Lock</h2>
+      <article class="card top-card safety-card">
+        <h2>Safety checks</h2>
         <ul>
           <li>Status: <span id="safety-lock-status">-</span></li>
           <li>Reason: <span id="safety-lock-reason">-</span></li>
           <li>WR / Streak: <span id="safety-lock-metrics">-</span></li>
         </ul>
+        <p id="intraday-exit-summary" class="muted">Intraday exit confirmation is being checked.</p>
+        <p id="lifecycle-proof-summary" class="muted">Autonomous trade verification is being checked.</p>
         <p id="safety-lock-next" class="muted">Waiting for safety-lock review.</p>
       </article>
     </section>
 
     <section class="grid">
-      <article class="card wide operator-dashboard">
+      <article id="ask-atlas-card" class="card wide ask-card">
+        <h2>Ask Atlas</h2>
+        <div class="ask-atlas-panel">
+          <p class="muted ask-atlas-intro">Ask a question about what Atlas sees, why it is waiting, or today's results.</p>
+          <form id="ask-atlas-form" class="ask-atlas-form">
+            <label for="ask-atlas-input">Your question</label>
+            <div class="question-suggestions" aria-label="Suggested questions"><button type="button" data-question="Why are you waiting right now?">Why are we waiting?</button><button type="button" data-question="How is today going?">Today's summary</button><button type="button" data-question="What needs to change before the next trade?">What needs to change?</button></div>
+            <textarea id="ask-atlas-input" rows="3" placeholder="For example: What needs to change before the next trade?"></textarea>
+            <div class="ask-atlas-actions">
+              <button id="ask-atlas-submit" type="submit" class="mode-btn">Ask Atlas</button>
+              <span id="ask-atlas-status" class="muted">Awaiting operator prompt.</span>
+            </div>
+          </form>
+          <div id="ask-atlas-response" class="ask-atlas-response">
+            <div class="ask-section">
+              <span class="decision-support-label ask-primary-label">Atlas Answer</span>
+              <p id="ask-atlas-result" class="ask-copy ask-primary-copy muted">Results will appear here.</p>
+            </div>
+            <div class="ask-section ask-secondary-section">
+              <span class="decision-support-label">Acknowledge</span>
+              <p id="ask-atlas-ack" class="ask-copy muted">No request sent yet.</p>
+            </div>
+            <div class="ask-section ask-secondary-section">
+              <span class="decision-support-label">Understanding</span>
+              <p id="ask-atlas-understanding" class="ask-copy muted">Atlas will restate the task before answering.</p>
+            </div>
+            <div class="ask-section ask-secondary-section">
+              <span class="decision-support-label">Data Sources</span>
+              <div id="ask-atlas-sources" class="chip-list"></div>
+            </div>
+            <div class="ask-section ask-secondary-section">
+              <span class="decision-support-label">Approval</span>
+              <p id="ask-atlas-approval" class="ask-copy muted">Approval guidance will appear here.</p>
+            </div>
+          </div>
+          <div class="ask-section">
+            <span class="decision-support-label">Recent Requests</span>
+            <div id="ask-atlas-history" class="detail-list"></div>
+          </div>
+        </div>
+      </article>
+      <article class="card wide operator-dashboard diagnostics-panel">
         <h2>Operator Dashboard</h2>
         <p class="muted operator-note">Facts first. Inference next. Recommendation last. No automatic trade execution or live parameter changes.</p>
         <div class="operator-layout">
@@ -769,47 +816,9 @@
         <div id="events" class="events"></div>
       </article>
 
-      <article class="card wide">
-        <h2>Ask Atlas</h2>
-        <div class="ask-atlas-panel">
-          <p class="muted ask-atlas-intro">Read-only operator assistant. Ask about state, blockers, charts, summaries, comparisons, or the next safe experiment.</p>
-          <form id="ask-atlas-form" class="ask-atlas-form">
-            <textarea id="ask-atlas-input" rows="3" placeholder="Ask Atlas: why are you not trading? summarize what happened so far. prepare the next offline experiment."></textarea>
-            <div class="ask-atlas-actions">
-              <button id="ask-atlas-submit" type="submit" class="mode-btn">Ask Atlas</button>
-              <span id="ask-atlas-status" class="muted">Awaiting operator prompt.</span>
-            </div>
-          </form>
-          <div id="ask-atlas-response" class="ask-atlas-response">
-            <div class="ask-section">
-              <span class="decision-support-label ask-primary-label">Atlas Answer</span>
-              <p id="ask-atlas-result" class="ask-copy ask-primary-copy muted">Results will appear here.</p>
-            </div>
-            <div class="ask-section ask-secondary-section">
-              <span class="decision-support-label">Acknowledge</span>
-              <p id="ask-atlas-ack" class="ask-copy muted">No request sent yet.</p>
-            </div>
-            <div class="ask-section ask-secondary-section">
-              <span class="decision-support-label">Understanding</span>
-              <p id="ask-atlas-understanding" class="ask-copy muted">Atlas will restate the task before answering.</p>
-            </div>
-            <div class="ask-section ask-secondary-section">
-              <span class="decision-support-label">Data Sources</span>
-              <div id="ask-atlas-sources" class="chip-list"></div>
-            </div>
-            <div class="ask-section ask-secondary-section">
-              <span class="decision-support-label">Approval</span>
-              <p id="ask-atlas-approval" class="ask-copy muted">Approval guidance will appear here.</p>
-            </div>
-          </div>
-          <div class="ask-section">
-            <span class="decision-support-label">Recent Requests</span>
-            <div id="ask-atlas-history" class="detail-list"></div>
-          </div>
-        </div>
-      </article>
 
-      <article class="card wide">
+
+      <article class="card wide diagnostics-panel">
         <h2>Learning Insights</h2>
         <p id="learning-summary" class="muted">Waiting for learning data...</p>
         <div class="decision-support">
@@ -839,6 +848,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js"></script>
+  <script src="/app.js?v=20261109-8"></script>
 </body>
 </html>

@@ -2,12 +2,56 @@ from __future__ import annotations
 
 import sys
 import types
-from datetime import datetime, timezone
+import json
+from datetime import datetime, timezone, timedelta
+import pytest
 
 from PIL import Image, ImageDraw
 
 from atlas_ai.vision import chart_vision
 from atlas_ai.vision.chart_vision import analyze_chart_visual_context, capture_desktop_screenshot, load_latest_visual_read, save_visual_read
+
+
+@pytest.mark.parametrize("timestamp,reason", [
+    (None, "missing_capture_timestamp"),
+    ("not-a-time", "invalid_capture_timestamp"),
+    ("2026-11-09T10:00:00", "invalid_capture_timestamp"),
+    ("2999-01-01T00:00:00+00:00", "future_capture_timestamp"),
+    ("2000-01-01T00:00:00+00:00", "capture_too_old"),
+])
+def test_visual_evidence_requires_valid_fresh_aware_time(tmp_path, timestamp, reason):
+    payload = {"symbol": "XAUUSD", "timeframe": "M1", "captured_at": timestamp}
+    (tmp_path / "latest_visual_read.json").write_text(json.dumps(payload), encoding="utf-8")
+    read = load_latest_visual_read(tmp_path, expected_symbol="XAUUSD", expected_timeframe="M1")
+    assert read["stale"] is True
+    assert reason in read["rejection_reasons"]
+
+
+@pytest.mark.parametrize("symbol,timeframe,reason", [
+    ("EURUSD", "M1", "symbol_mismatch"),
+    ("XAUUSD", "M15", "timeframe_mismatch"),
+    (None, "M1", "symbol_mismatch"),
+    ("XAUUSD", None, "timeframe_mismatch"),
+])
+def test_visual_evidence_must_match_trading_context(tmp_path, symbol, timeframe, reason):
+    payload = {"symbol": symbol, "timeframe": timeframe, "captured_at": datetime.now(timezone.utc).isoformat()}
+    (tmp_path / "latest_visual_read.json").write_text(json.dumps(payload), encoding="utf-8")
+    read = load_latest_visual_read(tmp_path, expected_symbol="XAUUSD", expected_timeframe="M1")
+    assert read["stale"] is True
+    assert reason in read["rejection_reasons"]
+
+
+def test_matching_visual_evidence_is_accepted_with_offset_timestamp(tmp_path):
+    payload = {"symbol": "XAUUSD", "timeframe": "M1", "captured_at": datetime.now(timezone(timedelta(hours=2))).isoformat()}
+    (tmp_path / "latest_visual_read.json").write_text(json.dumps(payload), encoding="utf-8")
+    read = load_latest_visual_read(tmp_path, expected_symbol="xauusd", expected_timeframe="m1")
+    assert read["stale"] is False
+    assert read["rejection_reasons"] == []
+
+
+def test_invalid_visual_document_root_is_rejected(tmp_path):
+    (tmp_path / "latest_visual_read.json").write_text("[]", encoding="utf-8")
+    assert load_latest_visual_read(tmp_path)["available"] is False
 
 
 def test_image_pixels_prefers_pillow_flattened_data_when_available() -> None:
@@ -145,14 +189,14 @@ def test_capture_marks_mt5_window_source_when_found(tmp_path, monkeypatch) -> No
 
 def test_terminal_window_score_rejects_browser_chat_titles() -> None:
     browser_title = "HFM Gold Signal Bot · XAU/USD - Claude"
-    terminal_title = "57399598 - HFMarketsSA-Demo2: Demo Account - Hedge - HF Markets SA (Pty) Ltd - [XAUUSD,M1]"
+    terminal_title = "11111111 - HFMarketsSA-Demo2: Demo Account - Hedge - HF Markets SA (Pty) Ltd - [XAUUSD,M1]"
 
     assert chart_vision._terminal_window_score(browser_title) == 0
     assert chart_vision._terminal_window_score(terminal_title) > chart_vision._terminal_window_score("HFM Gold Signal Bot · XAU/USD")
 
 
 def test_find_chart_window_restores_minimized_hfm_terminal(monkeypatch) -> None:
-    title = "57399598 - HFMarketsSA-Demo2: Demo Account - Hedge - HF Markets SA (Pty) Ltd - [XAUUSD,M1]"
+    title = "11111111 - HFMarketsSA-Demo2: Demo Account - Hedge - HF Markets SA (Pty) Ltd - [XAUUSD,M1]"
 
     class _User32:
         def __init__(self):

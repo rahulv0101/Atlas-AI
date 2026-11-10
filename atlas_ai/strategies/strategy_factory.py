@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+import math
 
 from atlas_ai.models import TradeSignal
 from atlas_ai.strategies.base import Strategy
@@ -22,7 +23,10 @@ class _EvolvedGoldStrategy(Strategy):
     name: str
     chromosome: StrategyChromosome
 
-    def __init__(self, chromosome: StrategyChromosome) -> None:
+    def __init__(self, chromosome: StrategyChromosome, point_size: float = 0.01) -> None:
+        if not math.isfinite(float(point_size)) or float(point_size) <= 0:
+            raise ValueError("positive_finite_point_size_required")
+        self.point_size = float(point_size)
         self.chromosome = chromosome
         self.name = f"evolved_{chromosome.uid[:6]}"
 
@@ -220,8 +224,8 @@ class _EvolvedGoldStrategy(Strategy):
         # Stop loss / take profit in points
         sl_mult = self._gene("exit_sl_atr_multiple", 1.6)
         tp_mult = self._gene("exit_tp_atr_multiple", 2.8)
-        sl_points = atr_last * sl_mult
-        tp_points = atr_last * tp_mult
+        sl_points = atr_last * sl_mult / self.point_size
+        tp_points = atr_last * tp_mult / self.point_size
 
         return TradeSignal(
             strategy=self.name,
@@ -236,6 +240,6 @@ class StrategyFactory:
     """Creates executable Strategy objects from StrategyChromosomes."""
 
     @staticmethod
-    def build(chromosome: StrategyChromosome) -> Strategy:
-        return _EvolvedGoldStrategy(chromosome)
+    def build(chromosome: StrategyChromosome, *, point_size: float = 0.01) -> Strategy:
+        return _EvolvedGoldStrategy(chromosome, point_size=point_size)
 

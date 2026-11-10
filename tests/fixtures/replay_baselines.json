@@ -82,7 +82,7 @@
     },
     "same_side_support": 2,
     "min_confidence_threshold": 0.25,
-    "volume": 0.32,
+    "volume": 0.01,
     "execution": {
       "success": true,
       "retcode": 10009,

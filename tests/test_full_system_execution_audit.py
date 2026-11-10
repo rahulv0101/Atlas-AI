@@ -16,6 +16,7 @@ from atlas_ai.risk.risk_manager import RiskManager, RiskSnapshot
 def transport(monkeypatch):
     settings = Settings(hfm_login=1, hfm_password="test", hfm_server="Demo")
     executor = TradeExecutor(settings)
+    monkeypatch.setattr(mt5, "account_info", lambda: SimpleNamespace(login=1, server="Demo", trade_mode=mt5.ACCOUNT_TRADE_MODE_DEMO))
     symbol = SimpleNamespace(point=.01, digits=2, filling_mode=0, volume_step=.01, volume_min=.01, volume_max=100)
     monkeypatch.setattr(mt5, "symbol_info", lambda *args: symbol)
     monkeypatch.setattr(mt5, "symbol_info_tick", lambda *args: SimpleNamespace(ask=3000.2, bid=3000.0))

@@ -56,8 +56,13 @@ def _configured_pipeline(tmp_path):
     return trader, store, gate
 
 
-def test_injected_valid_candidate_reaches_real_gate_and_simulated_broker(tmp_path):
+@pytest.mark.parametrize("daily_target", [0.0, 1000.0])
+@pytest.mark.parametrize("daily_progress", [0.0, 1000.0])
+def test_injected_valid_candidate_reaches_real_gate_and_simulated_broker(tmp_path, daily_target, daily_progress):
     trader, store, gate = _configured_pipeline(tmp_path)
+    trader.settings.daily_profit_target_zar = daily_target
+    snapshot = default_replay_scenarios()[2].risk_snapshot
+    trader._risk_snapshot = lambda *args, **kwargs: replace(snapshot, equity=10000.0 + daily_progress, balance=10000.0 + daily_progress)
     with patch("atlas_ai.trader.mt5.account_info", return_value=SimpleNamespace(login=123456)), \
          patch("atlas_ai.trader.mt5.symbol_info", return_value=SimpleNamespace(trade_tick_value=1.0)), \
          patch("atlas_ai.trader.mt5.order_send", side_effect=AssertionError("Real broker submission forbidden")), \
@@ -67,15 +72,30 @@ def test_injected_valid_candidate_reaches_real_gate_and_simulated_broker(tmp_pat
     assert status["timing_discipline"]["passed"] is True
     assert status["execution"]["success"] is True
     assert status["guarded_demo_auto_approval"]["approved"] is True
+    assert status["daily_profit_objective"]["target_zar"] == daily_target
+    assert status["daily_profit_objective"]["guaranteed"] is False
+    assert status["daily_profit_objective"]["force_trades"] is False
+    reached = daily_target > 0 and daily_progress >= daily_target
+    assert status["daily_profit_objective"]["reached"] is reached
+    assert bool(status.get("profit_protection_mode", {}).get("active")) is reached
+    unprotected, _ = AtlasTrader._volume_multiplier(trader, {}, {})
+    protected, _ = AtlasTrader._volume_multiplier(trader, {"protect_gains_mode": True}, {})
+    assert protected < unprotected
+    sample = next(row["meta"] for row in reversed(store.events) if row["type"] == "decision_sample")
+    assert sample["request_origin"] == "trader_guarded"
+    assert sample["execution_mode"] == "demo"
+    assert "broker_order_id" in sample
     assert any(row["event"] == "order_submit_attempt" for row in gate.recent_audit(limit=100))
 
 
 @pytest.mark.parametrize("blocker", [None, "risk", "timing", "htf"])
 def test_advisory_only_gemini_cannot_veto_or_adjust_guarded_candidate(tmp_path, blocker):
     trader, store, gate = _configured_pipeline(tmp_path)
+    baseline, _, _ = _configured_pipeline(tmp_path / "baseline")
     # A persisted explicit operator choice takes precedence over an enabled
     # environment default, and the advisor remains available for commentary.
     trader.settings.gemini_influence_enabled = True
+    trader.settings.daily_profit_target_zar = 1000.0
     store.save_runtime_flags({**store.load_runtime_flags(), "gemini_influence_enabled": False})
     trader.gemini.enabled = True
     trader.gemini.health_summary = lambda: {"enabled": True, "providers": []}
@@ -95,12 +115,15 @@ def test_advisory_only_gemini_cannot_veto_or_adjust_guarded_candidate(tmp_path, 
          patch("atlas_ai.trader.mt5.order_send", side_effect=AssertionError("Real broker submission forbidden")), \
          patch("atlas_ai.trader.evaluate_heartbeat_state", return_value={"is_stale": False}):
         status = trader.step()
+        baseline_status = baseline.step() if blocker is None else None
     influence.assert_not_called()
     assert status["gemini_influence_enabled"] is False
     assert "gemini_influence" not in status
     if blocker is None:
         assert status["execution"]["success"] is True
-        assert status["chosen"]["confidence"] == pytest.approx(.94)
+        # Compare against the same deterministic pipeline without Gemini.
+        # Other valid adjustments can vary with the market session/date.
+        assert status["chosen"]["confidence"] == pytest.approx(baseline_status["chosen"]["confidence"])
         commentary.assert_called_once()
     else:
         assert status["action"] in {"hold", "blocked"}
@@ -108,7 +131,7 @@ def test_advisory_only_gemini_cannot_veto_or_adjust_guarded_candidate(tmp_path, 
         assert not any(row["event"] == "order_submit_attempt" for row in gate.recent_audit(limit=100))
 
 
-@pytest.mark.parametrize("blocker", [None, "risk", "timing", "kill_switch", "htf", "pilot_family"])
+@pytest.mark.parametrize("blocker", [None, "risk", "timing", "kill_switch", "htf", "pilot_family", "sizing"])
 def test_pipeline_through_production_adapter_and_executor_with_fake_mt5(tmp_path, monkeypatch, blocker):
     from atlas_ai.execution.mt5_broker_adapter import MT5BrokerAdapter
     from atlas_ai.execution.trade_executor import TradeExecutor
@@ -133,13 +156,16 @@ def test_pipeline_through_production_adapter_and_executor_with_fake_mt5(tmp_path
     elif blocker == "pilot_family":
         gate.configure_tiny_live_pilot(allowed_instrument="XAUUSD", allowed_setup_family="breakout", size_cap=.01, max_trades_per_day=8, daily_loss_cap=.6, max_consecutive_losses=8)
 
+    if blocker == "sizing":
+        trader.risk.lot_size = lambda *args, **kwargs: 0.0
+
     symbol = SimpleNamespace(trade_tick_value=1., point=.01, digits=2, trade_mode=4, visible=True, volume_min=.01, volume_max=100., volume_step=.01, trade_stops_level=10, filling_mode=1)
     sent = []
     def fake_send(request):
         sent.append(dict(request))
         return SimpleNamespace(retcode=mt5.TRADE_RETCODE_DONE, order=321, deal=654, comment="fake filled")
 
-    monkeypatch.setattr(mt5, "account_info", lambda: SimpleNamespace(login=123456, server="Demo", trade_mode=0, margin_free=10000., trade_allowed=True))
+    monkeypatch.setattr(mt5, "account_info", lambda: SimpleNamespace(login=123456, server="Demo", trade_mode=0, equity=10000., margin_free=10000., trade_allowed=True))
     monkeypatch.setattr(mt5, "symbol_info", lambda symbol_name: symbol)
     monkeypatch.setattr(mt5, "symbol_info_tick", lambda symbol_name: SimpleNamespace(ask=3320.20, bid=3320.00))
     monkeypatch.setattr(mt5, "terminal_info", lambda: SimpleNamespace(connected=True, trade_allowed=True))
@@ -147,6 +173,7 @@ def test_pipeline_through_production_adapter_and_executor_with_fake_mt5(tmp_path
     monkeypatch.setattr(mt5, "orders_get", lambda **kwargs: [])
     monkeypatch.setattr(mt5, "symbol_select", lambda *args: True)
     monkeypatch.setattr(mt5, "order_calc_margin", lambda *args: 10.)
+    monkeypatch.setattr(mt5, "order_calc_profit", lambda *args: -1.)
     monkeypatch.setattr(mt5, "order_check", lambda request: SimpleNamespace(retcode=0, comment="fake checked"))
     monkeypatch.setattr(mt5, "order_send", fake_send)
     monkeypatch.setattr("atlas_ai.trader.evaluate_heartbeat_state", lambda *args, **kwargs: {"is_stale": False})
@@ -163,3 +190,41 @@ def test_pipeline_through_production_adapter_and_executor_with_fake_mt5(tmp_path
     else:
         assert status.get("action") in {"blocked", "hold"}, status.get("message")
         assert not sent, status.get("message")
+
+
+@pytest.mark.parametrize("volume", [.001, .000001])
+def test_small_volume_keeps_precision_through_guarded_request(tmp_path, monkeypatch, volume):
+    trader, store, gate = _configured_pipeline(tmp_path)
+    trader.settings.daily_profit_target_zar = 0
+    trader.risk.lot_size = lambda *args, **kwargs: volume
+    trader._volume_multiplier = lambda *args: (1.0, "isolated sizing test")
+    trader._size_band_multiplier = lambda *args: (1.0, {})
+    monkeypatch.setattr("atlas_ai.trader.mt5.account_info", lambda: SimpleNamespace(login=123456))
+    monkeypatch.setattr("atlas_ai.trader.mt5.symbol_info", lambda _: SimpleNamespace(
+        trade_tick_value=1, point=.01, trade_tick_size=.01, volume_min=volume, volume_step=volume))
+    monkeypatch.setattr("atlas_ai.trader.evaluate_heartbeat_state", lambda *args, **kwargs: {"is_stale": False})
+    status = trader.step()
+    assert status["execution"]["success"] is True, status.get("message")
+    request = gate.get_request(status["guarded_demo_auto_approval"]["request_id"])
+    assert request["size"] == volume
+    assert any(row["event"] == "order_submit_attempt" for row in gate.recent_audit(limit=100))
+
+
+def test_large_account_proposal_respects_existing_auto_approval_cap(tmp_path, monkeypatch):
+    trader, store, gate = _configured_pipeline(tmp_path)
+    trader.settings.daily_profit_target_zar = 0
+    snapshot = default_replay_scenarios()[2].risk_snapshot
+    trader._risk_snapshot = lambda *args, **kwargs: replace(snapshot, equity=120000, balance=120000)
+    trader.risk.lot_size = lambda *args, **kwargs: .1
+    trader._volume_multiplier = lambda *args: (1.0, "isolated sizing test")
+    trader._size_band_multiplier = lambda *args: (1.0, {})
+    monkeypatch.setattr("atlas_ai.trader.mt5.account_info", lambda: SimpleNamespace(login=123456))
+    monkeypatch.setattr("atlas_ai.trader.mt5.symbol_info", lambda _: SimpleNamespace(
+        trade_tick_value=1, point=.01, trade_tick_size=.01, volume_min=.01, volume_step=.01))
+    monkeypatch.setattr("atlas_ai.trader.evaluate_heartbeat_state", lambda *args, **kwargs: {"is_stale": False})
+    status = trader.step()
+    assert status["execution"]["success"] is True, status.get("message")
+    request = gate.get_request(status["guarded_demo_auto_approval"]["request_id"])
+    assert request["size"] == trader._GUARDED_DEMO_MAX_LOT == .01
+    assert status["guarded_demo_size_cap"]["applied"] is True
+    assert status["guarded_demo_size_cap"]["proposed_lot"] == .1

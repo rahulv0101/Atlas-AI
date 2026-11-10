@@ -2235,6 +2235,8 @@ def test_visual_evidence_review_exposes_proxy_only_capture_degradation(tmp_path,
     audit = app.test_client().get("/api/system-audit").get_json()
 
     assert status["visual_evidence_review"]["status"] == "proxy_only"
+    assert status["timing_discipline"]["hard_block"] is True
+    assert status["timing_discipline"]["missing"] == ["tradable_location"]
     assert status["visual_evidence_review"]["degraded"] is True
     assert status["execution_readiness"]["state"]["visual_capture_degraded"] is True
     assert status["execution_readiness"]["state"]["visual_capture_error"] == "mt5_or_hfm_window_not_found"

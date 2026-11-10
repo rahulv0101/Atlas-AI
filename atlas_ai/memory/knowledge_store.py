@@ -14,6 +14,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Callable
 
+from atlas_ai.atomic_files import replace_with_retry
 from atlas_ai.memory.jsonl_tail import read_jsonl_tail
 from atlas_ai.learning.evidence_provenance import exclude_manual_tests
 
@@ -712,7 +713,7 @@ class KnowledgeStore:
                         shutil.copyfileobj(spool, fh, length=64 * 1024)
                         fh.flush()
                         os.fsync(fh.fileno())
-                    os.replace(tmp, self.events_file)
+                    replace_with_retry(tmp, self.events_file)
                 finally:
                     with contextlib.suppress(Exception):
                         tmp.unlink(missing_ok=True)
