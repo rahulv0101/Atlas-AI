@@ -20,6 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from atlas_ai.config.settings import load_settings
 from atlas_ai.data.market_data import MarketDataFeed
 from atlas_ai.learning.trade_labeling import _simulate_trade_path
+from atlas_ai.learning.evidence_provenance import is_manual_broker_test
 from atlas_ai.models import TradeSignal
 
 
@@ -77,7 +78,7 @@ def _context_value(meta: dict[str, Any], key: str) -> str:
     return str(context.get(key) or chart.get(key) or "")
 
 
-def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate | None:
+def _extract_candidate(payload: dict[str, Any], source_file: Path, *, include_other_blockers: bool = False) -> Candidate | None:
     meta = _as_dict(payload.get("meta"))
     message = str(payload.get("message") or meta.get("message") or "")
     timing = _as_dict(meta.get("timing_discipline"))
@@ -86,6 +87,8 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
     trace = _as_dict(meta.get("decision_trace"))
     if not chosen:
         chosen = _as_dict(trace.get("selected_candidate"))
+    if any(is_manual_broker_test(row) for row in (payload, meta, chosen, _as_dict(meta.get("execution")))):
+        return None
 
     side = str(chosen.get("side") or meta.get("action") or "").lower()
     if side not in {"buy", "sell"}:
@@ -120,7 +123,9 @@ def _extract_candidate(payload: dict[str, Any], source_file: Path) -> Candidate 
     if clock.get("timestamp_basis") != "UTC":
         return None
 
-    if timing_block:
+    if include_other_blockers and message_lower.startswith("higher-timeframe alignment required"):
+        group = "higher_timeframe_blocked"
+    elif timing_block:
         group = "timing_blocked"
     elif executed:
         group = "timing_passed_executed"
@@ -248,7 +253,8 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "by_strategy": {
             strategy: {
                 "count": len(strategy_rows),
-                "win_rate": _summarize(strategy_rows)["win_rate"] if len(strategy_rows) != len(rows) else None,
+                "win_rate": (sum(float(row["r_multiple"]) > 0 for row in strategy_rows)
+                    / max(1, sum(float(row["r_multiple"]) != 0 for row in strategy_rows))),
                 "average_r": sum(float(row["r_multiple"]) for row in strategy_rows) / len(strategy_rows),
                 "exit_reasons": dict(Counter(str(row["exit_type"]) for row in strategy_rows)),
             }
@@ -266,6 +272,10 @@ def _simulate(candidates: list[Candidate], df: pd.DataFrame, settings: Any) -> t
         ts = _parse_dt(candidate.timestamp)
         idx = _nearest_signal_index(df, ts) if ts else None
         if idx is None or idx + int(getattr(settings, "backtest_max_hold_bars", 12)) >= len(df):
+            skipped += 1
+            continue
+        horizon = pd.DatetimeIndex(pd.to_datetime(df.iloc[idx:idx + int(settings.backtest_max_hold_bars) + 1]["time"], utc=True))
+        if any((horizon[1:] - horizon[:-1]) != pd.Timedelta(minutes=1)):
             skipped += 1
             continue
         signal = TradeSignal(
