@@ -2483,6 +2483,30 @@ function renderShadowAdvice(view) {
   );
 }
 
+function renderTradeConfidence(status) {
+  const chosen = (status || {}).chosen || {};
+  const el = document.getElementById("stat-confidence");
+  if (!el) return;
+  const hasSignal = isActionableTrade(chosen);
+  const conviction = (status || {}).atlas_conviction || {};
+  const scored = Number.isFinite(Number(conviction.score)) && conviction.score != null;
+  setText("stat-confidence-label", scored ? "Trade conviction" : "Candidate score");
+  if (!hasSignal) {
+    el.textContent = "No buy/sell signal";
+    el.title = "No directional trade was selected. A flat-state score is not trade confidence or a win probability.";
+    return;
+  }
+  const threshold = Number((status || {}).min_confidence_threshold);
+  const value = Number(chosen.confidence);
+  el.textContent = Number.isFinite(value) ? `${Math.round(value * 100)}/100` : "Unavailable";
+  if (scored && Number.isFinite(threshold) && threshold > 0) {
+    el.textContent += ` · min ${Math.round(threshold * 100)}`;
+  }
+  el.title = scored
+    ? "Combined Atlas conviction after applied adjustments. This score is not a measured win probability. Direction, timing, risk and execution gates must also pass."
+    : "Candidate score before combined conviction is available. Earlier entry checks may reject this candidate; it has not cleared all gates.";
+}
+
 function drawGoldChart() {
   if (!chartCtx || !chart) return;
 
@@ -2611,20 +2635,7 @@ function renderStatus(s, runtime) {
     }
     document.getElementById("stat-action").textContent = readinessLabel;
     const chosen = view.chosen || {};
-    const bestActionable = view.best_actionable_candidate || ((view.contextual_ranking || {}).best_actionable) || {};
-    const confidenceSource = isActionableTrade(chosen) ? chosen : (isActionableTrade(bestActionable) ? bestActionable : chosen);
-    const chosenConfidence = confidenceSource.confidence;
-    const threshold = Number(view.min_confidence_threshold);
-    const confidenceText = Number.isFinite(threshold) && threshold > 0
-      ? `${fmt(chosenConfidence, 3)} / ${fmt(threshold, 3)}`
-      : fmt(chosenConfidence, 3);
-    const confidenceEl = document.getElementById("stat-confidence");
-    confidenceEl.textContent = confidenceText;
-    confidenceEl.title = isActionableTrade(chosen)
-      ? "Chosen trade confidence / minimum threshold"
-      : (isActionableTrade(bestActionable)
-        ? "Best actionable candidate confidence / minimum threshold"
-        : "Current chosen confidence / minimum threshold");
+    renderTradeConfidence(view);
     const freshnessEl = document.getElementById("stat-freshness");
     if (freshnessEl) {
       const freshness = getFreshnessRuntime(view);

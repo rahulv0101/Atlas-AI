@@ -1127,6 +1127,8 @@ def test_signal_selection_review_explains_raw_candidate_not_selected(tmp_path, m
             "action": "hold",
             "message": "No directional trade signal selected.",
             "chosen": {"side": "flat", "confidence": 0.45, "strategy": "momentum_continuation"},
+            "atlas_conviction": {"score": 45, "basis": "atlas_conviction"},
+            "confidence_diagnostics": {"chosen_side": "flat", "confidence_gap": 0.01},
             "thresholds": {"confidence": 0.44},
             "signals": [{"strategy": "ema_crossover", "side": "sell", "confidence": 0.78}],
             "system_health": {"broker_connectivity_status": {"connected": True, "symbol_selected": True}},
@@ -1149,6 +1151,8 @@ def test_signal_selection_review_explains_raw_candidate_not_selected(tmp_path, m
     compact = app.test_client().get("/api/status/compact").get_json()
     review = app.test_client().get("/api/signal-selection-review").get_json()
 
+    assert compact["atlas_conviction"]["score"] == 45
+    assert compact["confidence_diagnostics"]["chosen_side"] == "flat"
     assert compact["signal_selection_review"]["status"] == "raw_candidate_not_selected"
     assert review["status"] == "raw_candidate_not_selected"
     assert review["selected_signal"]["side"] == "flat"

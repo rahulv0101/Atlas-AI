@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atlas AI Command Deck</title>
-  <link rel="stylesheet" href="/style.css?v=20261110-4" />
+  <link rel="stylesheet" href="/style.css?v=20261110-5" />
 </head>
 <body class="command-view">
   <a class="skip-link" href="#ask-atlas-card">Skip to Ask Atlas</a>
@@ -129,7 +129,7 @@
       <div class="stat"><span>Timeframe</span><strong id="stat-timeframe">M15</strong></div>
       <div class="stat"><span>Mode</span><strong id="stat-mode">PAPER</strong></div>
       <div class="stat"><span>Entry status</span><strong id="stat-action">-</strong></div>
-      <div class="stat"><span>Confidence</span><strong id="stat-confidence">-</strong></div>
+      <div class="stat"><span id="stat-confidence-label">Candidate score</span><strong id="stat-confidence">-</strong></div>
       <div class="stat"><span>Freshness</span><strong id="stat-freshness" class="freshness-badge freshness-unknown">Unknown</strong></div>
       <div class="stat"><span>Safety Attention</span><strong id="stat-attention">CLEAR</strong></div>
     </section>
@@ -849,6 +849,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js?v=20261110-4"></script>
+  <script src="/app.js?v=20261110-5"></script>
 </body>
 </html>

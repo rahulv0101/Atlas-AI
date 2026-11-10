@@ -1,0 +1,15 @@
+# Confidence audit
+
+The last 800 journal entries examined covered 9 November 22:37:29 UTC to 10 November 08:14:50 UTC. They included 366 records with a selected side: 148 flat, 147 sell and 71 buy. These are journal records, not independent trades or an exhaustive historical sample. Candidate scores ranged from approximately 0.050 to 0.890. The directional records therefore disprove the claim that the displayed score is always low. Common directional rejections were entry timing (mixed/weak momentum, mid-range location, missing chart confirmation or fresh retest) and higher-timeframe disagreement. This does not prove that rejecting those opportunities was profitable or optimal.
+
+For example, gold_breakout_retest scored 0.89 at 02:41:55 UTC on 10 November but was rejected for a missing fresh entry/retest despite strong momentum. At 05:53:06 UTC an evolved-rule candidate also scored 0.89, but momentum was mixed and visual tradable-location confirmation was missing. High strength therefore appeared without every required entry condition being satisfied.
+
+Code inspection confirmed three different score stages: individual strategy strength; chosen candidate score before combined scoring; and Atlas conviction, which replaces chosen confidence later in the trader. Early higher-timeframe rejection can happen before conviction is calculated. Conviction is capped at 45 for a flat side and 59 for a directional side with hard blockers. Labels classify below 65 as low and 85 or above as high. Those labels differ from the active minimum-confidence gate; passing that gate is insufficient for execution.
+
+The UI previously used one Confidence field for these stages and could substitute an unselected alternative candidate while displaying the chosen trade's threshold. It now shows No buy/sell signal for a flat selection, Candidate score before conviction exists, and Trade conviction with the applicable minimum after combined scoring. Tooltips explain that these scores are not measured win probabilities and other gates remain required.
+
+The compact API now preserves conviction provenance and confidence diagnostics. Compact journal records retain the original strategy seed, conviction adjustments, confidence gap and minimum threshold, allowing subsequent audits to attribute score changes instead of guessing from the final number. Historical records that omitted this evidence cannot be reconstructed fully.
+
+Validation: all 112 targeted scoring, strategy, freshness, reporting and UI cases passed in the final combined run. All 91 UI-server tests passed. Strategy logic, score caps, thresholds, risk and execution rules were not changed.
+
+Deployment completed through the normal launcher after a matching idle demo preflight. Startup returned SUCCESS with a native desktop and no fallback. Live API verification retained the original zero seed, flat chosen side, conviction 45, minimum 0.44 and the flat-signal diagnostic. Desktop inspection confirmed No buy/sell signal, London open, broker connected and UI connected. No diagnostic trade was submitted.

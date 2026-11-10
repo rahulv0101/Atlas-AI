@@ -838,6 +838,8 @@ def _build_compact_status_payload(
         "learning_loop": _build_learning_loop_status(store),
         "visual_chart_read": dict(visual_chart_read or {}),
         "chosen": chosen,
+        "atlas_conviction": dict(status_payload.get("atlas_conviction", {}) or {}),
+        "confidence_diagnostics": dict(status_payload.get("confidence_diagnostics", {}) or {}),
         "best_actionable_candidate": dict(status_payload.get("best_actionable_candidate", {}) or {}),
         "min_confidence_threshold": float(status_payload.get("min_confidence_threshold", dict(status_payload.get("thresholds", {}) or {}).get("confidence", 0.0)) or 0.0),
         "thresholds": dict(status_payload.get("thresholds", {}) or {}),
