@@ -23,6 +23,7 @@ from atlas_ai.strategies.dna import StrategyChromosome
 from atlas_ai.strategies.gold_validator import GoldValidator
 from atlas_ai.strategies.strategy_factory import StrategyFactory
 from atlas_ai.strategies.strategy_inventor import StrategyInventor
+from atlas_ai.strategies.research_protocol import freeze, source_hashes, validate, frozen_settings, gene_hash
 
 
 def summary(rows):
@@ -97,6 +98,7 @@ class StrategyResearchWorker:
         self.path = Path(store.base) / "strategy_research" / "state.json"
         self.lock = AutomationStateStore(self.path)
         self.thread = None
+        self._loaded_source_hashes = source_hashes()
 
     def _load(self):
         if not self.path.exists():
@@ -124,7 +126,16 @@ class StrategyResearchWorker:
         with self.lock._locked():
             state = self._load()
             asof = frame["time"].iloc[-1].isoformat()
+            current_hashes = source_hashes()
+            if current_hashes != self._loaded_source_hashes:
+                raise RuntimeError("research_source_changed_restart_required")
             for batch in state["batches"][-4:]:
+                integrity = validate(batch, self.settings, current_hashes)
+                batch["forward_integrity"] = integrity
+                if integrity != "verified_frozen_protocol":
+                    # Preserve prior observations; never backfill a missing protocol.
+                    continue
+                experiment_settings = frozen_settings(self.settings, batch)
                 for candidate in batch["candidates"]:
                     cursor = pd.Timestamp(candidate["next_forward_at"])
                     indices = frame.index[frame["time"] >= cursor]
@@ -135,14 +146,16 @@ class StrategyResearchWorker:
                         candidate["forward_gap"] = True
                         start = 120
                     outcomes, next_idx = evaluate(StrategyChromosome.from_dict(candidate["chromosome"]), frame,
-                                                   self.settings, start=start, stop_event=self.stop_event)
+                                                   experiment_settings, start=start, stop_event=self.stop_event)
                     known = {r["signal_at"] for r in candidate["forward"]}
                     candidate["forward"].extend(r for r in outcomes if r["signal_at"] not in known)
                     candidate["next_forward_at"] = frame.iloc[min(next_idx, len(frame) - 1)]["time"].isoformat()
                     candidate["forward_summary"] = summary(candidate["forward"])
             last_created = state.get("last_created_at")
-            due = not last_created or (now - datetime.fromisoformat(last_created)).total_seconds() >= self.interval_seconds
+            due = (not last_created or (now - datetime.fromisoformat(last_created)).total_seconds() >= self.interval_seconds
+                   or bool(state["batches"] and state["batches"][-1].get("forward_integrity") != "verified_frozen_protocol"))
             if due and (not state["batches"] or state["batches"][-1]["asof"] != asof):
+                protocol = freeze(self.settings)
                 split = int(len(frame) * .7)
                 train = frame.iloc[:split].reset_index(drop=True)
                 holdout = frame.iloc[split:].reset_index(drop=True)
@@ -186,6 +199,10 @@ class StrategyResearchWorker:
                                           "distance_conversion": "factory_broker_points_v1", "training_start": str(train["time"].iloc[0]),
                                           "training_end": str(train["time"].iloc[-1]), "holdout_start": str(holdout["time"].iloc[0]),
                                           "holdout_end": str(holdout["time"].iloc[-1]), "context": context, "candidates": candidates})
+                state["batches"][-1]["protocol"] = protocol
+                state["batches"][-1]["forward_integrity"] = "verified_frozen_protocol"
+                for candidate in candidates:
+                    candidate["frozen_gene_sha256"] = gene_hash(candidate["chromosome"])
                 state["last_created_at"] = now.isoformat()
                 # Keep only four active batches; archive completed research without
                 # allowing old replay history to grow the live worker indefinitely.
@@ -198,6 +215,8 @@ class StrategyResearchWorker:
                          limitations=["Recorded spread plus hypothetical slippage; commission model not supplied.",
                                       "Historical holdout is not forward trading; repeated research involves multiple comparisons.",
                                       "No promotion into live/demo strategy selection; no arbitrary generated code."])
+            if source_hashes() != current_hashes:
+                raise RuntimeError("research_source_changed_during_evaluation")
             if not self.dry_run:
                 atomic_json(self.path, state)
                 latest = state["batches"][-1] if state["batches"] else {"candidates": []}
@@ -206,6 +225,12 @@ class StrategyResearchWorker:
                           "next_evolution_run_at": (datetime.fromisoformat(state["last_created_at"]) + timedelta(seconds=self.interval_seconds)).isoformat(),
                           "total_runs": state.get("total_batches", len(state["batches"])), "active_demo_count": 0, "active_shadow_count": len(latest["candidates"]),
                           "candidate_count": len(latest["candidates"]), "research_state_path": str(self.path),
+                          "latest_forward_integrity": latest.get("forward_integrity", "no_candidates"),
+                          "blocked_forward_batches": sum(b.get("forward_integrity") != "verified_frozen_protocol" for b in state["batches"]),
+                          "verified_protocol_forward_trades": sum(len(c["forward"]) for b in state["batches"]
+                              if b.get("forward_integrity") == "verified_frozen_protocol" for c in b["candidates"]),
+                          "unverified_protocol_forward_trades": sum(len(c["forward"]) for b in state["batches"]
+                              if b.get("forward_integrity") != "verified_frozen_protocol" for c in b["candidates"]),
                           "forward_trades": sum(len(c["forward"]) for b in state["batches"] for c in b["candidates"])}
                 atomic_json(Path(self.store.base) / "evolution_scheduler_state.json", report)
             return state
