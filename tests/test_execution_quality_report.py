@@ -20,6 +20,17 @@ def test_empty_evidence_is_not_a_zero_slippage_estimate():
     assert result["adverse_request_to_fill_bps"]["mean"] is None
 
 
+def test_measured_diagnostic_fills_never_become_natural_strategy_cost_evidence():
+    rows=[{"schema":"atlas_execution_cost_v1","source":source,"started_at":str(i),"order_id":str(i),"deal_id":str(i),
+        "filled":True,"diagnostic":True,"adverse_fill_difference_bps":value,"dispatch_ms":20}
+        for i,(source,value) in enumerate((("entry",.2),("intraday_close",-.1)))]
+    report=summarize(rows)
+    assert report["state"]=="diagnostic_only" and report["diagnostic_measured_fill_observations"]==2
+    assert report["diagnostic_adverse_request_to_fill_bps"]["mean"]==.05
+    assert report["measured_fill_observations"]==0 and report["adverse_request_to_fill_bps"]["mean"] is None
+    assert not report["cost_calibration_ready"] and not report["strategy_performance_proven"]
+
+
 def test_research_score_filter_is_fixed_and_does_not_rewrite_its_source_cache():
     cache={"bar":[{"side":"buy","confidence":.54},{"side":"sell","confidence":.55}]}
     filtered=filtered_cache(cache)

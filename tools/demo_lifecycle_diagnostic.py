@@ -139,7 +139,7 @@ def run(output,*,execute=False):
         if not execute:
             result["status"]="preview_passed_no_orders";return result
         gate=ExecutionGate(state_store_path=str(Path(settings.storage_dir)/"automation_state.json"))
-        adapter=MT5BrokerAdapter(executor);gate.set_broker_adapter(adapter)
+        adapter=MT5BrokerAdapter(executor,cost_evidence_role="diagnostic");gate.set_broker_adapter(adapter)
         if not controls_allow(gate,store):raise RuntimeError("operator_controls_block_diagnostic")
         session=gate._session_control._detect_session(datetime.now(timezone.utc))
         if not session.allowed or session.minutes_to_close<12:raise RuntimeError("active_session_with_exit_margin_required")

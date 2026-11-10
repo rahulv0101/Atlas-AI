@@ -1133,16 +1133,8 @@ class AtlasTrader:
             htf = self.feed.get_rates_for_timeframe(timeframe, bars=220)
         except Exception:
             return "unknown"
-        closes = [float(x) for x in htf.tail(80)["close"].tolist()]
-        if len(closes) < 25:
-            return "unknown"
-        fast = sum(closes[-10:]) / 10.0
-        slow = sum(closes[-30:]) / 30.0
-        if fast > slow * 1.0002:
-            return "buy"
-        if fast < slow * 0.9998:
-            return "sell"
-        return "flat"
+        from atlas_ai.data.timeframe_bias import bias_from_closes
+        return bias_from_closes(htf.tail(80)["close"].tolist())
 
     def _higher_tf_context(self) -> dict[str, Any]:
         if str(getattr(self.settings, "timeframe", "") or "").upper() == "M1":

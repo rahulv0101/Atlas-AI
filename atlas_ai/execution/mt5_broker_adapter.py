@@ -14,8 +14,11 @@ from atlas_ai.models import TradeSignal
 class MT5BrokerAdapter(BrokerAdapter):
     """Production BrokerAdapter that delegates to TradeExecutor for real MT5 execution."""
 
-    def __init__(self, executor: TradeExecutor) -> None:
+    def __init__(self, executor: TradeExecutor, *, cost_evidence_role: str = "runtime") -> None:
+        if cost_evidence_role not in {"runtime", "diagnostic"}:
+            raise ValueError("invalid_cost_evidence_role")
         self._executor = executor
+        self._cost_evidence_role = cost_evidence_role
 
     def submit_order(self, *, idempotency_key: str, request: dict[str, Any]) -> BrokerOrderResponse:
         """Translate ExecutionGate request into TradeExecutor call."""
@@ -137,7 +140,7 @@ class MT5BrokerAdapter(BrokerAdapter):
                 return response(False, "rejected", "account_changed_before_close")
             dispatched = True
             result = send_observed(mt5.order_send, request, self._executor.settings,
-                source="intraday_close", tick=tick)  # One close dispatch; never blind retry.
+                source="intraday_close", tick=tick, diagnostic=self._cost_evidence_role=="diagnostic")  # One close dispatch; never blind retry.
             if result is None:
                 return response(False, "unknown", "close_result_unknown")
             remaining = mt5.positions_get(ticket=ticket)

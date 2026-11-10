@@ -21,28 +21,34 @@ def distribution(values):
 
 
 def summarize(rows):
-    measured=[];diagnostics=0;unknown=0;seen=set()
+    measured=[];diagnostic_fills=[];diagnostics=0;unknown=0;seen=set()
     for row in rows:
         if row.get("schema")!="atlas_execution_cost_v1":continue
         key=tuple(row.get(k) for k in ("started_at","source","order_id","deal_id"))
         if key in seen:continue
         seen.add(key)
-        if row.get("diagnostic"):
-            diagnostics+=1;continue
         value=finite(row.get("adverse_fill_difference_bps"))
+        if row.get("diagnostic"):
+            diagnostics+=1
+            if row.get("filled") is True and value is not None:diagnostic_fills.append(row)
+            continue
         if row.get("filled") is not True or value is None:
             unknown+=1;continue
         measured.append(row)
-    return {"checked_at":datetime.now(timezone.utc).isoformat(),"state":"collecting" if measured else "awaiting_measured_fills",
+    return {"checked_at":datetime.now(timezone.utc).isoformat(),"state":"collecting" if measured else "diagnostic_only" if diagnostic_fills else "awaiting_measured_fills",
         "measured_fill_observations":len(measured),"diagnostic_dispatches_excluded":diagnostics,
+        "diagnostic_measured_fill_observations":len(diagnostic_fills),
+        "diagnostic_adverse_request_to_fill_bps":distribution([float(r["adverse_fill_difference_bps"]) for r in diagnostic_fills]),
+        "diagnostic_dispatch_ms":distribution([v for r in diagnostic_fills if (v:=finite(r.get("dispatch_ms"))) is not None and v>=0]),
         "unmeasured_or_unfilled_dispatches":unknown,
         "adverse_request_to_fill_bps":distribution([float(r["adverse_fill_difference_bps"]) for r in measured]),
         "dispatch_ms":distribution([v for r in measured if (v:=finite(r.get("dispatch_ms"))) is not None and v>=0]),
         "entry_observations":sum(r.get("source")=="entry" for r in measured),
         "exit_observations":sum(r.get("source") in {"intraday_close","legacy_close"} for r in measured),
-        "strategy_performance_proven":False,"broker_eligible":False,"orders_sent":0,
+        "strategy_performance_proven":False,"cost_calibration_ready":False,"broker_eligible":False,"orders_sent":0,
         "limitations":["Request-to-fill differences are not a measurement of venue-only slippage.",
             "Exit attribution requires lifecycle evidence; entry and exit counts are not complete trades.",
+            "Diagnostic demo fills are measured separately and cannot prove natural execution or generalize to live-account costs.",
             "No measured costs are substituted automatically into frozen experiments or trading policy."]}
 
 

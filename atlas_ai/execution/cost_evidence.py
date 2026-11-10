@@ -24,7 +24,7 @@ def finite(value):
         return None
 
 
-def send_observed(send, request, settings, *, source, strategy="", decision_id="", tick=None):
+def send_observed(send, request, settings, *, source, strategy="", decision_id="", tick=None, diagnostic=None):
     """One call, identical return/exception. Evidence failure never retries a send."""
     started=datetime.now(timezone.utc).isoformat()
     clock=time.perf_counter()
@@ -58,7 +58,7 @@ def send_observed(send, request, settings, *, source, strategy="", decision_id="
                  "retcode":getattr(result,"retcode",None),"order_id":str(getattr(result,"order","") or ""),
                  "deal_id":str(getattr(result,"deal","") or ""),"error":error,
                  "filled":bool(accepted and filled and filled>0),
-                 "diagnostic":strategy=="manual_broker_test",
+                 "diagnostic":bool(diagnostic) if diagnostic is not None else strategy=="manual_broker_test",
                  "policy_note":"Request-to-fill observation, not venue latency or strategy performance. No automatic cost or policy changes."}
             _append_row(settings, row)
         except Exception:

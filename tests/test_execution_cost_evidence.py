@@ -46,3 +46,10 @@ def test_submitted_or_rejected_response_does_not_become_measured_fill(monkeypatc
         source="entry",strategy="manual_broker_test")
     assert not rows[0]["filled"] and rows[0]["adverse_fill_difference_bps"] is None
     assert rows[0]["diagnostic"]
+
+
+def test_diagnostic_exit_keeps_its_explicit_evidence_role(monkeypatch):
+    rows=[];monkeypatch.setattr(evidence,"_append_row",lambda settings,row:rows.append(row))
+    evidence.send_observed(lambda request:NS(retcode=mt5.TRADE_RETCODE_DONE,price=100,volume=.01),
+        {"price":100,"type":mt5.ORDER_TYPE_SELL,"position":1},NS(),source="intraday_close",diagnostic=True)
+    assert rows[0]["diagnostic"] and rows[0]["filled"]
