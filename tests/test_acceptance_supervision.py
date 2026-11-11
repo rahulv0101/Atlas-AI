@@ -136,3 +136,13 @@ def test_wrapped_persisted_sleep_state_blocks_collector_restart(fixture):
     launch=Mock(side_effect=AssertionError("Wrapped sleep must not be bypassed"))
     result=module.tick(plan,{},now(),is_busy=lambda *args:False,start_worker=launch,backend_ready=True)
     assert set(result["collector_actions"].values())=={"operator_sleep_mode_no_restart"}
+    assert result["publication_evidence"]["state"]=="paused_backend_or_operator_sleep"
+
+
+def test_archive_failure_does_not_stop_original_acceptance_collectors(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,"capture_publication",Mock(side_effect=ValueError("changed archive")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["publication_evidence"]["state"]=="blocked_archive_review_required"
+    assert result["state"]=="collecting"
+    assert set(result["collector_actions"].values())=={"existing_collector_running"}

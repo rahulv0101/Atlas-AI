@@ -24,6 +24,7 @@ from atlas_ai.strategies.research_protocol import environment_versions
 from tools.observe_cost_research import observer_lock
 from tools.execution_quality_report import build_report
 from tools.guarded_research_supervision import ensure_research
+from atlas_ai.testing.decision_archive import capture as capture_publication
 
 
 def read(path,default=None):
@@ -139,12 +140,17 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     controls=controls.get("payload",controls)
     if not isinstance(controls,dict):raise ValueError("invalid_operator_controls")
     can_start=bool(backend_ready and not controls.get("sleep_mode_active",False))
+    publication={"state":"paused_backend_or_operator_sleep","replay_ready":False}
+    if can_start and remaining>0:
+        try:publication=capture_publication(plan["storage_dir"],now,
+            secrets=(s.hfm_password,s.gemini_api_key,s.openai_api_key))
+        except Exception as exc:publication={"state":"blocked_archive_review_required","error":type(exc).__name__,"replay_ready":False}
     result={"checked_at":now.isoformat(),"deadline":plan["deadline"],"minimum_possible_trading_days":minimum_trading_days(m),
         "first_stage_cases":min(needed,completed),"validation_stage_cases":min(needed,max(0,completed-needed)),
         "required_per_stage":needed,"paper_review_ready":paper.get("research_review_ready") is True,
         "natural_cycle_verified":natural_ready,"natural_cycles":natural.get("verified_end_to_end_cycles",[]),
         "state":"window_completed" if remaining<=0 else "evidence_available_for_operator_review" if paper_done and natural_ready else "collecting",
-        "backend_available":bool(backend_ready),"collector_actions":{},"execution_costs":cost_status,"broker_eligible":False,"orders_sent":0,
+        "backend_available":bool(backend_ready),"collector_actions":{},"publication_evidence":publication,"execution_costs":cost_status,"broker_eligible":False,"orders_sent":0,
         "note":"Paper qualification and broker cycles are separate evidence streams; same-version strategy linkage requires operator review. No activation is performed."}
     for role,done,lockfile in (("paper",paper_done,Path(plan["paper_run"])/"observer.lock"),
                                ("natural",natural_ready,Path(plan["storage_dir"])/"lifecycle_observer.lock")):
