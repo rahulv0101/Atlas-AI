@@ -146,3 +146,11 @@ def test_archive_failure_does_not_stop_original_acceptance_collectors(fixture,mo
     assert result["publication_evidence"]["state"]=="blocked_archive_review_required"
     assert result["state"]=="collecting"
     assert set(result["collector_actions"].values())=={"existing_collector_running"}
+
+
+def test_activity_failure_is_visible_without_stopping_acceptance(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,"review_activity",Mock(side_effect=ValueError("changed protocol")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["activity_review"]["state"]=="blocked_review_required"
+    assert result["state"]=="collecting" and result["orders_sent"]==0

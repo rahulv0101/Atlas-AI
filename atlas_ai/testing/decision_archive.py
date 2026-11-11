@@ -21,7 +21,8 @@ STATUS_FIELDS=("symbol","timeframe","updated_at","action","message","chosen","si
     "timing_readiness","learning_critic","loss_to_win_playbook","winner_playbook","atlas_conviction",
     "confidence_diagnostics","min_confidence_threshold","min_confidence_threshold_raw","thresholds","drift",
     "contextual_ranking","risk","safety_layer","guarded_demo_auto_approval","execution","intraday_exit",
-    "same_side_support","meta_model","learning_mode","mode_label")
+    "same_side_support","meta_model","learning_mode","mode_label","session","best_actionable_candidate",
+    "blocker_classification","primary_blocker","execution_gate","execution_state","decision_explanation")
 LEARNING_FIELDS=("allocator","loss_memory","win_memory","best_evolved_strategy","evolved_strategy_pool",
     "meta_model","model_registry","online_learning","trade_outcome_intelligence")
 RUNTIME_FIELDS=("execute_trades","gemini_influence_enabled","risk_guard_state","startup_verification",

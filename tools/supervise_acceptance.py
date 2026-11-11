@@ -25,6 +25,7 @@ from tools.observe_cost_research import observer_lock
 from tools.execution_quality_report import build_report
 from tools.guarded_research_supervision import ensure_research
 from atlas_ai.testing.decision_archive import capture as capture_publication
+from atlas_ai.testing.activity_review import review as review_activity
 
 
 def read(path,default=None):
@@ -176,6 +177,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     try:result["additional_research"]=ensure_research(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
     except Exception as exc:
         result["additional_research"]={"state":"blocked_evidence_review_required","error":type(exc).__name__}
+    try:result["activity_review"]=review_activity(plan["storage_dir"],s,now)
+    except Exception as exc:
+        result["activity_review"]={"state":"blocked_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
     return result
 
 
