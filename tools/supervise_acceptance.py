@@ -26,6 +26,7 @@ from tools.execution_quality_report import build_report
 from tools.guarded_research_supervision import ensure_research
 from atlas_ai.testing.decision_archive import capture as capture_publication
 from atlas_ai.testing.activity_review import review as review_activity
+from tools.learned_ranker_supervision import ensure_learning
 
 
 def read(path,default=None):
@@ -180,6 +181,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     try:result["activity_review"]=review_activity(plan["storage_dir"],s,now)
     except Exception as exc:
         result["activity_review"]={"state":"blocked_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
+    try:result["learning_experiment"]=ensure_learning(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:
+        result["learning_experiment"]={"state":"blocked_evidence_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
     return result
 
 

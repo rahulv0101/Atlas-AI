@@ -154,3 +154,11 @@ def test_activity_failure_is_visible_without_stopping_acceptance(fixture,monkeyp
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["activity_review"]["state"]=="blocked_review_required"
     assert result["state"]=="collecting" and result["orders_sent"]==0
+
+
+def test_learning_failure_is_visible_without_affecting_existing_experiments(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,"ensure_learning",Mock(side_effect=ValueError("changed frozen model")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["learning_experiment"]["state"]=="blocked_evidence_review_required"
+    assert result["state"]=="collecting" and result["orders_sent"]==0
