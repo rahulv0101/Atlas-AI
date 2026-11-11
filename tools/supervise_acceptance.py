@@ -22,6 +22,7 @@ from atlas_ai.learning.observation_checkpoint import account_scope,load_checkpoi
 from atlas_ai.runtime_processes import atlas_mode_processes
 from atlas_ai.strategies.research_protocol import environment_versions
 from tools.observe_cost_research import observer_lock
+from tools.execution_quality_report import build_report
 
 
 def read(path,default=None):
@@ -113,6 +114,14 @@ def spawn(plan,role,hours):
 
 def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     s=load_settings();m=validate(plan,s)
+    # Report failures must be visible without stopping the independent collectors.
+    try:
+        costs=build_report(plan["storage_dir"])
+        atomic_json(Path(plan["storage_dir"])/"acceptance_execution_costs.json",costs)
+        cost_status={k:costs[k] for k in ("checked_at","state","measured_fill_observations",
+            "diagnostic_measured_fill_observations","invalid_journal_rows","cost_calibration_ready")}
+    except Exception as exc:
+        cost_status={"state":"report_failed","error":type(exc).__name__,"cost_calibration_ready":False}
     remaining=(datetime.fromisoformat(plan["deadline"])-now).total_seconds()/3600
     paper=read(Path(plan["paper_run"])/"status.json",{})
     outcomes=read(Path(plan["paper_run"])/"outcomes.json",[])
@@ -132,7 +141,7 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
         "required_per_stage":needed,"paper_review_ready":paper.get("research_review_ready") is True,
         "natural_cycle_verified":natural_ready,"natural_cycles":natural.get("verified_end_to_end_cycles",[]),
         "state":"window_completed" if remaining<=0 else "evidence_available_for_operator_review" if paper_done and natural_ready else "collecting",
-        "backend_available":bool(backend_ready),"collector_actions":{},"broker_eligible":False,"orders_sent":0,
+        "backend_available":bool(backend_ready),"collector_actions":{},"execution_costs":cost_status,"broker_eligible":False,"orders_sent":0,
         "note":"Paper qualification and broker cycles are separate evidence streams; same-version strategy linkage requires operator review. No activation is performed."}
     for role,done,lockfile in (("paper",paper_done,Path(plan["paper_run"])/"observer.lock"),
                                ("natural",natural_ready,Path(plan["storage_dir"])/"lifecycle_observer.lock")):

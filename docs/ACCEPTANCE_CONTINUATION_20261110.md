@@ -17,11 +17,22 @@ The supervisor:
 - Limits new collector starts to three per role per hour and stops renewing at the overall deadline or when the relevant evidence window is complete.
 - Waits for an explicitly running backend before starting stopped collectors, and refuses new collector starts while the persisted operator sleep flag is active. Existing collector shutdown behavior is unchanged.
 
-The supervisor itself does not automatically restart after a Windows reboot. Its saved plan and collector evidence can be resumed explicitly within the original deadline:
+The current-user sign-in launcher added on November 11 resumes the saved supervisor after reboot and sign-in. It does not run before sign-in or start the trading backend. It retains the original deadline and checks the plan and frozen evidence before launching; an already running supervisor is reused. Manual resume remains available:
 
 ```powershell
 .venv\Scripts\python.exe tools/supervise_acceptance.py watch --plan storage/acceptance_plan.json
 ```
+
+Install or remove the reversible current-user Startup shortcut with:
+
+```powershell
+.venv\Scripts\python.exe tools/acceptance_startup.py install
+.venv\Scripts\python.exe tools/acceptance_startup.py remove
+```
+
+No administrator privileges, scheduled trading task or backend wake are involved. Launcher results are recorded in `storage/acceptance_supervision/startup.status.json`; existing supervisor logs remain in that directory. An expired plan is a no-op and a corrupted plan fails closed. The shortcut remains installed until removed.
+
+The supervisor also refreshes `storage/acceptance_execution_costs.json` each minute from the existing dispatch journals. Progress includes report freshness, natural/diagnostic sample counts and invalid-row counts. Report failures are visible without stopping independent collectors. This measures new fills when they occur; it never manufactures fills, declares calibration ready from a fixed arbitrary sample size, or substitutes measured costs into the frozen experiment.
 
 A process lock rejects duplicate supervisors. The existing backend watchdog/startup workflow is unchanged. A source, account, clock or integrity failure stops supervision for review. No automatic reset of failed strategy evidence is allowed.
 

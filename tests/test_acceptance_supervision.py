@@ -116,3 +116,14 @@ def test_review_evidence_does_not_automatically_promote_or_link_different_strate
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["state"]=="evidence_available_for_operator_review" and not result["broker_eligible"]
     assert "same-version" in result["note"]
+
+
+def test_cost_report_updates_independently_and_failures_remain_visible(fixture,monkeypatch):
+    plan,settings,_,_=fixture
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["execution_costs"]["state"]=="awaiting_measured_fills"
+    assert (module.Path(settings.storage_dir)/"acceptance_execution_costs.json").exists()
+    monkeypatch.setattr(module,"build_report",Mock(side_effect=OSError("unreadable cost evidence")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["execution_costs"]["state"]=="report_failed"
+    assert result["state"]=="collecting" and not result["execution_costs"]["cost_calibration_ready"]

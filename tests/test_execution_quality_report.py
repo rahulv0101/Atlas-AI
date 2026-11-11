@@ -1,4 +1,5 @@
-from tools.execution_quality_report import summarize
+from tools.execution_quality_report import summarize,build_report
+import json
 from tools.candidate_score_audit import filtered_cache
 
 
@@ -18,6 +19,19 @@ def test_empty_evidence_is_not_a_zero_slippage_estimate():
     result=summarize([])
     assert result["state"]=="awaiting_measured_fills"
     assert result["adverse_request_to_fill_bps"]["mean"] is None
+
+
+def test_report_refresh_reads_new_fills_and_exposes_bad_rows(tmp_path):
+    folder=tmp_path/"execution_quality";folder.mkdir()
+    journal=folder/"dispatches_2026-11-11.jsonl"
+    journal.write_text("bad row\n")
+    first=build_report(tmp_path)
+    assert first["invalid_journal_rows"]==1 and first["measured_fill_observations"]==0
+    with journal.open("a") as stream:
+        stream.write(json.dumps({"schema":"atlas_execution_cost_v1","source":"entry","started_at":"now",
+            "order_id":"1","deal_id":"1","filled":True,"diagnostic":False,"adverse_fill_difference_bps":.2})+"\n")
+    second=build_report(tmp_path)
+    assert second["measured_fill_observations"]==1 and not second["cost_calibration_ready"]
 
 
 def test_measured_diagnostic_fills_never_become_natural_strategy_cost_evidence():

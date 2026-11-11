@@ -52,11 +52,9 @@ def summarize(rows):
             "No measured costs are substituted automatically into frozen experiments or trading policy."]}
 
 
-def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--storage-dir",type=Path,required=True)
-    p.add_argument("--output",type=Path,required=True);args=p.parse_args()
+def build_report(storage_dir):
     rows=[];invalid=0
-    for path in sorted((args.storage_dir/"execution_quality").glob("dispatches_*.jsonl"))[-31:]:
+    for path in sorted((Path(storage_dir)/"execution_quality").glob("dispatches_*.jsonl"))[-31:]:
         for line in path.read_text(encoding="utf-8").splitlines():
             try:
                 row=json.loads(line)
@@ -64,6 +62,13 @@ def main():
                 rows.append(row)
             except (ValueError,TypeError):invalid+=1
     result=summarize(rows);result["invalid_journal_rows"]=invalid
+    return result
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--storage-dir",type=Path,required=True)
+    p.add_argument("--output",type=Path,required=True);args=p.parse_args()
+    result=build_report(args.storage_dir)
     atomic_json(args.output,result)
     print(json.dumps(result))
 
