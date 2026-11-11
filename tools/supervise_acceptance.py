@@ -23,6 +23,7 @@ from atlas_ai.runtime_processes import atlas_mode_processes
 from atlas_ai.strategies.research_protocol import environment_versions
 from tools.observe_cost_research import observer_lock
 from tools.execution_quality_report import build_report
+from tools.guarded_research_supervision import ensure_research
 
 
 def read(path,default=None):
@@ -135,6 +136,8 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
         rows=atlas_mode_processes("live",project_root=plan["project_root"])
         backend_ready=bool(rows)
     controls=read(Path(plan["storage_dir"])/"automation_state.json",{})
+    controls=controls.get("payload",controls)
+    if not isinstance(controls,dict):raise ValueError("invalid_operator_controls")
     can_start=bool(backend_ready and not controls.get("sleep_mode_active",False))
     result={"checked_at":now.isoformat(),"deadline":plan["deadline"],"minimum_possible_trading_days":minimum_trading_days(m),
         "first_stage_cases":min(needed,completed),"validation_stage_cases":min(needed,max(0,completed-needed)),
@@ -164,6 +167,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
             pid=start_worker(plan,role,remaining);attempts.append(now.timestamp())
             action=f"resumed_saved_evidence_pid_{pid}"
         result["collector_actions"][role]=action
+    try:result["additional_research"]=ensure_research(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:
+        result["additional_research"]={"state":"blocked_evidence_review_required","error":type(exc).__name__}
     return result
 
 

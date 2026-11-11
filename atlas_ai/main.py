@@ -1231,38 +1231,17 @@ def run_live(poll_seconds: int, mode_override: str = "") -> None:
 
 
 def run_backtest(mode_override: str = "") -> None:
-    settings = load_settings()
-    store = KnowledgeStore(settings.storage_dir)
-    reconcile_runtime_flags(
-        store,
-        settings.execute_trades,
-        source_mode="backtest",
-        mode_override=mode_override,
-    )
-    connector = HFMConnector(settings)
-    connector.connect()
-
-    try:
-        feed = MarketDataFeed(settings)
-        df = feed.get_rates(3000)
-        result = Backtester(store=store, settings=settings).run(df)
-        print("Atlas AI Backtest")
-        print(f"Total return: {result.total_return:.2%}")
-        print(f"Total trades: {result.trades}")
-        print(f"Wins: {result.wins}")
-        print(f"Losses: {result.losses}")
-        print(f"Win rate: {result.win_rate:.2%}")
-        print(f"Expectancy per trade: {result.expectancy:.4%}")
-        print(f"Profit factor: {result.profit_factor:.3f}")
-        print(f"Average win: {result.average_win:.4%}")
-        print(f"Average loss: {result.average_loss:.4%}")
-        print(f"Max drawdown: {result.max_drawdown:.2%}")
-        print(f"Sharpe: {result.sharpe:.3f}")
-        print(f"Sortino: {result.sortino:.3f}")
-        print(f"Risk of ruin: {result.risk_of_ruin:.2%}")
-        print(f"Average hold bars: {result.average_hold_bars:.2f}")
-    finally:
-        connector.shutdown()
+    if mode_override not in {"", "env", "paper"}:
+        raise ValueError("Historical backtests cannot enable live execution")
+    from tools.guarded_research_audit import run_broker_history
+    settings=load_settings()
+    stamp=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    output=Path(settings.storage_dir)/"guarded_research"/f"backtest_{stamp}"
+    result=run_broker_history(output)
+    print("Atlas historical policy research: no broker orders, no live activation")
+    print(f"State: {result['state']} | comparisons: {len(result['comparisons'])}")
+    print(f"Report: {output / 'report.json'}")
+    print("Historical visual/macro/execution evidence remains unavailable; see report limitations.")
 
 
 def run_ui_only(mode_override: str = "", comparison_root: str = "", comparison_run_id: str = "") -> None:

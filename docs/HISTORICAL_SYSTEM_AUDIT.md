@@ -1,5 +1,7 @@
 # Running a historical Atlas system audit
 
+For the newer broker-unit guarded replay, use [guarded research](GUARDED_RESEARCH.md). The standard `atlas_ai.main backtest` command now routes there. The tool below is retained as a legacy comparison with its documented fixed-account-cost and partial-policy assumptions.
+
 Run the historical engine and its separate timing-filter replay without using the live launcher:
 
 ```powershell

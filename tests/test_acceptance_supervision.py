@@ -127,3 +127,12 @@ def test_cost_report_updates_independently_and_failures_remain_visible(fixture,m
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["execution_costs"]["state"]=="report_failed"
     assert result["state"]=="collecting" and not result["execution_costs"]["cost_calibration_ready"]
+
+
+def test_wrapped_persisted_sleep_state_blocks_collector_restart(fixture):
+    plan,settings,_,_=fixture
+    (module.Path(settings.storage_dir)/"automation_state.json").write_text(json.dumps({
+        "schema_version":1,"payload":{"sleep_mode_active":True}}))
+    launch=Mock(side_effect=AssertionError("Wrapped sleep must not be bypassed"))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:False,start_worker=launch,backend_ready=True)
+    assert set(result["collector_actions"].values())=={"operator_sleep_mode_no_restart"}

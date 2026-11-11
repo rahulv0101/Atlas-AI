@@ -47,6 +47,7 @@ Atlas AI is a self-improving gold (XAUUSD) trading system designed for HFM via M
 ## Run
 - Backtest:
   `python -m atlas_ai.main backtest`
+  Runs isolated broker-unit research with the six configured strategies and current entry limits. Historical visual/macro/execution evidence remains incomplete; results cannot activate trading. See [guarded research](docs/GUARDED_RESEARCH.md).
 - Live:
   `python -m atlas_ai.main live --poll-seconds 60`
 - UI only (reads saved telemetry):

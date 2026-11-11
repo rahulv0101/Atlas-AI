@@ -27,6 +27,7 @@ from atlas_ai.strategies.minute_pack import (
     VWAPProxyReversionStrategy,
 )
 from atlas_ai.strategies.strategy_lab import StrategyLab
+from atlas_ai.strategies.inventory import base_inventory
 
 
 @dataclass
@@ -59,20 +60,8 @@ class Backtester:
         self.allocator = OnlineAllocator(store=store if persist_learning else None)
         if settings is not None:
             self.allocator.set_exploration(float(getattr(settings, "exploration_epsilon", 0.0)))
-        self.base = [
-            EMACrossoverStrategy(),
-            RSIMeanReversionStrategy(),
-            BreakoutStrategy(),
-            CandlestickPatternStrategy(),
-            MACDTrendStrategy(),
-            BollingerMeanReversionStrategy(),
-            StochasticReversalStrategy(),
-            VWAPProxyReversionStrategy(),
-            GoldBreakoutRetestStrategy(),
-            MomentumContinuationStrategy(),
-            PullbackTrendStrategy(),
-            RSITrendHybridStrategy(),
-        ]
+        self.base = base_inventory(getattr(settings,"timeframe","M1"),
+            paper_variants=not bool(getattr(settings,"execute_trades",False)))
         self.lab = StrategyLab(seed=7)
         self._last_simulated_trade_details: dict[str, object] = {}
 

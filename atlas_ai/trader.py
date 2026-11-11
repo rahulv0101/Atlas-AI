@@ -89,6 +89,7 @@ from atlas_ai.strategies.minute_pack import (
     VWAPProxyReversionStrategy,
 )
 from atlas_ai.strategies.strategy_lab import EvolvedRuleStrategy, StrategyLab
+from atlas_ai.strategies.inventory import base_inventory
 from atlas_ai.strategies.dna import StrategyChromosome
 from atlas_ai.strategies.strategy_factory import StrategyFactory
 from atlas_ai.strategies.evolution_drawdown_guard import EvolutionDrawdownGuard
@@ -126,31 +127,8 @@ class AtlasTrader:
             openai_model=settings.openai_model,
         )
         self.voice = SpeechOutput()
-        self.base_strategies = [
-            EMACrossoverStrategy(),
-            RSIMeanReversionStrategy(),
-            BreakoutStrategy(),
-            CandlestickPatternStrategy(),
-            MACDTrendStrategy(),
-            BollingerMeanReversionStrategy(),
-            StochasticReversalStrategy(),
-            VWAPProxyReversionStrategy(),
-            MomentumContinuationStrategy(),
-            PullbackTrendStrategy(),
-            RSITrendHybridStrategy(),
-        ]
-        if str(self.settings.timeframe).upper() == "M1":
-            self.base_strategies.extend(
-                [
-                    GoldMicroImpulseStrategy(),
-                    GoldBreakoutRetestStrategy(),
-                    GoldLiquiditySweepStrategy(),
-                    GoldMicroStructureReversionStrategy(),
-                ]
-            )
-        if str(self.settings.timeframe).upper() == "M15" and not bool(getattr(self.settings, "execute_trades", False)):
-            self.base_strategies.append(EMACrossoverClosedConfirmMidExitStrategy())
-            self.base_strategies.append(PullbackTrendM15MidExitStrategy())
+        self.base_strategies = base_inventory(self.settings.timeframe,
+            paper_variants=not bool(getattr(self.settings,"execute_trades",False)))
         self._logged_evolved_fallback = False
         self._step_event_cache: dict[tuple[int, str], list[dict[str, Any]]] = {}
         self._decision_sample_cache: dict[str, Any] = {
