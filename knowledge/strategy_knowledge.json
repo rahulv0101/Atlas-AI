@@ -73,6 +73,20 @@
       "good_example": "Defined range, price rejects the edge, trend strength is weak, and entry is not mid-range.",
       "bad_example": "Price is in the middle of the range or range boundary is not clear.",
       "operator_teaching_prompt": "Use correct_hold for mid-range avoidance. Use missed_trade only when a defined edge rejection was present and execution friction was acceptable."
+    },
+    {
+      "name": "combined_smc",
+      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Combined Smart Money Concepts (SMC) research model: D1/H4/H1/M15 directional confluence, liquidity sweep, confirmed M5 structure shift (BOS or CHOCH), displacement, fair value gap, opposite-candle order block, first mitigation retest, H4 premium/discount and opposing higher-timeframe liquidity target.",
+      "conditions": [
+        "All four higher timeframes agree using completed candles.",
+        "M5 sweep precedes displacement through an already confirmed swing.",
+        "Displacement leaves a three-candle fair value gap and an opposite-candle order block.",
+        "First retest rejects the FVG or order block; the setup has not already been mitigated or invalidated.",
+        "Buy in the lower half of the H4 range, sell in the upper half.",
+        "Nearest opposing higher-timeframe high/low reference permits at least 2R before fees and slippage."
+      ],
+      "notes": "Status is smc_composite_v1, shadow_only, broker_eligible=false. OHLC definitions are research proxies; no institutional orders are observed. The fixed candidate score is not a win probability. Existing selected strategies, risk limits and execution gates are unchanged. No profitability validation or automatic promotion.",
+      "voice_summary": "The combined SMC model is observer-only and cannot execute trades. It joins higher-timeframe confluence with an M5 sweep, structure shift, displacement and a first FVG or order-block retest."
     }
   ],
   "operator_teaching_labels": {

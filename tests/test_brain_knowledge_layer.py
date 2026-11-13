@@ -28,6 +28,15 @@ def _ask(q: str) -> dict:
     return AskAtlasService(_Source()).answer(q)
 
 
+def test_combined_smc_answer_preserves_research_boundary_in_typed_and_voice_modes():
+    for mode in ["standard","voice"]:
+        r=AskAtlasService(_Source()).answer("Explain the combined SMC model",mode=mode)
+        assert r["selected_domain"]=="strategy_knowledge"
+        answer=r["result"].lower()
+        assert "observer" in answer and "smc" in answer
+        assert "no high-confidence" not in answer
+
+
 def test_knowledge_loader_api() -> None:
     k = BrainKnowledge()
     vol = k.get_market_concept("volatility")

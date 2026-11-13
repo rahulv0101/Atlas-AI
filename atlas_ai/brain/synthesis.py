@@ -469,6 +469,8 @@ def synthesize(
         )
         target = target or (strategies[0] if strategies else {})
         if voice_mode:
+            if target.get("voice_summary"):
+                return str(target["voice_summary"])
             return f"Primary strategy type: {target.get('name', 'continuation')} with confirmation and noise controls."
         description = target.get("description") or target.get("notes") or "No strategy description available."
         conditions = list(target.get("conditions", []) or target.get("when_it_works", []) or [])

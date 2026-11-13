@@ -267,6 +267,10 @@ def classify_intent_candidates(query: str) -> list[IntentCandidate]:
     if any(p in q for p in market_definition_terms):
         add(IntentCandidate("market_knowledge", 0.93, ["market_definition_terms"]))
     strategy_definition_terms = (
+        "smart money concept",
+        "combined smc",
+        "smc strategy",
+        "smc model",
         "how does breakout retest work",
         "what is breakout retest",
         "explain breakout retest",

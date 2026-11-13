@@ -66,7 +66,7 @@ def detect_domain_candidates(query: str, intents: list[IntentCandidate]) -> list
 
     if any(p in q for p in ("volatility", "liquidity", "trend", "momentum", "market", "spread", "session quality", "execution friction")):
         add(DomainCandidate("market_knowledge", 0.84, "market_terms"))
-    if any(p in q for p in ("strategy", "strategies", "breakout retest", "liquidity sweep", "mean reversion", "continuation")):
+    if any(p in q for p in ("strategy", "strategies", "breakout retest", "liquidity sweep", "mean reversion", "continuation", "smart money concept", "combined smc", "smc model")):
         add(DomainCandidate("strategy_knowledge", 0.86, "strategy_terms"))
     if any(p in q for p in ("own brain", "atlas brain", "one big brain", "giant brain", "one giant brain", "big brain", "processes everything", "understanding and learning", "brain to do all those things")):
         add(DomainCandidate("cognitive_core", 0.98, "cognitive_core_terms"))

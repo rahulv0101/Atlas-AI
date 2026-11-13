@@ -1158,6 +1158,22 @@ class AtlasTrader:
     def _higher_tf_bias(self) -> str:
         return str(self._higher_tf_context().get("bias", "unknown") or "unknown")
 
+    def _smc_composite_observation(self, df, higher_context):
+        """Read-only model: never insert its candidate into strategy selection."""
+        if not bool(getattr(self.settings,"top_down_confluence_enabled",False)):
+            return {"mode":"inactive","broker_eligible":False,"orders_sent":0}
+        try:
+            from atlas_ai.strategies.smc_composite import evaluate
+            from atlas_ai.data.broker_clock import broker_time_to_utc
+            info=mt5.symbol_info(self.settings.symbol);tick=mt5.symbol_info_tick(self.settings.symbol)
+            if info is None or tick is None:raise ValueError("broker_quote_unavailable")
+            quote={"point":info.point,"bid":tick.bid,"ask":tick.ask,
+                "at":broker_time_to_utc(tick.time,self.settings)}
+            return evaluate(df,higher_context,quote,datetime.now(timezone.utc))
+        except Exception as exc:
+            return {"mode":"shadow_only","stage":"unavailable","reason":type(exc).__name__,
+                "broker_eligible":False,"orders_sent":0,"candidate":None}
+
     def _signal_micro_context(self, signal: TradeSignal, df) -> dict[str, float]:
         recent = df.tail(12).copy()
         if len(recent) < 8:
@@ -5316,6 +5332,7 @@ class AtlasTrader:
         recent_times = [str(x) for x in recent["time"].tolist()]
         regime = self._market_regime(recent_closes)
         higher_tf_context = higher_tf_context if top_down else self._higher_tf_context()
+        smc_observation = self._smc_composite_observation(df,higher_tf_context)
         higher_tf_bias = str(higher_tf_context.get("bias", "unknown") or "unknown")
         contextual_scores, contextual_details = self._contextual_signal_scores(
             signals=signals,
@@ -5347,6 +5364,7 @@ class AtlasTrader:
                 "market": self._market_status_view(recent_closes, recent_times, limit=20),
                 "regime": regime,
                 "higher_timeframe": higher_tf_context,
+                "smc_composite": smc_observation,
                 "action": "hold",
                 "message": "No eligible strategies after filtering.",
                 "execute_trades": execute_trades,
@@ -5429,6 +5447,7 @@ class AtlasTrader:
             "market": self._market_status_view(recent_closes, recent_times, limit=20),
             "regime": regime,
             "higher_timeframe": higher_tf_context,
+            "smc_composite": smc_observation,
             "action": "hold",
             "message": "No execution yet",
             "execute_trades": execute_trades,
