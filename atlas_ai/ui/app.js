@@ -1357,6 +1357,8 @@ function renderResearchProgress(status) {
   const paper = progress.acceptance || {};
   const activity = progress.activity || {};
   const costs = progress.costs || {};
+  const startup = progress.startup || {};
+  setText("research-startup", startup.verified === true ? "Post-reboot sign-in launch verified" : startup.state === "pending_reboot" ? "Awaiting a real reboot and sign-in test" : "Verification unavailable or needs review");
   const paperStale = paper.stale !== false;
   const count = value => Number.isFinite(value) ? String(value) : "unknown";
   const deadline = value => {

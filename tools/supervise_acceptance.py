@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -112,6 +113,7 @@ def spawn(plan,role,hours):
     folder=Path(plan["storage_dir"])/"acceptance_supervision";folder.mkdir(parents=True,exist_ok=True)
     with (folder/f"{role}.stdout.log").open("a") as out,(folder/f"{role}.stderr.log").open("a") as err:
         child=subprocess.Popen(worker_command(plan,role,hours),cwd=plan["project_root"],stdout=out,stderr=err,
+            env={**os.environ,"STORAGE_DIR":str(Path(plan["storage_dir"]).resolve())},
             creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
     return child.pid
 

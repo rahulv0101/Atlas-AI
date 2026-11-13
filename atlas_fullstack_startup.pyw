@@ -6,6 +6,7 @@ import logging
 import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -163,7 +164,12 @@ def main() -> int:
     _setup_logging()
     try:
         with observation_lock(ROOT / "storage/atlas_fullstack_startup.lock"):
-            return _start()
+            started_at = datetime.now(timezone.utc)
+            result = _start()
+            with contextlib.suppress(Exception):
+                from atlas_ai.startup_verification import record
+                record(ROOT / "storage", started_at, result, at_logon="--at-logon" in sys.argv)
+            return result
     except RuntimeError as exc:
         if "already_running" in str(exc):
             logging.info("Atlas startup is already in progress; not launching another copy.")

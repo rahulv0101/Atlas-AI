@@ -1373,12 +1373,17 @@ def build_structured_decision_analysis(
             ],
         },
         "act": {
+            "analysis_eligible": execution_gate_pass,
+            "eligibility_basis": "analysis_only_remaining_execution_gates_required",
             "execution_request_eligible": execution_gate_pass,
             "requires_execution_gates": True,
             "gate_conditions": {
                 "score_passed": bool(conviction_score >= confluence_threshold),
                 "no_hard_blockers": bool(not hard_blockers),
-                "existing_execution_gates_approve": bool(execution_gate_pass),
+                # This analysis has not evaluated the authoritative broker,
+                # timing, risk and execution pipeline. A high score is not approval.
+                "existing_execution_gates_approve": None,
+                "timing_discipline_passed": dict(st.get("timing_discipline", {}) or {}).get("passed"),
             },
             "summary": (
                 "eligible_for_guarded_execution_request"

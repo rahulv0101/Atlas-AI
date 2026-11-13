@@ -14,6 +14,18 @@ def _status(**kwargs):
     return base
 
 
+def test_analysis_score_does_not_claim_authoritative_execution_gate_approval():
+    out = build_structured_decision_analysis(
+        status=_status(action="blocked", chosen={"confidence": .99, "side": "buy"},
+                       context_snapshot={"trend_structure": "HH/HL", "momentum": "strong", "location": "pullback"},
+                       setup_family="pullback", timing_discipline={"passed": False}), runtime={})
+    act = out["decision_protocol"]["act"]
+    assert act["gate_conditions"]["existing_execution_gates_approve"] is None
+    assert act["gate_conditions"]["timing_discipline_passed"] is False
+    assert act["analysis_eligible"] == act["execution_request_eligible"]
+    assert act["requires_execution_gates"] is True
+
+
 def test_uptrend_structure_gives_buy_bias_candidate() -> None:
     out = build_structured_decision_analysis(
         status=_status(action="buy", chosen={"confidence": 0.82, "side": "buy"}, context_snapshot={"trend_structure": "HH/HL", "momentum": "strong", "location": "pullback"}, setup_family="pullback"),

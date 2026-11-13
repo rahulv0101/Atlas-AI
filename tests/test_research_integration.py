@@ -69,6 +69,14 @@ def test_missing_partial_and_external_reports_fail_visibly(tmp_path):
     assert load_research_progress(tmp_path)["acceptance"]["stale"]
 
 
+def test_boot_inspection_failure_does_not_break_other_research_reports(reports, monkeypatch):
+    folder, _, now = reports
+    monkeypatch.setattr("atlas_ai.research_status.verify_startup", Mock(side_effect=OSError("boot information unavailable")))
+    result = load_research_progress(folder, now=now)
+    assert result["startup"]["verified"] is False
+    assert result["learning"]["training_rows"] == 1978
+
+
 def test_brain_uses_research_intent_evidence_plan_and_relevance(reports):
     folder, _, now = reports
     context = {"status": {"action": "hold", "message": "UNRELATED_TRADE_BLOCKER"},
@@ -81,6 +89,8 @@ def test_brain_uses_research_intent_evidence_plan_and_relevance(reports):
     assert "1978" in typed.text and "did not pass historical" in typed.text
     assert "no trading authority" in voice.text and len(voice.text) < len(typed.text)
     assert "UNRELATED_TRADE_BLOCKER" not in typed.text
+    startup = engine.answer("Has startup verification passed?", context)
+    assert "cannot confirm" in startup.text and startup.relevance_passed
     activity = engine.answer("How is the activity review?", context)
     assert "Verified natural cycles: 0" in activity.text and activity.relevance_passed
     mechanism = engine.answer("How does the learning model work?", context)

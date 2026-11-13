@@ -25,6 +25,7 @@ def shortcut_script(root=ROOT):
         "$folder=[Environment]::GetFolderPath($item.folder); if (!$folder) { throw 'Windows folder unavailable' }; "
         "$path=Join-Path $folder $item.name; $link=$shell.CreateShortcut($path); "
         "$link.TargetPath=" + literal(python) + "; $link.Arguments=" + literal(arguments) + "; "
+        "if ($item.folder -eq 'Startup') { $link.Arguments+=' --at-logon' }; "
         "$link.WorkingDirectory=" + literal(root) + "; $link.WindowStyle=7; "
         "$link.Description='Start Atlas locally using its existing guarded configuration; no Codex required'; "
         "$link.Save(); $created+=$path }; ConvertTo-Json -InputObject $created -Compress"
@@ -38,6 +39,8 @@ def main():
     result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
                             capture_output=True, text=True, check=True,
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    from atlas_ai.startup_verification import baseline
+    baseline(ROOT / "storage")
     print(json.dumps({"state": "installed", "shortcuts": json.loads(result.stdout),
                       "launcher": str(ROOT / "atlas_fullstack_startup.pyw"), "orders_sent": 0}, indent=2))
 

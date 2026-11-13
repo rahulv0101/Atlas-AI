@@ -162,3 +162,12 @@ def test_learning_failure_is_visible_without_affecting_existing_experiments(fixt
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["learning_experiment"]["state"]=="blocked_evidence_review_required"
     assert result["state"]=="collecting" and result["orders_sent"]==0
+
+
+def test_frozen_workers_use_authoritative_storage_not_the_snapshot(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    launch=Mock(return_value=type("Child",(),{"pid":123})())
+    monkeypatch.setattr(module.subprocess,"Popen",launch)
+    assert module.spawn(plan,"natural",24)==123
+    assert launch.call_args.kwargs["env"]["STORAGE_DIR"]==str(module.Path(plan["storage_dir"]).resolve())
+    assert launch.call_args.kwargs["cwd"]==plan["project_root"]

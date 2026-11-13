@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+from atlas_ai.startup_verification import verify as verify_startup
 
 
 def _read(path, *, signed=False):
@@ -38,6 +39,11 @@ def load_research_progress(storage, *, now=None):
               "broker_eligible": False, "auto_promotion": False, "orders_sent": 0,
               "profitability_proven": False, "errors": [],
               "boundary": "Research informs review; the trader retains its strategy, risk and execution gates."}
+    try:
+        startup = verify_startup(storage)
+    except Exception:
+        startup = {"state": "startup_receipt_unavailable", "verified": False}
+    result["startup"] = {key: startup.get(key) for key in ("state", "verified")}
     try:
         acceptance = _read(storage / "acceptance_plan.status.json")
         age = _age(acceptance.get("checked_at"), now)
@@ -98,6 +104,13 @@ def load_research_progress(storage, *, now=None):
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if "startup" in q or "reboot" in q:
+        startup = progress.get("startup") or {}
+        if startup.get("verified") is True:
+            return "A successful Windows sign-in startup was recorded on the current boot after the verification baseline."
+        if startup.get("state") == "pending_reboot":
+            return "Startup shortcuts are installed, but the real reboot and Windows sign-in test is still pending. Manual startup does not count as that proof."
+        return "Post-reboot startup evidence is unavailable or needs review; I cannot confirm that test passed."
     if any(term in q for term in ("activity", "inactivity", "seven-day", "seven day")):
         if activity.get("stale", True): return "The activity review report is unavailable or stale; I cannot confirm current progress."
         return (f"Activity review: {str(activity.get('state', 'unknown')).replace('_', ' ')}. "
