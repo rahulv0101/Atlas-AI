@@ -48,7 +48,7 @@ def load_research_progress(storage, *, now=None):
         acceptance = _read(storage / "acceptance_plan.status.json")
         age = _age(acceptance.get("checked_at"), now)
         result["acceptance"] = {key: acceptance.get(key) for key in
-            ("state", "deadline", "first_stage_cases", "validation_stage_cases", "required_per_stage", "natural_cycle_verified")}
+            ("state", "deadline", "first_stage_cases", "validation_stage_cases", "required_per_stage", "natural_cycle_verified", "paper_evidence_error")}
         result["acceptance"].update(age_seconds=age, stale=age is None or age > 180)
         result["costs"] = {key: (acceptance.get("execution_costs") or {}).get(key) for key in
                            ("state", "measured_fill_observations", "cost_calibration_ready")}

@@ -90,8 +90,9 @@ def test_plan_deadline_and_restart_budget_are_enforced(fixture):
 def test_source_or_data_tampering_blocks_restart_without_resetting_experiment(fixture):
     plan,_,paper,_=fixture;launch=Mock(side_effect=AssertionError("Corrupt evidence cannot be resumed"))
     (paper/"observed_candles.csv").write_text("changed")
-    with pytest.raises(ValueError,match="artifact_changed"):
-        module.tick(plan,{},now(),is_busy=lambda *args:False,start_worker=launch,backend_ready=True)
+    result=module.tick(plan,{},now(),is_busy=lambda role,*args:role=="natural",start_worker=launch,backend_ready=True)
+    assert result["paper_evidence_error"]=="paper_artifact_changed"
+    assert result["collector_actions"]=={"paper":"blocked_artifact_review_required","natural":"existing_collector_running"}
     (module.Path(plan["source_root"])/"tools/observe_day_trading.py").write_text("changed")
     with pytest.raises(ValueError,match="source_changed"):
         module.tick(plan,{},now(),is_busy=lambda *args:False,start_worker=launch,backend_ready=True)
@@ -171,3 +172,17 @@ def test_frozen_workers_use_authoritative_storage_not_the_snapshot(fixture,monke
     assert module.spawn(plan,"natural",24)==123
     assert launch.call_args.kwargs["env"]["STORAGE_DIR"]==str(module.Path(plan["storage_dir"]).resolve())
     assert launch.call_args.kwargs["cwd"]==plan["project_root"]
+
+
+def test_interrupted_paper_append_restores_only_verified_prefix_and_resumes(fixture):
+    plan,_,paper,_=fixture
+    original=(paper/"observed_candles.csv").read_bytes()
+    outcomes=(paper/"outcomes.json").read_bytes()
+    (paper/"observed_candles.csv").write_bytes(original+b"uncommitted line\n")
+    launch=Mock(return_value=123)
+    result=module.tick(plan,{},now(),is_busy=lambda role,*args:role=="natural",start_worker=launch,backend_ready=True)
+    assert result["paper_recovery"]["state"]=="previously_verified_prefix_restored"
+    assert (paper/"observed_candles.csv").read_bytes()==original
+    assert (paper/"outcomes.json").read_bytes()==outcomes
+    assert "resumed_saved_evidence" in result["collector_actions"]["paper"]
+    assert result["collector_actions"]["natural"]=="existing_collector_running"

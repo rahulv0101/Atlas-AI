@@ -28,6 +28,7 @@ from tools.guarded_research_supervision import ensure_research
 from atlas_ai.testing.decision_archive import capture as capture_publication
 from atlas_ai.testing.activity_review import review as review_activity
 from tools.learned_ranker_supervision import ensure_learning
+from tools.recover_paper_prefix import recover as recover_paper_prefix
 
 
 def read(path,default=None):
@@ -169,11 +170,20 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
             if role=="paper":
                 if paper.get("error")=="ValueError" and paper.get("reason") not in {"frozen_paper_protocol_changed","paper_source_changed_during_evaluation"}:
                     raise ValueError("paper_worker_requires_evidence_review:"+str(paper.get("reason")))
-                # Never restart past corrupted or partially published paper evidence.
+                # A byte-exact signed prefix may recover an interrupted append.
+                # Other corruption remains blocked without starving independent observers.
                 digests=read(Path(plan["paper_run"])/"artifacts.json",{})
-                if set(digests)!={"observed_candles.csv","signals.json"}:raise ValueError("unverified_paper_artifacts")
-                if any(digest(Path(plan["paper_run"])/name)!=expected for name,expected in digests.items()):
-                    raise ValueError("paper_artifact_changed")
+                try:
+                    if set(digests)!={"observed_candles.csv","signals.json"}:raise ValueError("unverified_paper_artifacts")
+                    if any(digest(Path(plan["paper_run"])/name)!=expected for name,expected in digests.items()):
+                        repair=recover_paper_prefix(Path(plan["paper_run"]),apply=True)
+                        result["paper_recovery"]={key:repair.get(key) for key in ("state","uncommitted_suffix_bytes","restored_sha256")}
+                        if any(digest(Path(plan["paper_run"])/name)!=expected for name,expected in digests.items()):
+                            raise ValueError("paper_artifact_changed")
+                except (OSError,ValueError,RuntimeError):
+                    result["paper_evidence_error"]="paper_artifact_changed"
+                    result["collector_actions"][role]="blocked_artifact_review_required"
+                    continue
             pid=start_worker(plan,role,remaining);attempts.append(now.timestamp())
             action=f"resumed_saved_evidence_pid_{pid}"
         result["collector_actions"][role]=action
