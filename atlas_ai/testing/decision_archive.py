@@ -22,11 +22,14 @@ STATUS_FIELDS=("symbol","timeframe","updated_at","action","message","chosen","si
     "confidence_diagnostics","min_confidence_threshold","min_confidence_threshold_raw","thresholds","drift",
     "contextual_ranking","risk","safety_layer","guarded_demo_auto_approval","execution","intraday_exit",
     "same_side_support","meta_model","learning_mode","mode_label","session","best_actionable_candidate",
-    "blocker_classification","primary_blocker","execution_gate","execution_state","decision_explanation")
+    "blocker_classification","primary_blocker","execution_gate","execution_state","decision_explanation",
+    "balance","chart_analysis_input","confidence","higher_timeframe_confirm","market_regime","setup_family")
 LEARNING_FIELDS=("allocator","loss_memory","win_memory","best_evolved_strategy","evolved_strategy_pool","historical_loss_analysis",
     "meta_model","model_registry","online_learning","trade_outcome_intelligence")
 RUNTIME_FIELDS=("execute_trades","gemini_influence_enabled","risk_guard_state","startup_verification",
-    "automation_enabled","automation_paused","sleep_mode_active","active_automation_policy_id")
+    "automation_enabled","automation_paused","sleep_mode_active","active_automation_policy_id",
+    "analysis_confidence_margin_relaxed","confluence_trade_threshold","event_risk_block_threshold","freshness_runtime",
+    "macro_conflict_block_threshold","max_slippage_points","max_spread_points","slippage_points","spread_points")
 BLOCKERS=["observer_sampling_can_miss_publications","pre_decision_in_memory_state_unavailable",
     "saved_files_not_an_atomic_decision_checkpoint","running_code_not_bound_to_disk_version",
     "immutable_decision_pixels_not_guaranteed","intrabar_quotes_and_broker_protection_require_separate_evidence"]

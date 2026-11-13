@@ -1357,6 +1357,9 @@ function renderResearchProgress(status) {
   const paper = progress.acceptance || {};
   const activity = progress.activity || {};
   const costs = progress.costs || {};
+  const penalties = progress.penalty_shadow || {};
+  setText("research-penalties", penalties.stale !== false ? "Current paired-test evidence unavailable" :
+    `${String(penalties.state || "unknown").replace(/_/g," ")}; ${(penalties.first_stage || {}).resolved_pairs ?? "unknown"}/30 + ${(penalties.validation_stage || {}).resolved_pairs ?? "unknown"}/30 paired cases; ${penalties.pending_pairs ?? "unknown"} pending. Paper only.`);
   const startup = progress.startup || {};
   setText("research-startup", startup.verified === true ? "Post-reboot sign-in launch verified" : startup.state === "pending_reboot" ? "Awaiting a real reboot and sign-in test" : "Verification unavailable or needs review");
   const paperStale = paper.stale !== false;

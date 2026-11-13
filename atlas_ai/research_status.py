@@ -99,11 +99,33 @@ def load_research_progress(storage, *, now=None):
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         result["learning"] = {"state": "integrity_review_required", "stale": True, "broker_eligible": False}
         result["errors"].append("learning_metadata_invalid")
+    try:
+        pointer=_read(storage/"penalty_shadow_active.json")
+        directory=Path(pointer["run_dir"]).resolve();directory.relative_to(storage.resolve())
+        manifest=_read(directory/"manifest.json",signed=True)
+        if manifest.get("broker_eligible") is not False or manifest.get("auto_promotion") is not False:
+            raise ValueError("unexpected_penalty_authority")
+        shadow=_read(directory/"status.json");age=_age(shadow.get("checked_at"),now)
+        result["penalty_shadow"]={key:shadow.get(key) for key in
+            ("state","frozen_at","deadline","resolved_pairs","pending_pairs","first_stage","validation_stage","contrast_sufficient_for_review")}
+        result["penalty_shadow"].update(stale=age is None or age>180,age_seconds=age,broker_eligible=False)
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result["penalty_shadow"]={"state":"unavailable","stale":True,"broker_eligible":False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if "penalty" in q or "haircut" in q:
+        shadow=progress.get("penalty_shadow") or {}
+        if shadow.get("stale",True):
+            return "The penalty comparison report is unavailable or stale; I cannot confirm its current progress. It has no trading authority."
+        first=(shadow.get("first_stage") or {}).get("resolved_pairs",0)
+        second=(shadow.get("validation_stage") or {}).get("resolved_pairs",0)
+        return (f"The penalty comparison has {first}/30 first-stage pairs and {second}/30 validation pairs, with {shadow.get('pending_pairs',0)} pending. "
+                "It has no trading authority." + ("" if voice else
+                " It compares current behavior with aggregate-count penalties removed, while retaining fingerprint lessons. "
+                "These are matched paper observations; remaining live execution gates are not verified by this test."))
     if "startup" in q or "reboot" in q:
         startup = progress.get("startup") or {}
         if startup.get("verified") is True:

@@ -29,6 +29,7 @@ from atlas_ai.testing.decision_archive import capture as capture_publication
 from atlas_ai.testing.activity_review import review as review_activity
 from tools.learned_ranker_supervision import ensure_learning
 from tools.recover_paper_prefix import recover as recover_paper_prefix
+from tools.penalty_shadow import ensure as ensure_penalty_shadow
 
 
 def read(path,default=None):
@@ -196,6 +197,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     try:result["learning_experiment"]=ensure_learning(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
     except Exception as exc:
         result["learning_experiment"]={"state":"blocked_evidence_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
+    try:result["penalty_shadow"]=ensure_penalty_shadow(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:
+        result["penalty_shadow"]={"state":"blocked_evidence_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
     return result
 
 

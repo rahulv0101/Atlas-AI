@@ -186,3 +186,11 @@ def test_interrupted_paper_append_restores_only_verified_prefix_and_resumes(fixt
     assert (paper/"outcomes.json").read_bytes()==outcomes
     assert "resumed_saved_evidence" in result["collector_actions"]["paper"]
     assert result["collector_actions"]["natural"]=="existing_collector_running"
+
+
+def test_penalty_shadow_failure_does_not_stop_existing_collectors(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,"ensure_penalty_shadow",Mock(side_effect=ValueError("changed experiment")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["penalty_shadow"]["state"]=="blocked_evidence_review_required"
+    assert set(result["collector_actions"].values())=={"existing_collector_running"}

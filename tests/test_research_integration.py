@@ -146,3 +146,18 @@ def test_real_dashboard_renderer_explains_failed_and_stale_evidence(reports):
     script += "\nrenderResearchProgress({});console.log(JSON.stringify(output));"
     rendered = json.loads(subprocess.run([node, "-e", script], capture_output=True, text=True, check=True).stdout.splitlines()[-1])
     assert "missing or stale" in rendered["research-state"] and "unavailable" in rendered["research-cycle"]
+
+
+def test_penalty_progress_uses_shared_evidence_and_never_claims_trade_approval(reports):
+    folder,_,now=reports
+    directory=folder/"paired";directory.mkdir()
+    atomic_json(folder/"penalty_shadow_active.json",{"run_dir":str(directory)})
+    save_signed(directory,"manifest",{"broker_eligible":False,"auto_promotion":False})
+    atomic_json(directory/"status.json",{"state":"collecting_paired_shadow","checked_at":now.isoformat(),
+        "pending_pairs":1,"resolved_pairs":3,"first_stage":{"resolved_pairs":3},"validation_stage":{"resolved_pairs":0}})
+    summary=load_research_progress(folder,now=now)
+    assert not summary["penalty_shadow"]["stale"]
+    context={"runtime":{"research_progress":summary}}
+    response=AnswerEngine().answer("How is the penalty comparison doing?",context)
+    assert response.relevance_passed and response.selected_domain=="research_progress"
+    assert "3/30" in response.text and "no trading authority" in response.text
