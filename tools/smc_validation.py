@@ -31,25 +31,46 @@ def check_account(settings):
         raise ValueError('matching_demo_account_required')
 
 
-def initialize(directory):
+def evaluator_for(manifest):
+    name=manifest.get('model','smc_composite_v1')
+    if name=='smc_composite_v1':return evaluate
+    if name=='smc_pullback_v2':
+        from atlas_ai.strategies.smc_pullback import evaluate as pullback
+        return pullback
+    raise ValueError('unsupported_frozen_model')
+
+
+def initialize(directory,model='smc_composite_v1',reuse=None):
     s=load_settings();storage=Path(s.storage_dir);directory=directory.resolve()
     directory.relative_to(storage.resolve());directory.mkdir(parents=True,exist_ok=False)
     if s.timeframe!='M5' or not s.top_down_confluence_enabled or s.backtest_max_hold_bars!=12:
         raise ValueError('configured_top_down_M5_and_12_bar_research_horizon_required')
     check_account(s);now=datetime.now(timezone.utc);end=pd.Timestamp(now).floor('5min');start=end-pd.Timedelta(days=180)
     spec,evidence,limits=broker_snapshot(s)
+    if reuse is not None:
+        reuse=reuse.resolve();reuse.relative_to(storage.resolve());old=signed(reuse,'manifest')
+        if old['account_scope']!=account_scope(s) or old['settings']['symbol']!=s.symbol:raise ValueError('historical_reuse_scope_changed')
+        start=pd.Timestamp(old['history_start']);end=pd.Timestamp(old['history_end'])
     hashes={}
     for folder in ['atlas_ai','tools']:
         for p in (ROOT/folder).rglob('*.py'):
             relative=p.relative_to(ROOT);target=directory/'frozen_source'/relative
             target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,target);hashes[relative.as_posix()]=digest(p)
     manifest={'schema':'atlas_smc_validation_v1','method':METHOD,'frozen_at':now.isoformat(),
+        'model':model,'history_reused_after_prior_diagnostic':reuse is not None,
         'history_start':start.isoformat(),'history_end':end.isoformat(),'settings':safe_settings(s),
         'spec':asdict(spec),'cost_evidence':evidence,'limits':limits,'account_scope':account_scope(s),
         'source_hashes':hashes,'environment':environment_versions(),'broker_eligible':False,'orders_sent':0,
         'deadline':signed(storage,'acceptance_plan')['deadline']}
     save_signed(directory,'manifest',manifest)
+    old_inputs=signed(reuse,'inputs') if reuse is not None else None
     for tf in (*TIMEFRAMES,'M5'):
+        if reuse is not None:
+            source=reuse/(tf+'.csv')
+            if digest(source)!=old_inputs[tf]:raise ValueError('reused_input_changed')
+            shutil.copyfile(source,directory/(tf+'.csv'))
+            if digest(directory/(tf+'.csv'))!=old_inputs[tf]:raise ValueError('copied_input_changed')
+            continue
         warmup=120 if tf=='D1' else 30 if tf in {'H4','H1','M15'} else 2
         frame=MarketDataFeed(replace(s,timeframe=tf)).get_rates_range((start-pd.Timedelta(days=warmup)).to_pydatetime(),end.to_pydatetime())
         if len(frame)<90:raise ValueError('insufficient_history:'+tf)
@@ -66,6 +87,7 @@ def validate(directory):
     m=signed(directory,'manifest')
     if m['schema']!='atlas_smc_validation_v1' or m['method']!=METHOD or m['broker_eligible'] is not False or m['orders_sent']!=0:
         raise ValueError('validation_boundary_changed')
+    evaluator_for(m)
     for name,value in m['source_hashes'].items():
         if digest(directory/'frozen_source'/name)!=value:raise ValueError('frozen_source_changed')
     return m
@@ -80,7 +102,8 @@ def run_history(directory):
     cfg=settings_for(m,str(directory/'unused_no_writes'))
     with patch.object(mt5,'initialize',deny),patch.object(mt5,'order_send',deny):
         result=historical(frames,cfg,BrokerSpec(**m['spec']),m['limits'],pd.Timestamp(m['history_start']),pd.Timestamp(m['history_end']),
-            progress=lambda **kw:atomic_json(directory/'history_progress.json',kw))
+            progress=lambda **kw:atomic_json(directory/'history_progress.json',kw),evaluator=evaluator_for(m))
+    result['model']=m.get('model','smc_composite_v1')
     result['manifest_sha256']=digest(directory/'manifest.json');save_signed(directory,'history',result)
     print(json.dumps({'state':'historical_complete','stages':result['stages'],'counts':result['counts'],
         'historical_screen_passed':result['historical_screen_passed'],'broker_eligible':False}),flush=True)
@@ -127,7 +150,7 @@ def once(directory,now):
             frame=feed.get_rates_for_timeframe('M5',bars=90);tick=mt5.symbol_info_tick(s.symbol)
             if tick:
                 quote={'bid':tick.bid,'ask':tick.ask,'point':spec.point,'at':broker_time_to_utc(tick.time,s).isoformat()}
-                latest=evaluate(frame,context,quote,now)
+                latest=evaluator_for(m)(frame,context,quote,now)
                 key=latest.get('trigger_bar_utc','')+':'+str(latest.get('side',''))
                 if latest.get('candidate') and key not in state['seen'] and now>=pd.Timestamp(m['frozen_at']):
                     candidate=latest['candidate'];sign=1 if candidate['side']=='buy' else -1
@@ -150,6 +173,7 @@ def once(directory,now):
     first=stage(eligible[:30]);second=stage(eligible[30:60])
     report={'state':'completed_review_required' if len(state['cases'])>=60 else 'deadline_review_required' if now>=deadline else 'collecting_paper',
         'checked_at':now.isoformat(),'frozen_at':m['frozen_at'],'deadline':m['deadline'],
+        'model':m.get('model','smc_composite_v1'),
         'paper_trades':len(eligible),'incomplete_tick_cases':len(state['cases'])-len(eligible),'pending':bool(state['pending']),'first_stage':first,'validation_stage':second,
         'prospective_screen_passed':first['review_passed'] and second['review_passed'],
         'latest_observation':latest,'counts':state['counts'],'broker_eligible':False,'orders_sent':0,'auto_activation':False,
@@ -182,8 +206,9 @@ def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['init','history','watch','once']);p.add_argument('--run-dir',type=Path,required=True);a=p.parse_args()
-    if a.mode=='init':initialize(a.run_dir);return
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['init','history','watch','once']);p.add_argument('--run-dir',type=Path,required=True)
+    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
+    if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs);return
     if a.mode=='history':run_history(a.run_dir);return
     with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny):
         while True:

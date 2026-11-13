@@ -42,6 +42,7 @@ def collect(feed, now, *, broker_timezone="UTC"):
             details[tf]=bias
             evidence[tf]={"bias":bias,"last_closed_bar_utc":pd.to_datetime(frame.time.iloc[-1],utc=True).isoformat(),
                 "closed_bars":len(frame),"recent_high":high,"recent_low":low,
+                "recent_closes":[float(v) for v in frame.close.tail(6)],
                 "basis":"10_vs_30_closed_close_average","status":"available"}
         except Exception as exc:
             details[tf]="unknown"

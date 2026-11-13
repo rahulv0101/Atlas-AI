@@ -1,4 +1,41 @@
 {
-  "experiments": [],
-  "note": "Historical experiment summaries should be written here over time."
+  "experiments": [
+    {
+      "id": "smc_composite_v1_20261113",
+      "model": "smc_composite_v1",
+      "evidence_type": "retrospective_history",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "development": 0,
+        "validation": 0,
+        "holdout": 0
+      },
+      "windows_reaching_M5_pattern_checks": 80,
+      "windows_are_not_independent_trades": true,
+      "result": "insufficient_evidence_zero_qualifying_trades",
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/smc_validation/frozen_20261113_v2",
+      "interpretation": "All-four-direction plus H4-midpoint context excluded nearly every pattern window."
+    },
+    {
+      "id": "smc_pullback_v2_20261113",
+      "model": "smc_pullback_v2",
+      "evidence_type": "retrospective_reused_history",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "development": 0,
+        "validation": 0,
+        "holdout": 0
+      },
+      "windows_reaching_M5_pattern_checks": 6034,
+      "windows_are_not_independent_trades": true,
+      "result": "insufficient_evidence_zero_qualifying_trades",
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/smc_validation/pullback_v2_20261113",
+      "interpretation": "Context revision releases pullback analysis but does not establish a profitable or executable strategy."
+    }
+  ],
+  "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
 }

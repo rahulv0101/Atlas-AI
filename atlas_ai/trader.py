@@ -1164,14 +1164,17 @@ class AtlasTrader:
             return {"mode":"inactive","broker_eligible":False,"orders_sent":0}
         try:
             from atlas_ai.strategies.smc_composite import evaluate
+            from atlas_ai.testing.smc_validation import paper_progress
+            progress=paper_progress(self.settings.storage_dir)
+            if progress.get("model")=="smc_pullback_v2":
+                from atlas_ai.strategies.smc_pullback import evaluate
             from atlas_ai.data.broker_clock import broker_time_to_utc
             info=mt5.symbol_info(self.settings.symbol);tick=mt5.symbol_info_tick(self.settings.symbol)
             if info is None or tick is None:raise ValueError("broker_quote_unavailable")
             quote={"point":info.point,"bid":tick.bid,"ask":tick.ask,
                 "at":broker_time_to_utc(tick.time,self.settings)}
             result=evaluate(df,higher_context,quote,datetime.now(timezone.utc))
-            from atlas_ai.testing.smc_validation import paper_progress
-            result["validation"]=paper_progress(self.settings.storage_dir)
+            result["validation"]=progress
             return result
         except Exception as exc:
             return {"mode":"shadow_only","stage":"unavailable","reason":type(exc).__name__,

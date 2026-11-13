@@ -33,7 +33,7 @@ def structure(frame):
         "last_swing_low":lows[-1][1] if lows else None}
 
 
-def evaluate(frame,context,quote,now):
+def evaluate(frame,context,quote,now,*,setup_policy=None):
     report={"strategy":NAME,"schema":"atlas_smc_composite_v1","mode":"shadow_only",
         "broker_eligible":False,"orders_sent":0,"auto_promotion":False,"rules":dict(RULES),
         "candidate":None,"stage":"input_validation","reason":"inputs_unavailable"}
@@ -62,13 +62,17 @@ def evaluate(frame,context,quote,now):
             return wait("higher_timeframe_confluence","stale_context")
     except (KeyError,TypeError,ValueError,OverflowError) as exc:
         return wait("input_validation",str(exc))
-    side=context.get("bias")
-    if not entry_gate(context,side)["passed"]:
+    setup=setup_policy(context,quote) if setup_policy is not None else None
+    if setup is not None and not setup.get("passed"):
+        return wait(setup["stage"],setup["reason"],setup_context=setup)
+    side=setup["side"] if setup is not None else context.get("bias")
+    if setup is None and not entry_gate(context,side)["passed"]:
         return wait("higher_timeframe_confluence","D1_H4_H1_M15_must_agree")
     report["side"]=side;report["trigger_bar_utc"]=times.iloc[-1].isoformat()
     report["evaluated_at"]=now.isoformat();report["quote_at"]=at.isoformat()
     sign=1 if side=="buy" else -1
     entry=ask if sign==1 else bid;spread=ask-bid
+    if setup is not None:report["setup_context"]=setup
     try:
         ev=context["evidence"]
         for tf in TIMEFRAMES:
@@ -77,7 +81,7 @@ def evaluate(frame,context,quote,now):
             if not 0<low<high or not math.isfinite(high):raise ValueError("invalid_HTF_range")
         high,low=float(ev["H4"]["recent_high"]),float(ev["H4"]["recent_low"])
         midpoint=(high+low)/2
-        if not low<=entry<=high or (entry>=midpoint if sign==1 else entry<=midpoint):
+        if setup is None and (not low<=entry<=high or (entry>=midpoint if sign==1 else entry<=midpoint)):
             return wait("premium_discount","buy_requires_H4_discount_sell_requires_H4_premium",dealing_range={"low":low,"high":high,"midpoint":midpoint})
     except (KeyError,TypeError,ValueError) as exc:return wait("premium_discount",str(exc))
     volatility=atr(f)

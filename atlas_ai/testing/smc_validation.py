@@ -33,7 +33,8 @@ def paper_progress(storage):
         path=directory/'paper_status.json';status=json.loads(path.read_text()) if path.exists() else {}
         return {**{k:status.get(k) for k in ['state','checked_at','paper_trades','pending','incomplete_tick_cases']},
             'first_stage_trades':status.get('first_stage',{}).get('trades',0),
-            'validation_stage_trades':status.get('validation_stage',{}).get('trades',0),'broker_eligible':False}
+            'validation_stage_trades':status.get('validation_stage',{}).get('trades',0),
+            'model':manifest.get('model','smc_composite_v1'),'broker_eligible':False}
     except Exception:return {'state':'unavailable_review_required','broker_eligible':False}
 
 
@@ -57,14 +58,14 @@ def stage(rows):
     return m
 
 
-def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None):
+def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None,evaluator=evaluate):
     f=frames['M5'].reset_index(drop=True);times=pd.to_datetime(f.time,utc=True)
     execution=f.copy();execution['spread']=f.spread.shift(1)
     feed=HistoricalFeed({tf:frames[tf] for tf in TIMEFRAMES})
     boundaries=[start+(end-start)*.6,start+(end-start)*.8,end]
     rows=[];counts=Counter();calendar=DayTradingSessionControl();busy=-1
     day=None;day_count=0;streak=0;day_cash=0.;balance=settings.backtest_initial_balance
-    horizon=12
+    horizon=12;context_key=None;cached_context=None
     for i in range(80,len(f)-horizon):
         now=times.iloc[i]+pd.Timedelta(minutes=5)
         if now<start or now>=end:continue
@@ -84,10 +85,13 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
         if times.iloc[entry]!=now or not times.iloc[i-79:last+1].diff().dropna().eq(pd.Timedelta(minutes=5)).all():
             counts['input_or_outcome_gap']+=1;continue
         feed.now=now
-        context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC')
+        key=now.floor('15min')
+        if key!=context_key:
+            cached_context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC');context_key=key
+        context={**cached_context,'evaluated_at':now.isoformat()}
         quote={'bid':float(f.open.iloc[entry]),'ask':float(f.open.iloc[entry])+float(execution.spread.iloc[entry])*spec.point,
             'point':spec.point,'at':now.isoformat()}
-        result=evaluate(f.iloc[max(0,i-79):i+1],context,quote,now)
+        result=evaluator(f.iloc[max(0,i-79):i+1],context,quote,now)
         counts['stage:'+result['stage']]+=1
         if i%100==0:progress(bar=i,total=len(f),cases=len(rows),at=now.isoformat())
         if not result.get('candidate'):continue

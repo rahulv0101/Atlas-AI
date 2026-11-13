@@ -76,17 +76,16 @@
     },
     {
       "name": "combined_smc",
-      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Combined Smart Money Concepts (SMC) research model: D1/H4/H1/M15 directional confluence, liquidity sweep, confirmed M5 structure shift (BOS or CHOCH), displacement, fair value gap, opposite-candle order block, first mitigation retest, H4 premium/discount and opposing higher-timeframe liquidity target.",
+      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Active research version smc_pullback_v2 uses D1/H4 direction, H1/M15 pullback and local reaction zones, then an M5 liquidity sweep, confirmed structure shift, displacement, FVG/order-block first retest and opposing higher-timeframe liquidity target.",
       "conditions": [
-        "All four higher timeframes agree using completed candles.",
-        "M5 sweep precedes displacement through an already confirmed swing.",
-        "Displacement leaves a three-candle fair value gap and an opposite-candle order block.",
-        "First retest rejects the FVG or order block; the setup has not already been mitigated or invalidated.",
-        "Buy in the lower half of the H4 range, sell in the upper half.",
+        "D1 and H4 agree using completed candles; H1/M15 may oppose during the pullback.",
+        "Both H1 and M15 have valid closed evidence; at least one shows a countertrend change among its last six closes.",
+        "Entry is inside the H4 range and in the direction-appropriate half of an H1 or M15 recent range.",
+        "The complete M5 sweep, confirmed BOS/CHOCH, displacement, FVG/order-block and first-retest sequence remains mandatory.",
         "Nearest opposing higher-timeframe high/low reference permits at least 2R before fees and slippage."
       ],
-      "notes": "Status is smc_composite_v1, shadow_only, broker_eligible=false. OHLC definitions are research proxies; no institutional orders are observed. The fixed candidate score is not a win probability. Existing selected strategies, risk limits and execution gates are unchanged. No profitability validation or automatic promotion.",
-      "voice_summary": "The combined SMC model is observer-only and cannot execute trades. It joins higher-timeframe confluence with an M5 sweep, structure shift, displacement and a first FVG or order-block retest."
+      "notes": "smc_pullback_v2 is a separately frozen observer-only hypothesis. Original smc_composite_v1 had zero qualifying historical trades and is preserved. Reused historical results cannot provide new untouched validation. Broker eligibility is false; existing executable strategies, risk limits and execution gates are unchanged. The completed reused six-month v2 replay also had zero qualifying trades: more windows reached M5 checks, but the full entry sequence did not qualify. Fresh forward validation remains incomplete.",
+      "voice_summary": "The SMC pullback model is observer-only and cannot execute trades. D1 and H4 set direction, H1 and M15 identify pullback zones, and M5 supplies the confirmed entry sequence."
     }
   ],
   "operator_teaching_labels": {

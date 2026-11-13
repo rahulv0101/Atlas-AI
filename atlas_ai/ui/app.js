@@ -2669,8 +2669,12 @@ function renderStatus(s, runtime) {
   const view = hasRichPayload ? s : { ...lastRichStatus, ...s };
   const topDown = (view || {}).higher_timeframe || {};
   const smc = (view || {}).smc_composite || {};
+  const smcPolicy = document.getElementById("smc-context-policy");
+  if (smcPolicy) smcPolicy.textContent = smc.strategy === "smc_pullback_v2"
+    ? "SMC v2: D1/H4 direction; H1/M15 pullback zones; M5 trigger. This observer is separate from the active trader's confluence gate."
+    : "";
   const smcState = document.getElementById("smc-composite-state");
-  if (smcState) smcState.textContent = `Combined SMC model (observer only): ${String(smc.stage || smc.mode || "waiting for evidence").replaceAll("_", " ")} — ${String(smc.reason || "No execution authority").replaceAll("_", " ")}`;
+  if (smcState) smcState.textContent = `Combined SMC model (${smc.strategy || "unavailable"}, observer only): ${String(smc.stage || smc.mode || "waiting for evidence").replaceAll("_", " ")} — ${String(smc.reason || "No execution authority").replaceAll("_", " ")}`;
   if (smcState && smc.validation) smcState.textContent += ` | Forward paper: ${smc.validation.first_stage_trades || 0}/30 + ${smc.validation.validation_stage_trades || 0}/30; ${String(smc.validation.state || "starting").replaceAll("_", " ")}.`;
   const topDownState = document.getElementById("top-down-state");
   const topDownDetails = document.getElementById("top-down-details");
