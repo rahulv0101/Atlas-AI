@@ -139,3 +139,20 @@ def test_changed_archived_pixels_block_capture_instead_of_becoming_missing(publi
     (folder/"status.json").write_text(json.dumps(status))
     with pytest.raises(RuntimeError,match="archived_pixels_changed"):capture(folder,now())
     assert not verify(folder/"replay_evidence")["valid"]
+
+
+def test_penalty_inputs_are_preserved_for_future_audits_with_redaction(publication):
+    folder,status=publication
+    status["signal_generation"]={"context":{"entry_wickiness":.6},"candidates":[
+        {"strategy":"ema_crossover","before_filters":{"confidence":.5},"after_filters":{"confidence":.43}}],
+        "api_key":"TOPSECRETKEY"}
+    (folder/"status.json").write_text(json.dumps(status))
+    path=folder/"learning_state.json";state=json.loads(path.read_text())
+    state["state"]["historical_loss_analysis"]={"source":"historical_backtest","password":"TOPSECRETKEY"}
+    path.write_text(json.dumps(state));capture(folder,now(),secrets=("TOPSECRETKEY",))
+    archived=record(folder)
+    assert archived["publication"]["signal_generation"]["context"]["entry_wickiness"]==.6
+    assert "api_key" not in archived["publication"]["signal_generation"]
+    ref=archived["saved_state"]["learning_state.json"]
+    saved=json.loads(gzip.decompress((folder/"replay_evidence/state_blobs"/(ref["blob_id"]+".json.gz")).read_bytes()))
+    assert saved["historical_loss_analysis"]=={"source":"historical_backtest"}

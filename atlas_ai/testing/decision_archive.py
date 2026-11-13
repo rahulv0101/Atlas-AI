@@ -15,7 +15,7 @@ import re
 from atlas_ai.atomic_files import atomic_json,replace_with_retry
 from atlas_ai.learning.observation_checkpoint import observation_lock
 
-STATUS_FIELDS=("symbol","timeframe","updated_at","action","message","chosen","signals","signals_active",
+STATUS_FIELDS=("symbol","timeframe","updated_at","action","message","chosen","signals","signals_active","signal_generation",
     "regime","higher_timeframe","chart_features","market","market_data_clock","freshness_runtime",
     "context_snapshot","visual_chart_read","setup_quality_observation","decision_analysis","timing_discipline",
     "timing_readiness","learning_critic","loss_to_win_playbook","winner_playbook","atlas_conviction",
@@ -23,7 +23,7 @@ STATUS_FIELDS=("symbol","timeframe","updated_at","action","message","chosen","si
     "contextual_ranking","risk","safety_layer","guarded_demo_auto_approval","execution","intraday_exit",
     "same_side_support","meta_model","learning_mode","mode_label","session","best_actionable_candidate",
     "blocker_classification","primary_blocker","execution_gate","execution_state","decision_explanation")
-LEARNING_FIELDS=("allocator","loss_memory","win_memory","best_evolved_strategy","evolved_strategy_pool",
+LEARNING_FIELDS=("allocator","loss_memory","win_memory","best_evolved_strategy","evolved_strategy_pool","historical_loss_analysis",
     "meta_model","model_registry","online_learning","trade_outcome_intelligence")
 RUNTIME_FIELDS=("execute_trades","gemini_influence_enabled","risk_guard_state","startup_verification",
     "automation_enabled","automation_paused","sleep_mode_active","active_automation_policy_id")
