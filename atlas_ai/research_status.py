@@ -111,11 +111,21 @@ def load_research_progress(storage, *, now=None):
         result["penalty_shadow"].update(stale=age is None or age>180,age_seconds=age,broker_eligible=False)
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result["penalty_shadow"]={"state":"unavailable","stale":True,"broker_eligible":False}
+    from atlas_ai.testing.smc_validation import paper_progress
+    smc=paper_progress(storage);age=_age(smc.get("checked_at"),now)
+    smc.update(stale=age is None or age>180,age_seconds=age)
+    result["smc_validation"]=smc
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if "smc" in q:
+        smc=progress.get("smc_validation") or {}
+        if smc.get("stale",True):return "The SMC validation report is unavailable or stale. I cannot confirm its progress; it has no broker authority."
+        return (f"SMC forward paper validation: {smc.get('first_stage_trades',0)}/30 first-stage cases and {smc.get('validation_stage_trades',0)}/30 validation cases. "
+                f"Pending simulated position: {bool(smc.get('pending'))}. It has no broker authority."
+                + ("" if voice else " These are simulated quote outcomes; profitability and a natural broker lifecycle remain unproven."))
     if "penalty" in q or "haircut" in q:
         shadow=progress.get("penalty_shadow") or {}
         if shadow.get("stale",True):

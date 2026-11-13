@@ -194,3 +194,11 @@ def test_penalty_shadow_failure_does_not_stop_existing_collectors(fixture,monkey
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["penalty_shadow"]["state"]=="blocked_evidence_review_required"
     assert set(result["collector_actions"].values())=={"existing_collector_running"}
+
+
+def test_smc_paper_failure_does_not_stop_original_collectors(fixture,monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,"ensure_smc_validation",Mock(side_effect=ValueError("changed paper snapshot")))
+    result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
+    assert result["smc_validation"]["state"]=="blocked_evidence_review_required"
+    assert set(result["collector_actions"].values())=={"existing_collector_running"}

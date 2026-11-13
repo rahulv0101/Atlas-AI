@@ -2671,6 +2671,7 @@ function renderStatus(s, runtime) {
   const smc = (view || {}).smc_composite || {};
   const smcState = document.getElementById("smc-composite-state");
   if (smcState) smcState.textContent = `Combined SMC model (observer only): ${String(smc.stage || smc.mode || "waiting for evidence").replaceAll("_", " ")} — ${String(smc.reason || "No execution authority").replaceAll("_", " ")}`;
+  if (smcState && smc.validation) smcState.textContent += ` | Forward paper: ${smc.validation.first_stage_trades || 0}/30 + ${smc.validation.validation_stage_trades || 0}/30; ${String(smc.validation.state || "starting").replaceAll("_", " ")}.`;
   const topDownState = document.getElementById("top-down-state");
   const topDownDetails = document.getElementById("top-down-details");
   if (topDownState) topDownState.textContent = topDown.enabled

@@ -1169,7 +1169,10 @@ class AtlasTrader:
             if info is None or tick is None:raise ValueError("broker_quote_unavailable")
             quote={"point":info.point,"bid":tick.bid,"ask":tick.ask,
                 "at":broker_time_to_utc(tick.time,self.settings)}
-            return evaluate(df,higher_context,quote,datetime.now(timezone.utc))
+            result=evaluate(df,higher_context,quote,datetime.now(timezone.utc))
+            from atlas_ai.testing.smc_validation import paper_progress
+            result["validation"]=paper_progress(self.settings.storage_dir)
+            return result
         except Exception as exc:
             return {"mode":"shadow_only","stage":"unavailable","reason":type(exc).__name__,
                 "broker_eligible":False,"orders_sent":0,"candidate":None}
