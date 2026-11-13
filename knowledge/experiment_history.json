@@ -54,6 +54,30 @@
       "auto_promotion": false,
       "artifacts_root": "storage/smc_validation/retest_v3_20261113",
       "interpretation": "Independent zone visits and bounded confirmation are implemented; full combined entry rules remain unqualified."
+    },
+    {
+      "id": "smc_framework_v4_20261113",
+      "model": "smc_framework_v4",
+      "evidence_type": "retrospective_reused_history",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "development": 1,
+        "validation": 0,
+        "holdout": 0
+      },
+      "complete_signal_evaluations": 2,
+      "sizing_rejections": 1,
+      "simulated_net_cash_zar": -45.211377,
+      "simulated_trade_outcomes": {
+        "wins": 0,
+        "losses": 1
+      },
+      "broker_fill_observed": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/smc_validation/framework_v4_fast_20261113",
+      "trace_artifacts_root": "storage/audits/smc_retest_trace_20261113",
+      "interpretation": "Separate setup families and pullback-location timing remove zero-signal behavior; activity and performance evidence remain insufficient for broker activation."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

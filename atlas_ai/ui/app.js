@@ -2670,7 +2670,9 @@ function renderStatus(s, runtime) {
   const topDown = (view || {}).higher_timeframe || {};
   const smc = (view || {}).smc_composite || {};
   const smcPolicy = document.getElementById("smc-context-policy");
-  if (smcPolicy) smcPolicy.textContent = ["smc_pullback_v2", "smc_retest_v3"].includes(smc.strategy)
+  if (smcPolicy) smcPolicy.textContent = smc.strategy === "smc_framework_v4"
+    ? "SMC v4: D1/H4 direction, H1/M15 reaction zones, then M5 sweep reversal OR BOS continuation. Research observer; the active trader's execution gate is separate."
+    : ["smc_pullback_v2", "smc_retest_v3"].includes(smc.strategy)
     ? `${smc.strategy === "smc_retest_v3" ? "SMC v3" : "SMC v2"}: D1/H4 direction; H1/M15 pullback zones; M5 trigger. ${smc.strategy === "smc_retest_v3" ? "Independent zone visits; confirmation within two bars. " : ""}This observer is separate from the active trader's confluence gate.`
     : "";
   const smcState = document.getElementById("smc-composite-state");

@@ -76,16 +76,17 @@
     },
     {
       "name": "combined_smc",
-      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Research version smc_retest_v3 retains D1/H4 direction and H1/M15 pullback zones, followed by the M5 sweep, confirmed structure shift, displacement, FVG/order-block sequence. It tracks the first visit to each zone independently and allows up to two subsequent closed candles to confirm rejection.",
+      "description": "Observer-only SMC framework; it cannot execute trades. Version smc_framework_v4 has two explicit setup families: a liquidity-sweep reversal and a break-of-structure continuation. Both share D1/H4 direction, H1/M15 pullback context, recent M5 reaction-zone evidence, closed-candle confirmation, structural protection and a higher-timeframe target. A continuation does not require a prior liquidity sweep.",
       "conditions": [
-        "D1 and H4 agree using completed candles; H1/M15 may oppose during the pullback.",
-        "Both H1 and M15 have valid closed evidence; at least one shows a countertrend change among its last six closes.",
-        "Entry is inside the H4 range and in the direction-appropriate half of an H1 or M15 recent range.",
-        "The complete M5 sweep, confirmed BOS/CHOCH, displacement and FVG/order-block formation remain mandatory. A zone first visit can confirm immediately or within two subsequent closed candles; invalidation, expiry, second visits and prior confirmed setups are rejected.",
-        "Nearest opposing higher-timeframe high/low reference permits at least 2R before fees and slippage."
+        "D1/H4 direction must agree and both H1/M15 setup frames must be available.",
+        "A recent closed M5 pullback must have reached the direction-appropriate half of an H1 or M15 range; entry can follow confirmation outside that half while remaining within the H4 reference range.",
+        "Sweep-reversal family: reclaimed sweep, confirmed structure shift, displacement, FVG/order block and first-retest confirmation.",
+        "Continuation family: pre-existing aligned structure, displacement through a confirmed swing, then a first FVG or order-block retest.",
+        "Retests can confirm within two subsequent closed bars; invalidated, expired, second-visit or already-confirmed setups cannot be reissued.",
+        "Nearest higher-timeframe target must provide at least 2R before fees/slippage; quote proximity and existing sizing/risk limits remain active."
       ],
-      "notes": "smc_retest_v3 is a separate frozen research hypothesis, not an executable strategy. Earlier v1 and v2 had zero qualifying historical trades and remain preserved. Historical inputs are reused diagnostic data, not fresh validation. Broker eligibility stays false; minimum 2R, existing stops, sizing, risk and execution gates are unchanged. A previously touched FVG no longer automatically discards an untouched order block. The completed reused six-month v3 replay produced zero complete signals before sizing or broker checks; it failed historical review and does not establish a trading edge.",
-      "voice_summary": "The combined SMC model is observer-only and cannot execute trades. Its latest version tracks FVG and order-block visits separately, with up to two closed M5 candles to confirm the first rejection."
+      "notes": "This is a separately frozen research hypothesis, not a broker strategy. Previous v1/v2/v3 experiments produced zero complete trades and are preserved. Historical inputs are reused diagnostics; fresh forward validation is separate. No automatic promotion or risk-limit changes are permitted. The completed reused six-month v4 replay generated two complete signals: one simulated 0.01-lot trade lost about R45.21, and one was rejected by the nominal risk budget. All review stages failed; the strategy remains paper-only and has no proven edge.",
+      "voice_summary": "The SMC framework is observer-only and cannot execute trades. It tests sweep reversal and BOS continuation as separate setups, with shared higher-timeframe context, confirmed retests and risk checks."
     }
   ],
   "operator_teaching_labels": {

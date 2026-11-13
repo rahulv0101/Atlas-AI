@@ -40,6 +40,9 @@ def evaluator_for(manifest):
     if name=='smc_retest_v3':
         from atlas_ai.strategies.smc_retest import evaluate as retest
         return retest
+    if name=='smc_framework_v4':
+        from atlas_ai.strategies.smc_framework import evaluate as framework
+        return framework
     raise ValueError('unsupported_frozen_model')
 
 
@@ -210,7 +213,7 @@ def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['init','history','watch','once']);p.add_argument('--run-dir',type=Path,required=True)
-    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2','smc_retest_v3'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
+    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2','smc_retest_v3','smc_framework_v4'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
     if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs);return
     if a.mode=='history':run_history(a.run_dir);return
     with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny):

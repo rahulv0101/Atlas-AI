@@ -16,14 +16,33 @@ RULES={"sweep_lookback":20,"sweep_max_age_bars":12,"displacement_max_delay":3,
     "quote_max_age_seconds":30,"execution_authority":"none","auto_promotion":False}
 
 
+def entry_geometry(name,side,entry,last_close,point,spread,volatility,extreme,evidence):
+    """One geometry policy for both SMC families; no sizing or execution."""
+    sign=1 if side=='buy' else -1
+    if abs(entry-last_close)>.25*volatility:
+        return {'stage':'entry_quote','reason':'quote_moved_away_from_rejection_close','candidate':None}
+    buffer=max(2*point,.1*volatility)
+    stop=extreme-buffer if sign==1 else extreme+buffer+spread
+    risk=sign*(entry-stop)
+    levels=[float(evidence[tf]['recent_high' if sign==1 else 'recent_low'])+(spread if sign==-1 else 0) for tf in TIMEFRAMES]
+    targets=sorted([t for t in levels if sign*(t-entry)>0],reverse=sign==-1)
+    if risk<=0 or not targets:return {'stage':'liquidity_target','reason':'no_valid_opposing_HTF_liquidity_target','candidate':None}
+    target=targets[0];reward=sign*(target-entry)
+    if reward/risk<2:return {'stage':'liquidity_target','reason':'nearest_HTF_target_below_2R_before_fees_slippage','candidate':None,'reward_risk':reward/risk}
+    return {'candidate':asdict(TradeSignal(name,side,.65,risk/point,reward/point)),
+        'entry_reference':entry,'stop_reference':stop,'target_reference':target,
+        'reward_risk_before_fees_slippage':reward/risk,'confidence_basis':'fixed_research_score_not_win_probability'}
+
+
 def structure(frame):
     """Only pivots whose two right-hand confirmation bars already exist."""
     highs=[];lows=[]
+    high_values=[float(v) for v in frame.high];low_values=[float(v) for v in frame.low]
     for i in range(2,len(frame)-2):
-        h=float(frame.high.iloc[i]);l=float(frame.low.iloc[i])
-        neighbors=frame.iloc[i-2:i+3].drop(frame.index[i])
-        if h>float(neighbors.high.max()):highs.append((i,h))
-        if l<float(neighbors.low.min()):lows.append((i,l))
+        h=high_values[i];l=low_values[i]
+        neighbors=(i-2,i-1,i+1,i+2)
+        if h>max(high_values[j] for j in neighbors):highs.append((i,h))
+        if l<min(low_values[j] for j in neighbors):lows.append((i,l))
     bias="unknown"
     if len(highs)>=2 and len(lows)>=2:
         if highs[-1][1]>highs[-2][1] and lows[-1][1]>lows[-2][1]:bias="buy"
@@ -137,22 +156,11 @@ def evaluate(frame,context,quote,now,*,setup_policy=None,retest_policy=None):
                     **({"retest_evidence":retest_evidence} if retest_evidence else {}));continue
             if (last.low<=extreme if sign==1 else last.high>=extreme):
                 best=wait("M5_retest","retest_breaches_setup_invalidation");continue
-            if abs(entry-float(last.close))>.25*a:
-                best=wait("entry_quote","quote_moved_away_from_rejection_close");continue
-            buffer=max(2*point,.1*a)
-            stop=extreme-buffer if sign==1 else extreme+buffer+spread
-            risk=sign*(entry-stop)
-            # Candle liquidity levels are bid prices. Shorts cover at ask.
-            levels=[float(ev[tf]["recent_high" if sign==1 else "recent_low"])+(spread if sign==-1 else 0) for tf in TIMEFRAMES]
-            targets=sorted([t for t in levels if sign*(t-entry)>0],reverse=sign==-1)
-            if risk<=0 or not targets:best=wait("liquidity_target","no_valid_opposing_HTF_liquidity_target");continue
-            target=targets[0];reward=sign*(target-entry)
-            if reward/risk<2:
-                best=wait("liquidity_target","nearest_HTF_target_below_2R_before_fees_slippage",reward_risk=reward/risk);continue
-            signal=TradeSignal(NAME,side,.65,risk/point,reward/point)
+            geometry=entry_geometry(NAME,side,entry,float(last.close),point,spread,a,extreme,ev)
+            if geometry['candidate'] is None:
+                best=wait(geometry['stage'],geometry['reason'],**({'reward_risk':geometry['reward_risk']} if 'reward_risk' in geometry else {}));continue
             return {**report,"stage":"candidate_ready","reason":"complete_sequence_observed",
-                "candidate":asdict(signal),"entry_reference":entry,"stop_reference":stop,"target_reference":target,
-                "reward_risk_before_fees_slippage":reward/risk,"confidence_basis":"fixed_research_score_not_win_probability",
+                **geometry,
                 "sweep":{"bar_utc":times.iloc[s].isoformat(),"liquidity_level":level},
                 "structure_shift":{"type":"BOS" if pre["bias"]==side else "CHOCH" if pre["bias"] in {"buy","sell"} else "structure_break_unclassified",
                     "prior_structure":pre["bias"],"broken_swing":breaking,"bar_utc":times.iloc[d].isoformat()},
