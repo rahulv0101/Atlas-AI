@@ -105,6 +105,8 @@ class AtlasTrader:
     _GUARDED_DEMO_MAX_LOT = 0.01
 
     def __init__(self, settings: Settings, store: KnowledgeStore | None = None):
+        if bool(getattr(settings,"top_down_confluence_enabled",False)) and str(settings.timeframe).upper()!="M5":
+            raise ValueError("Top-down confluence requires M5 entries")
         self.settings = settings
         self.store = store or KnowledgeStore(settings.storage_dir)
         self.feed = MarketDataFeed(settings)
@@ -128,6 +130,7 @@ class AtlasTrader:
         )
         self.voice = SpeechOutput()
         self.base_strategies = base_inventory(self.settings.timeframe,
+            top_down=bool(getattr(self.settings,"top_down_confluence_enabled",False)),
             paper_variants=not bool(getattr(self.settings,"execute_trades",False)))
         self._logged_evolved_fallback = False
         self._step_event_cache: dict[tuple[int, str], list[dict[str, Any]]] = {}
@@ -1115,6 +1118,12 @@ class AtlasTrader:
         return bias_from_closes(htf.tail(80)["close"].tolist())
 
     def _higher_tf_context(self) -> dict[str, Any]:
+        if bool(getattr(self.settings,"top_down_confluence_enabled",False)):
+            if str(self.settings.timeframe).upper() != "M5":
+                raise ValueError("Top-down confluence requires M5 entries")
+            from atlas_ai.data.top_down import collect
+            return collect(self.feed,datetime.now(timezone.utc),
+                broker_timezone=str(getattr(self.settings,"mt5_server_timezone","") or "UTC"))
         if str(getattr(self.settings, "timeframe", "") or "").upper() == "M1":
             configured = (str(getattr(self.settings, "m1_htf_alignment_timeframe", "M5") or "M5").upper(),)
             fallback_tf = str(getattr(self.settings, "m1_htf_alignment_timeframe", "M5") or "M5").upper()
@@ -4136,6 +4145,7 @@ class AtlasTrader:
             missing=unique_missing,
             reasons=reasons[:8],
             observed={
+                "entry_timeframe": str(self.settings.timeframe).upper(),
                 "location": location or "unknown",
                 "momentum": momentum or "unknown",
                 "trend_state": trend_state or "unknown",
@@ -4244,6 +4254,8 @@ class AtlasTrader:
     ) -> dict[str, Any]:
         reason_code = None if passed else cls._timing_reason_code(missing)
         missing_text = cls._format_timing_missing(missing)
+        if observed.get("entry_timeframe"):
+            missing_text = missing_text.replace("M1 momentum",str(observed["entry_timeframe"])+" momentum")
         if passed and side not in {"buy", "sell"}:
             detail = "Timing check not applicable: no directional signal was selected; this is not an entry approval."
         elif passed:
@@ -4579,7 +4591,7 @@ class AtlasTrader:
             for s in self.base_strategies
             if self._strategy_enabled(str(getattr(s, "name", "")))
         ]
-        include_evolved_runtime = bool(getattr(self.settings, "backtest_include_evolved", True))
+        include_evolved_runtime = bool(getattr(self.settings, "backtest_include_evolved", True)) and not bool(getattr(self.settings,"top_down_confluence_enabled",False))
         evolved_pool = self._load_evolved_strategy_pool() if include_evolved_runtime else []
         if not evolved_pool:
             # Avoid expensive live-time evolution when no historical model is available yet.
@@ -4598,7 +4610,7 @@ class AtlasTrader:
 
         # Active demo-stage chromosomes are operator-reviewed strategy signals.
         # They remain signal-only; execution still routes through ExecutionGate.
-        demo_chromosomes = self._load_chromosome_demo_pool()
+        demo_chromosomes = [] if bool(getattr(self.settings,"top_down_confluence_enabled",False)) else self._load_chromosome_demo_pool()
         for chromosome in demo_chromosomes:
             try:
                 strategy = StrategyFactory.build(chromosome)
@@ -5283,7 +5295,12 @@ class AtlasTrader:
         self._maybe_emit_drift_alert(loss_memory, runtime_flags)
         drift = self._drift_state(loss_memory)
 
+        top_down = bool(getattr(self.settings,"top_down_confluence_enabled",False))
+        higher_tf_context = self._higher_tf_context() if top_down else None
         df = self.feed.get_rates(1200)
+        if top_down:
+            from atlas_ai.data.top_down import closed_bars
+            df = closed_bars(df,"M5",datetime.now(timezone.utc))
         ingest_ended_at = datetime.now(timezone.utc)
         self._current_cycle_timing["ingest_completed_at"] = ingest_ended_at.isoformat()
         self._current_cycle_timing["ingest_duration_ms"] = round((ingest_ended_at - cycle_started_at).total_seconds() * 1000.0, 2)
@@ -5298,7 +5315,7 @@ class AtlasTrader:
         recent_closes = [float(x) for x in recent["close"].tolist()]
         recent_times = [str(x) for x in recent["time"].tolist()]
         regime = self._market_regime(recent_closes)
-        higher_tf_context = self._higher_tf_context()
+        higher_tf_context = higher_tf_context if top_down else self._higher_tf_context()
         higher_tf_bias = str(higher_tf_context.get("bias", "unknown") or "unknown")
         contextual_scores, contextual_details = self._contextual_signal_scores(
             signals=signals,
@@ -5624,6 +5641,17 @@ class AtlasTrader:
                 logger.warning(status["message"])
                 return status
 
+        if top_down and chosen.side in {"buy","sell"}:
+            from atlas_ai.data.top_down import entry_gate
+            confluence = entry_gate(higher_tf_context,chosen.side)
+            status["higher_timeframe"]["entry_gate"] = confluence
+            if not confluence["passed"]:
+                status["action"] = "blocked"
+                status["message"] = "Higher-timeframe confluence required: M5 " + chosen.side + "; nonconfirming=" + ", ".join(confluence["nonconfirming_timeframes"])
+                self._log_status_event("risk",status)
+                self._publish_status(status)
+                return status
+
         if chosen.side in {"buy", "sell"} and higher_tf_bias in {"buy", "sell"} and higher_tf_bias != chosen.side:
             chosen.confidence = max(0.0, chosen.confidence * 0.85)
             status["chosen"]["confidence"] = chosen.confidence
@@ -5855,7 +5883,7 @@ class AtlasTrader:
 
         # Side-switch trainer: when a fresh EMA cross appears, prefer that side
         # to help the system learn to rotate buy/sell instead of getting sticky.
-        if self.settings.adaptive_ema_side_switch and ema_signal is not None:
+        if self.settings.adaptive_ema_side_switch and ema_signal is not None and not top_down:
             ema_side = str(getattr(ema_signal, "side", "flat"))
             ema_conf = float(getattr(ema_signal, "confidence", 0.0) or 0.0)
             if ema_side in {"buy", "sell"} and ema_conf > 0.0 and chosen.side != ema_side:

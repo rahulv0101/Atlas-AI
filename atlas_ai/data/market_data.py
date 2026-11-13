@@ -16,6 +16,7 @@ _TIMEFRAME_MAP = {
     "M30": mt5.TIMEFRAME_M30,
     "H1": mt5.TIMEFRAME_H1,
     "H4": mt5.TIMEFRAME_H4,
+    "D1": mt5.TIMEFRAME_D1,
 }
 
 
@@ -112,6 +113,8 @@ class MarketDataFeed:
         return df
 
     def get_rates_for_timeframe(self, timeframe_name: str, bars: int = 400) -> pd.DataFrame:
+        if str(timeframe_name).upper() not in _TIMEFRAME_MAP:
+            raise ValueError("Unsupported timeframe")
         self._ensure_initialized()
         timeframe = _TIMEFRAME_MAP.get(str(timeframe_name).upper(), mt5.TIMEFRAME_M5)
         rates = mt5.copy_rates_from_pos(self.settings.symbol, timeframe, 0, bars)

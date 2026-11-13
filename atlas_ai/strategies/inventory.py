@@ -7,11 +7,11 @@ from atlas_ai.strategies.minute_pack import (MACDTrendStrategy,BollingerMeanReve
     GoldLiquiditySweepStrategy,GoldMicroStructureReversionStrategy,PullbackTrendM15MidExitStrategy)
 
 
-def base_inventory(timeframe,*,paper_variants=False):
+def base_inventory(timeframe,*,paper_variants=False,top_down=False):
     strategies=[EMACrossoverStrategy(),RSIMeanReversionStrategy(),BreakoutStrategy(),CandlestickPatternStrategy(),
         MACDTrendStrategy(),BollingerMeanReversionStrategy(),StochasticReversalStrategy(),
         VWAPProxyReversionStrategy(),MomentumContinuationStrategy(),PullbackTrendStrategy(),RSITrendHybridStrategy()]
-    if str(timeframe).upper()=="M1":
+    if str(timeframe).upper()=="M1" or (top_down and str(timeframe).upper()=="M5"):
         strategies.extend([GoldMicroImpulseStrategy(),GoldBreakoutRetestStrategy(),
             GoldLiquiditySweepStrategy(),GoldMicroStructureReversionStrategy()])
     if str(timeframe).upper()=="M15" and paper_variants:

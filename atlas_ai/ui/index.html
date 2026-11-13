@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atlas AI Command Deck</title>
-  <link rel="stylesheet" href="/style.css?v=20261113-3" />
+  <link rel="stylesheet" href="/style.css?v=20261113-4" />
 </head>
 <body class="command-view">
   <a class="skip-link" href="#ask-atlas-card">Skip to Ask Atlas</a>
@@ -212,6 +212,12 @@
           <li>Context: <span id="loop-context">-</span></li>
         </ul>
         <p id="loop-refresh" class="muted">Waiting for learning loop status.</p>
+      </article>
+
+      <article class="card top-card" aria-labelledby="top-down-title">
+        <h2 id="top-down-title">Higher Timeframe Confluence</h2>
+        <p id="top-down-state" role="status">Checking timeframe policy...</p>
+        <p id="top-down-details" class="muted">Waiting for closed-candle evidence.</p>
       </article>
 
       <article class="card top-card" aria-labelledby="research-progress-title">
@@ -868,6 +874,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js?v=20261113-3"></script>
+  <script src="/app.js?v=20261113-4"></script>
 </body>
 </html>

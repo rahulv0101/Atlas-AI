@@ -2667,6 +2667,15 @@ function renderStatus(s, runtime) {
   );
   if (hasRichPayload) lastRichStatus = s;
   const view = hasRichPayload ? s : { ...lastRichStatus, ...s };
+  const topDown = (view || {}).higher_timeframe || {};
+  const topDownState = document.getElementById("top-down-state");
+  const topDownDetails = document.getElementById("top-down-details");
+  if (topDownState) topDownState.textContent = topDown.enabled
+    ? `M5 entries: ${topDown.aligned ? String(topDown.bias).toUpperCase() + " confluence" : "Waiting for higher timeframe agreement"}`
+    : "Top-down policy is inactive";
+  if (topDownDetails) topDownDetails.textContent = topDown.enabled
+    ? ["D1", "H4", "H1", "M15"].map(tf => `${tf}: ${((topDown.details || {})[tf] || "unknown").toUpperCase()}`).join(" | ") + " | Closed candles only. Entry still requires all trading gates."
+    : "Current timeframe policy is reported by the backend.";
 
   const status = document.getElementById("system-status");
   const decision = document.getElementById("decision");

@@ -19,6 +19,7 @@ _TIMEFRAMES = {
     "M30": 30,
     "H1": 60,
     "H4": 240,
+    "D1": 1440,
 }
 
 
@@ -60,6 +61,7 @@ class Settings:
     m1_htf_alignment_timeframe: str = "M5"
     higher_timeframe_confirm: str = "H1"
     higher_timeframe_context: tuple[str, ...] = ("H1", "H4")
+    top_down_confluence_enabled: bool = False
     min_confidence_trend: float = 0.11
     min_confidence_range: float = 0.09
     min_confidence_high_volatility: float = 0.13
@@ -332,6 +334,7 @@ def load_settings() -> Settings:
         event_max_lines=int(os.getenv("EVENT_MAX_LINES", "20000")),
         m1_htf_alignment_timeframe=os.getenv("M1_HTF_ALIGNMENT_TIMEFRAME", "M5").strip().upper(),
         higher_timeframe_confirm=os.getenv("HIGHER_TIMEFRAME_CONFIRM", "H1").strip().upper(),
+        top_down_confluence_enabled=os.getenv("TOP_DOWN_CONFLUENCE_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"},
         higher_timeframe_context=tuple(
             tf.strip().upper()
             for tf in os.getenv("HIGHER_TIMEFRAME_CONTEXT", "H1,H4").split(",")

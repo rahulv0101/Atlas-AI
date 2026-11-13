@@ -48,6 +48,8 @@ def policy_trader(settings,store):
 
 
 def cache_candidates(frame,settings,store,progress=lambda **kw:None,*,start_index=250):
+    if bool(getattr(settings,"top_down_confluence_enabled",False)):
+        raise ValueError("Top-down policy requires separate higher-timeframe histories; single-frame replay is unsupported")
     trader=policy_trader(settings,store)
     strategies=[s for s in base_inventory(settings.timeframe) if trader._strategy_enabled(s.name)]
     timeframe={"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}

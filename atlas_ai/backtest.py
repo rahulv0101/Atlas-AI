@@ -547,6 +547,8 @@ class Backtester:
         return self.lab.evolve(window, generations=generations, population=population)
 
     def run(self, df: pd.DataFrame) -> BacktestResult:
+        if bool(getattr(self.settings,"top_down_confluence_enabled",False)):
+            raise ValueError("Top-down policy requires separate D1/H4/H1/M15 histories; single-frame backtest cannot validate it")
         initial_equity = 10000.0
         if self.settings is not None:
             initial_equity = max(1.0, float(getattr(self.settings, "backtest_initial_balance", 10000.0) or 10000.0))

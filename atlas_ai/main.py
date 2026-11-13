@@ -292,6 +292,9 @@ def _record_self_improvement_runtime_guard(store: KnowledgeStore, source_mode: s
 
 
 def run_historical_training_if_enabled(settings, store) -> None:
+    if bool(getattr(settings,"top_down_confluence_enabled",False)):
+        store.log_event("training","Top-down M5 policy: legacy single-timeframe historical training is not compatible; no learned strategy is promoted.")
+        return
     if not settings.enable_historical_training:
         return
     try:
