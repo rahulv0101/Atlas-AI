@@ -1168,6 +1168,8 @@ class AtlasTrader:
             progress=paper_progress(self.settings.storage_dir)
             if progress.get("model")=="smc_pullback_v2":
                 from atlas_ai.strategies.smc_pullback import evaluate
+            elif progress.get("model")=="smc_retest_v3":
+                from atlas_ai.strategies.smc_retest import evaluate
             from atlas_ai.data.broker_clock import broker_time_to_utc
             info=mt5.symbol_info(self.settings.symbol);tick=mt5.symbol_info_tick(self.settings.symbol)
             if info is None or tick is None:raise ValueError("broker_quote_unavailable")

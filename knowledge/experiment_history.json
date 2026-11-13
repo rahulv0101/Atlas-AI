@@ -35,6 +35,25 @@
       "auto_promotion": false,
       "artifacts_root": "storage/smc_validation/pullback_v2_20261113",
       "interpretation": "Context revision releases pullback analysis but does not establish a profitable or executable strategy."
+    },
+    {
+      "id": "smc_retest_v3_20261113",
+      "model": "smc_retest_v3",
+      "evidence_type": "retrospective_reused_history",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "development": 0,
+        "validation": 0,
+        "holdout": 0
+      },
+      "windows_reaching_M5_pattern_checks": 6034,
+      "reported_retest_windows": 17,
+      "windows_are_not_independent_trades": true,
+      "result": "zero_complete_signals_before_sizing",
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/smc_validation/retest_v3_20261113",
+      "interpretation": "Independent zone visits and bounded confirmation are implemented; full combined entry rules remain unqualified."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

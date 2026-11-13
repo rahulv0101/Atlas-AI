@@ -17,7 +17,7 @@ from atlas_ai.data.top_down import collect,TIMEFRAMES
 from atlas_ai.execution.session_control import DayTradingSessionControl
 from atlas_ai.learning.observation_checkpoint import observation_lock,account_scope
 from atlas_ai.testing.historical_broker import BrokerSpec
-from atlas_ai.testing.smc_validation import METHOD,historical,advance_ticks,stage
+from atlas_ai.testing.smc_validation import METHOD,historical,advance_ticks,stage,setup_identity
 from atlas_ai.strategies.smc_composite import evaluate
 from atlas_ai.strategies.research_protocol import environment_versions
 from tools.guarded_research_audit import broker_snapshot,safe_settings
@@ -37,6 +37,9 @@ def evaluator_for(manifest):
     if name=='smc_pullback_v2':
         from atlas_ai.strategies.smc_pullback import evaluate as pullback
         return pullback
+    if name=='smc_retest_v3':
+        from atlas_ai.strategies.smc_retest import evaluate as retest
+        return retest
     raise ValueError('unsupported_frozen_model')
 
 
@@ -151,7 +154,7 @@ def once(directory,now):
             if tick:
                 quote={'bid':tick.bid,'ask':tick.ask,'point':spec.point,'at':broker_time_to_utc(tick.time,s).isoformat()}
                 latest=evaluator_for(m)(frame,context,quote,now)
-                key=latest.get('trigger_bar_utc','')+':'+str(latest.get('side',''))
+                key=setup_identity(latest)
                 if latest.get('candidate') and key not in state['seen'] and now>=pd.Timestamp(m['frozen_at']):
                     candidate=latest['candidate'];sign=1 if candidate['side']=='buy' else -1
                     entry=float(latest['entry_reference'])+sign*3*spec.point
@@ -207,7 +210,7 @@ def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['init','history','watch','once']);p.add_argument('--run-dir',type=Path,required=True)
-    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
+    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2','smc_retest_v3'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
     if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs);return
     if a.mode=='history':run_history(a.run_dir);return
     with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny):

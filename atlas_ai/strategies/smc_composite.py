@@ -33,7 +33,7 @@ def structure(frame):
         "last_swing_low":lows[-1][1] if lows else None}
 
 
-def evaluate(frame,context,quote,now,*,setup_policy=None):
+def evaluate(frame,context,quote,now,*,setup_policy=None,retest_policy=None):
     report={"strategy":NAME,"schema":"atlas_smc_composite_v1","mode":"shadow_only",
         "broker_eligible":False,"orders_sent":0,"auto_promotion":False,"rules":dict(RULES),
         "candidate":None,"stage":"input_validation","reason":"inputs_unavailable"}
@@ -116,18 +116,25 @@ def evaluate(frame,context,quote,now,*,setup_policy=None):
             if not opposite:best=wait("order_block","no_pre_displacement_opposite_candle");continue
             ob=f.iloc[opposite[-1]];ob_low,ob_high=float(ob.low),float(ob.high)
             intervening=f.iloc[d+2:-1];last=f.iloc[-1]
+            extreme=min(float(sweep.low),ob_low) if sign==1 else max(float(sweep.high),ob_high)
             # First mitigation only. A prior gap touch consumes this setup.
             consumed=not intervening.empty and ((intervening.low<=gap_high).any() if sign==1 else (intervening.high>=gap_low).any())
             invalid=not intervening.empty and ((intervening.close<=ob_low).any() if sign==1 else (intervening.close>=ob_high).any())
-            if consumed or invalid:best=wait("mitigation","setup_already_mitigated_or_invalidated");continue
+            if retest_policy is None and (consumed or invalid):best=wait("mitigation","setup_already_mitigated_or_invalidated");continue
             zones=[("FVG",gap_low,gap_high),("order_block",ob_low,ob_high)]
             touches=[(name,lo,hi) for name,lo,hi in zones if last.low<=hi and last.high>=lo]
             valid=[(name,lo,hi) for name,lo,hi in touches if
                 (last.close>=(lo+hi)/2 if sign==1 else last.close<=(lo+hi)/2)]
             rejection=(last.high>last.low and sign*float(last.close-last.open)>0
                 and abs(float(last.close-last.open))/float(last.high-last.low)>=.35)
-            if not valid or not rejection:best=wait("M5_retest","await_first_FVG_or_order_block_retest_with_directional_rejection");continue
-            extreme=min(float(sweep.low),ob_low) if sign==1 else max(float(sweep.high),ob_high)
+            retest_evidence=None
+            if retest_policy is not None:
+                retest_evidence=retest_policy(f.iloc[d+2:].copy(),zones,side,extreme)
+                valid=[tuple(z) for z in retest_evidence.get("valid_zones",[])]
+                rejection=bool(valid)
+            if not valid or not rejection:
+                best=wait("M5_retest",retest_evidence["reason"] if retest_evidence else "await_first_FVG_or_order_block_retest_with_directional_rejection",
+                    **({"retest_evidence":retest_evidence} if retest_evidence else {}));continue
             if (last.low<=extreme if sign==1 else last.high>=extreme):
                 best=wait("M5_retest","retest_breaches_setup_invalidation");continue
             if abs(entry-float(last.close))>.25*a:
@@ -151,6 +158,7 @@ def evaluate(frame,context,quote,now,*,setup_policy=None):
                     "prior_structure":pre["bias"],"broken_swing":breaking,"bar_utc":times.iloc[d].isoformat()},
                 "FVG":{"low":gap_low,"high":gap_high},"order_block":{"low":ob_low,"high":ob_high},
                 "retest_zone":valid[0][0],"H4_midpoint":midpoint,
+                **({"retest_evidence":retest_evidence} if retest_evidence is not None else {}),
                 "limitations":["OHLC proxy definitions; resting liquidity and institutional intent are unobserved.",
                     "Nominal quote-based distances before broker stop adjustment; no fill, fee or slippage calibration.",
                     "No profitability or execution eligibility established; observer cannot place orders."]}

@@ -19,6 +19,10 @@ METHOD={"history_days":180,"split_fractions":[.6,.2,.2],"minimum_stage_trades":3
     "hold_minutes":60}
 
 
+def setup_identity(observation):
+    return observation.get('setup_id') or observation.get('trigger_bar_utc','')+':'+str(observation.get('side',''))
+
+
 def paper_progress(storage):
     import json,hashlib
     from pathlib import Path
@@ -65,7 +69,7 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
     boundaries=[start+(end-start)*.6,start+(end-start)*.8,end]
     rows=[];counts=Counter();calendar=DayTradingSessionControl();busy=-1
     day=None;day_count=0;streak=0;day_cash=0.;balance=settings.backtest_initial_balance
-    horizon=12;context_key=None;cached_context=None
+    horizon=12;context_key=None;cached_context=None;seen=set()
     for i in range(80,len(f)-horizon):
         now=times.iloc[i]+pd.Timedelta(minutes=5)
         if now<start or now>=end:continue
@@ -95,6 +99,8 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
         counts['stage:'+result['stage']]+=1
         if i%100==0:progress(bar=i,total=len(f),cases=len(rows),at=now.isoformat())
         if not result.get('candidate'):continue
+        identity=setup_identity(result)
+        if identity in seen:counts['duplicate_setup']+=1;continue
         signal=TradeSignal(**result['candidate'])
         minimum=max(spec.trade_stops_level,spec.trade_freeze_level)+max(2,round(float(execution.spread.iloc[entry])*.35))
         if min(signal.stop_loss_points,signal.take_profit_points)<minimum:
@@ -108,6 +114,7 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
         row={**result,'entry_at':now.isoformat(),'stage_index':stage_index,'net_r':outcome['net_r'],
             'net_cash':outcome['net_cash'],'outcome':outcome,'hypothetical_only':True}
         rows.append(row);busy=last;day_count+=1;day_cash+=outcome['net_cash']
+        seen.add(identity)
         balance+=outcome['net_cash'];streak=streak+1 if outcome['net_cash']<0 else 0
     stages={name:stage([r for r in rows if r['stage_index']==j]) for j,name in enumerate(['development','validation','holdout'])}
     return {'schema':'smc_multitimeframe_history_v1','stages':stages,'counts':dict(counts),'cases':rows,

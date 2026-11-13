@@ -76,16 +76,16 @@
     },
     {
       "name": "combined_smc",
-      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Active research version smc_pullback_v2 uses D1/H4 direction, H1/M15 pullback and local reaction zones, then an M5 liquidity sweep, confirmed structure shift, displacement, FVG/order-block first retest and opposing higher-timeframe liquidity target.",
+      "description": "Observer-only combined Smart Money Concepts (SMC) model; it cannot execute trades. Research version smc_retest_v3 retains D1/H4 direction and H1/M15 pullback zones, followed by the M5 sweep, confirmed structure shift, displacement, FVG/order-block sequence. It tracks the first visit to each zone independently and allows up to two subsequent closed candles to confirm rejection.",
       "conditions": [
         "D1 and H4 agree using completed candles; H1/M15 may oppose during the pullback.",
         "Both H1 and M15 have valid closed evidence; at least one shows a countertrend change among its last six closes.",
         "Entry is inside the H4 range and in the direction-appropriate half of an H1 or M15 recent range.",
-        "The complete M5 sweep, confirmed BOS/CHOCH, displacement, FVG/order-block and first-retest sequence remains mandatory.",
+        "The complete M5 sweep, confirmed BOS/CHOCH, displacement and FVG/order-block formation remain mandatory. A zone first visit can confirm immediately or within two subsequent closed candles; invalidation, expiry, second visits and prior confirmed setups are rejected.",
         "Nearest opposing higher-timeframe high/low reference permits at least 2R before fees and slippage."
       ],
-      "notes": "smc_pullback_v2 is a separately frozen observer-only hypothesis. Original smc_composite_v1 had zero qualifying historical trades and is preserved. Reused historical results cannot provide new untouched validation. Broker eligibility is false; existing executable strategies, risk limits and execution gates are unchanged. The completed reused six-month v2 replay also had zero qualifying trades: more windows reached M5 checks, but the full entry sequence did not qualify. Fresh forward validation remains incomplete.",
-      "voice_summary": "The SMC pullback model is observer-only and cannot execute trades. D1 and H4 set direction, H1 and M15 identify pullback zones, and M5 supplies the confirmed entry sequence."
+      "notes": "smc_retest_v3 is a separate frozen research hypothesis, not an executable strategy. Earlier v1 and v2 had zero qualifying historical trades and remain preserved. Historical inputs are reused diagnostic data, not fresh validation. Broker eligibility stays false; minimum 2R, existing stops, sizing, risk and execution gates are unchanged. A previously touched FVG no longer automatically discards an untouched order block. The completed reused six-month v3 replay produced zero complete signals before sizing or broker checks; it failed historical review and does not establish a trading edge.",
+      "voice_summary": "The combined SMC model is observer-only and cannot execute trades. Its latest version tracks FVG and order-block visits separately, with up to two closed M5 candles to confirm the first rejection."
     }
   ],
   "operator_teaching_labels": {
