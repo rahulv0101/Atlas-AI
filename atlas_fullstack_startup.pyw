@@ -58,26 +58,25 @@ def _preferred_pythonw() -> str:
 
 
 def _is_core_stack_running() -> bool:
-    # Purpose: avoid duplicate relaunch when live and UI are already up.
-    ps_cmd = (
-        "$live = Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|pythonw' -and "
-        "$_.CommandLine -match '-m\\s+atlas_ai\\.main\\s+live' }; "
-        "$ui = Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|pythonw' -and "
-        "$_.CommandLine -match '-m\\s+atlas_ai\\.main\\s+ui(\\s|$)' }; "
-        "if ($live -and $ui) { exit 0 } else { exit 1 }"
-    )
+    # Other checkouts must not suppress this installation's startup.
+    from atlas_ai.runtime_processes import atlas_mode_processes
+    live = atlas_mode_processes("live", project_root=ROOT)
+    ui = atlas_mode_processes("ui", project_root=ROOT)
+    if live is None or ui is None:
+        raise RuntimeError("Atlas process inspection unavailable; refusing an unverified duplicate launch")
+    return bool(live and ui)
+
+
+def _ensure_acceptance_observation() -> None:
+    plan = ROOT / "storage/acceptance_plan.json"
+    if not plan.exists():
+        return
     try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd],
-            cwd=str(ROOT),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-            creationflags=_hidden_creationflags(),
-        )
-        return int(result.returncode) == 0
+        from tools.acceptance_startup import resume
+        result = resume(plan)
+        logging.info("Acceptance observation: %s", result.get("state", "unknown"))
     except Exception:
-        return False
+        logging.exception("Acceptance observation could not resume; core startup remains independent.")
 
 
 def _is_audio_path_running() -> bool:
@@ -132,16 +131,15 @@ from atlas_ai.atlas_full_launcher import run_full_launch
 from atlas_ai.atlas_wake_config import load_atlas_wake_config
 
 
-def main() -> int:
+def _start() -> int:
     # Purpose: launch Atlas full stack in background mode and write status to a log file.
-    os.chdir(str(ROOT))
-    _setup_logging()
     if not (VENV_ROOT / "Scripts" / "python.exe").exists():
         logging.error("Atlas startup failed: .venv\\Scripts\\python.exe not found.")
         return 1
 
     if _is_core_stack_running():
         logging.info("Atlas core stack already running. Skipping relaunch.")
+        _ensure_acceptance_observation()
         _ensure_audio_path()
         return 0
 
@@ -150,11 +148,31 @@ def main() -> int:
     summary = run_full_launch(config)
     overall = str(dict(summary.get("health", {}) or {}).get("overall_result", "")).strip().upper()
     logging.info("Atlas full stack launcher result=%s", overall or "UNKNOWN")
+    if overall in {"SUCCESS", "DEGRADED"}:
+        _ensure_acceptance_observation()
     _ensure_audio_path()
     with contextlib.suppress(Exception):
         result_path = ROOT / "storage" / "atlas_fullstack_startup_result.json"
         result_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return 0 if overall in {"SUCCESS", "DEGRADED"} else 1
+
+
+def main() -> int:
+    from atlas_ai.learning.observation_checkpoint import observation_lock
+    os.chdir(str(ROOT))
+    _setup_logging()
+    try:
+        with observation_lock(ROOT / "storage/atlas_fullstack_startup.lock"):
+            return _start()
+    except RuntimeError as exc:
+        if "already_running" in str(exc):
+            logging.info("Atlas startup is already in progress; not launching another copy.")
+            return 0
+        logging.exception("Atlas startup failed.")
+        return 1
+    except Exception:
+        logging.exception("Atlas startup failed.")
+        return 1
 
 
 if __name__ == "__main__":

@@ -1351,6 +1351,29 @@ function renderLearningCritic(status) {
   );
 }
 
+function renderResearchProgress(status) {
+  const progress = status.research_progress || {};
+  const learning = progress.learning || {};
+  const paper = progress.acceptance || {};
+  const activity = progress.activity || {};
+  const costs = progress.costs || {};
+  const paperStale = paper.stale !== false;
+  const count = value => Number.isFinite(value) ? String(value) : "unknown";
+  const deadline = value => {
+    const date = new Date(value || "");
+    return Number.isNaN(date.getTime()) ? "unknown" : date.toLocaleString("en-ZA", {timeZone: "Africa/Johannesburg", dateStyle: "medium", timeStyle: "short"}) + " SAST";
+  };
+  const stale = !learning.model_state || learning.stale || paper.stale || activity.stale;
+  setText("research-state", stale ? "Reports missing or stale — progress needs checking" : "Research progress · profitability unproven");
+  setText("research-learning", !learning.model_state ? "Verified model information unavailable" :
+    `${learning.stale ? "Last known: " : ""}${count(learning.training_rows)} training examples; historical screening ${learning.historical_review_passed ? "passed" : "not passed"}; fresh paper ${count(learning.first_stage_cases)}/30 + ${count(learning.validation_stage_cases)}/30. No trading authority.`);
+  setText("research-paper", `${paper.stale ? "Last known: " : ""}${count(paper.first_stage_cases)}/${count(paper.required_per_stage)} + ${count(paper.validation_stage_cases)}/${count(paper.required_per_stage)}`);
+  setText("research-cycle", paperStale ? "Current verification unavailable" : paper.natural_cycle_verified === true ? "Verified cycle recorded; profitability still unproven" : "Not yet verified");
+  setText("research-activity", `${activity.stale ? "Last known: " : ""}${String(activity.state || "unavailable").replace(/_/g, " ")}; ${count(activity.directional_publications)} directional observations, ${count(activity.analysis_eligible_publications)} analysis-eligible. Ends ${deadline(activity.deadline)}.`);
+  setText("research-costs", `${paper.stale ? "Last known: " : ""}${count(costs.measured_fill_observations)} natural fill observations; ${costs.cost_calibration_ready === true ? "calibration evidence available for review" : "calibration incomplete"}`);
+  setText("research-next", "Compare the frozen learner with the baseline on fresh paper data. Observations are not unique setups. No automatic strategy activation or risk changes.");
+}
+
 function renderLearningLoop(status) {
   const loop = ((status || {}).learning_loop || {});
   const decisionContext = ((loop || {}).decision_context || {});
@@ -2810,6 +2833,7 @@ function renderStatus(s, runtime) {
     renderSetupHunter(view);
     renderLearningCritic(view);
     renderLearningLoop(view);
+    renderResearchProgress(view);
     renderLearningLanes(view);
     renderRecoveryStatus(view);
     renderSafetyLockReview(view);

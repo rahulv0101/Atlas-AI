@@ -92,6 +92,9 @@ def collect_evidence(
     q = str(query or "").lower()
     out: list[EvidenceItem] = []
     add = out.append
+    if domain == "research_progress":
+        progress = dict(runtime.get("research_progress", {}) or {})
+        return [EvidenceItem("research.operator_view", domain, str(progress), 0.95, 0.95, "fact", 0.99)]
 
     if domain in {"current_system_state", "blockers", "runtime_status", "readiness_assessment", "comparison_results", "recommendation", "performance_feedback", "paper_tuning"}:
         if domain in {"current_system_state", "blockers", "runtime_status", "readiness_assessment"}:

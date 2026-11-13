@@ -12,14 +12,20 @@
       "execution_gate",
       "broker_adapter",
       "ui_server",
-      "dashboard"
+      "dashboard",
+      "acceptance_supervisor",
+      "frozen_learning_experiment",
+      "activity_review",
+      "publication_evidence_archive"
     ],
     "collaboration_contract": [
       "NLU classifies intent and extracts entities for typed and voice inputs",
       "Ask Atlas and voice share one understanding path before routing",
       "Scanner and trader produce candidates; neither bypasses execution authority",
       "ExecutionGate is sole authority for trade execution decisions",
-      "UI reflects state, blockers, and mode labels from shared runtime status"
+      "UI reflects state, blockers, and mode labels from shared runtime status",
+      "Dashboard and typed/voice Ask Atlas share a read-only research-progress view",
+      "Frozen learning experiments inform review; qualification never automatically changes strategy, risk or execution policy"
     ],
     "handoff_sequence": [
       "input -> nlu -> route",

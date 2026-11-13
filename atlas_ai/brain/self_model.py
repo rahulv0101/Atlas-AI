@@ -37,6 +37,7 @@ def build_self_model(status: dict[str, Any], runtime: dict[str, Any], comparison
             "Cross-component coordination guidance for voice, Ask Atlas, scanner, trader, and ExecutionGate handoffs",
             "Trader-like cognition fields for observation, thesis, counter-thesis, discipline, and required next evidence",
             "Bounded autonomous demo posture when explicitly placed in guarded autonomous mode",
+            "Inspect a separate learned candidate-ranking paper experiment and its verified evidence; no automatic model activation",
         ],
         "limitations": [
             "No hallucinated facts beyond available state/knowledge",

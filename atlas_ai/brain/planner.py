@@ -4,6 +4,8 @@ from atlas_ai.brain.types import AnswerPlan
 
 
 def choose_plan(intent: str, domain: str) -> AnswerPlan:
+    if intent == "research_progress" or domain == "research_progress":
+        return AnswerPlan("research_progress_plan", ["verified_evidence", "freshness", "qualification", "authority_boundary"])
     if intent == "status":
         return AnswerPlan("status_plan", ["status", "reason", "mode", "run", "next_safe_step"])
     if intent == "blocker":

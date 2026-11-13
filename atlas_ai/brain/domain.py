@@ -10,6 +10,7 @@ def detect_domain_candidates(query: str, intents: list[IntentCandidate]) -> list
     add = out.append
 
     mapping = {
+        "research_progress": "research_progress",
         "status": "current_system_state",
         "blocker": "blockers",
         "summary": "runtime_status",

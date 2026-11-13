@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from atlas_ai.brain.types import AnswerPlan, EvidenceItem
+from atlas_ai.research_status import research_answer
 
 
 def _tokens(text: str) -> set[str]:
@@ -244,6 +245,8 @@ def synthesize(
     run_id = str(status.get("comparison_run_id", "") or str(dict(status.get("comparison", {}) or {}).get("run_id", "")))
     mode_label = _display_mode_label(status, runtime)
     voice_mode = str(mode or "").strip().lower() == "voice"
+    if plan.name == "research_progress_plan":
+        return research_answer(dict(runtime.get("research_progress", {}) or {}), query, voice=voice_mode)
     external_context = dict(knowledge_payload.get("external_context", {}) or {})
     ext_freshness = dict(external_context.get("freshness", {}) or {})
     ext_items = list(external_context.get("items", []) or [])

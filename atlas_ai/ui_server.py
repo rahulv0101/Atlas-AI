@@ -68,6 +68,7 @@ from atlas_ai.self_improvement import (
     transition_rollout_status,
 )
 from atlas_ai.ui.ask_atlas import AskAtlasService
+from atlas_ai.research_status import load_research_progress
 from atlas_ai.voice.startup import announce_ui_ready_once
 from atlas_ai.vision.chart_vision import (
     analyze_chart_visual_context,
@@ -842,6 +843,7 @@ def _build_compact_status_payload(
         "loss_to_win_playbook": dict(status_payload.get("loss_to_win_playbook", {}) or {}),
         "winner_playbook": dict(status_payload.get("winner_playbook", {}) or {}),
         "learning_loop": _build_learning_loop_status(store),
+        "research_progress": load_research_progress(store.base),
         "visual_chart_read": dict(visual_chart_read or {}),
         "visual_evidence_alignment": evidence_alignment,
         "distance_unit_review": dict(status_payload.get("distance_unit_review", {}) or {}),
@@ -2856,6 +2858,7 @@ def create_ui_app(
         payload["volatility_intelligence"] = dict(payload.get("volatility_intelligence", {}) or {})
         payload["volatility_learning_performance"] = dict(payload.get("volatility_learning_performance", {}) or {})
         payload["learning_summary"] = _cached_learning_summary()
+        payload["research_progress"] = load_research_progress(store.base)
         payload["near_setup_learning"] = _load_near_setup_learning_summary(store)
         automation_payload = _load_automation_payload(store)
         execution_snapshot = dict(automation_payload)
@@ -2901,6 +2904,7 @@ def create_ui_app(
     @app.get("/api/status/full")
     def status_full():
         payload = dict(source.load_status() or {})
+        payload["research_progress"] = load_research_progress(store.base)
         flags = dict(source.load_runtime_flags() or {})
         settings = load_settings()
         _refresh_macro_context_if_needed(store)
@@ -3507,6 +3511,7 @@ def create_ui_app(
         flags["evolution"] = _load_evolution_scheduler_state(store)
         flags["lifecycle_acceptance"] = _load_json_file(Path(store.base) / "lifecycle_acceptance.json")
         flags["learning_summary"] = _cached_learning_summary()
+        flags["research_progress"] = load_research_progress(store.base)
         flags["near_setup_learning"] = _load_near_setup_learning_summary(store)
         if not isinstance(flags.get("startup_verification"), dict):
             status_startup_verification = dict(status_payload.get("guarded_demo_startup_sanity", {}) or {})
@@ -3531,6 +3536,10 @@ def create_ui_app(
         flags["volatility_intelligence"] = dict(status_payload.get("volatility_intelligence", {}) or {})
         flags["volatility_learning_performance"] = dict(status_payload.get("volatility_learning_performance", {}) or {})
         return jsonify(flags)
+
+    @app.get("/api/research-progress")
+    def research_progress():
+        return jsonify(load_research_progress(store.base))
 
     @app.get("/api/diagnostics")
     def diagnostics():

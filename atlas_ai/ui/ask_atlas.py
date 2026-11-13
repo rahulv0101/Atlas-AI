@@ -22,6 +22,7 @@ from atlas_ai.analysis.decision_analysis import build_structured_decision_analys
 from atlas_ai.decision_support import build_evidence_separation
 from atlas_ai.execution.execution_gate import ExecutionGate
 from atlas_ai.runtime_heartbeat import get_backend_health
+from atlas_ai.research_status import load_research_progress
 from atlas_ai.self_improvement import load_self_improvement_bundle
 from atlas_ai.ui.structured_trading_analysis import (
     build_structured_trading_analysis_reply,
@@ -280,6 +281,9 @@ class AskAtlasService:
         self._enrich_status_with_self_improvement_context(status)
         events = list(self.source.load_events(limit=160) or [])
         runtime = dict(self.source.load_runtime_flags() or {})
+        source_store = getattr(self.source, "store", None)
+        if source_store is not None and getattr(source_store, "base", None) is not None:
+            runtime["research_progress"] = load_research_progress(source_store.base)
         runtime["execution"] = self.execution.snapshot(runtime_flags=runtime)
         comparison = dict(getattr(self.source, "load_comparison", lambda: {})() or {})
         learning_state = dict(getattr(self.source, "load_learning_state", lambda: {})() or {})
@@ -307,7 +311,7 @@ class AskAtlasService:
             mode=response_mode,
         )
         ai_trace = dict(engine_result.debug_summary.get("ai_decision_trace", {}) or {})
-        if ai_trace and engine_result.relevance_passed:
+        if ai_trace and engine_result.relevance_passed and engine_result.selected_domain != "research_progress":
             self.decision_journal.append(ai_trace, source="ask_atlas", query=q)
             self.decision_reviewer.review(learning_state=learning_state, events=events, limit=10)
         intent = engine_result.selected_intent

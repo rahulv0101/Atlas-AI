@@ -17,6 +17,8 @@ def classify_intent_candidates(query: str) -> list[IntentCandidate]:
 
     cands: list[IntentCandidate] = []
     add = cands.append
+    if any(p in q for p in ("learning experiment", "learned ranker", "learning model", "activity review", "inactivity review", "seven-day review", "seven day review")):
+        add(IntentCandidate("research_progress", 0.995, ["specific_research_progress_terms"]))
 
     if any(p in q for p in ("start system", "close system", "atlas wake", "atlas sleep")):
         add(IntentCandidate("system_command", 0.98, ["system_command"]))

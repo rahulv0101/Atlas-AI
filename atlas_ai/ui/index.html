@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atlas AI Command Deck</title>
-  <link rel="stylesheet" href="/style.css?v=20261110-8" />
+  <link rel="stylesheet" href="/style.css?v=20261112-1" />
 </head>
 <body class="command-view">
   <a class="skip-link" href="#ask-atlas-card">Skip to Ask Atlas</a>
@@ -212,6 +212,19 @@
           <li>Context: <span id="loop-context">-</span></li>
         </ul>
         <p id="loop-refresh" class="muted">Waiting for learning loop status.</p>
+      </article>
+
+      <article class="card top-card" aria-labelledby="research-progress-title">
+        <h2 id="research-progress-title">Learning &amp; Verification</h2>
+        <p id="research-state" role="status" aria-live="polite">Checking research reports…</p>
+        <ul>
+          <li>Learning test: <span id="research-learning">Waiting for evidence</span></li>
+          <li>Original paper stages: <span id="research-paper">Waiting for evidence</span></li>
+          <li>Natural trade cycle: <span id="research-cycle">Unverified</span></li>
+          <li>Activity review: <span id="research-activity">Waiting for evidence</span></li>
+          <li>Execution costs: <span id="research-costs">Waiting for evidence</span></li>
+        </ul>
+        <p id="research-next" class="muted">Research supports review. Trading keeps its existing safety gates.</p>
       </article>
 
       <article class="card top-card learning-lanes-card diagnostics-panel">
@@ -853,6 +866,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js?v=20261110-8"></script>
+  <script src="/app.js?v=20261112-1"></script>
 </body>
 </html>
