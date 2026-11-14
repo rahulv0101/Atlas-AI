@@ -144,11 +144,47 @@ def load_research_progress(storage, *, now=None):
             result["entry_comparison"].update(state="running_research_only",stale=age is None or age>600,age_seconds=age,broker_eligible=False)
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result["entry_comparison"]={"state":"unavailable","stale":True,"broker_eligible":False}
+    try:
+        pointer=_read(storage/'m5_stop_research_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/'protocol.json',signed=True)
+        if protocol.get('broker_eligible') is not False or protocol.get('auto_promotion') is not False:
+            raise ValueError('unexpected_stop_research_authority')
+        report=_read(directory/'report.json',signed=True) if (directory/'report.json').exists() else {}
+        value={'broker_eligible':False,'live_learning_changed':False,
+               'validation_start_utc':protocol['validation_start_utc'],'validation_end_utc':protocol['validation_end_utc']}
+        if report.get('state')=='completed_research_only':
+            if (report.get('broker_eligible') is not False or report.get('selected_for_live') is not None
+                or report.get('protocol_sha256')!=hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest()):
+                raise ValueError('stop_research_protocol_changed')
+            corrected=report['results']['separate_validation']['reviewed_ATR_point_conversion']
+            baseline=report['results']['separate_validation']['unchanged_baseline']
+            value.update(state='completed_research_only',stale=False,
+                         corrected={k:corrected[k] for k in ['trades','wins','net_cash','mean_net_r','review','rejections']},
+                         baseline={k:baseline[k] for k in ['trades','wins','net_cash','mean_net_r','review']})
+        else:
+            status=_read(directory/'progress.json');age=_age(status.get('checked_at'),now)
+            value.update(state=status.get('phase','unknown'),stale=age is None or age>600,
+                         bar=status.get('bar'),bars=status.get('bars'))
+        result['stop_distance_research']=value
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['stop_distance_research']={'state':'unavailable','stale':True,'broker_eligible':False,'live_learning_changed':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if any(term in q for term in ['stop distance research','stop-distance research','stop research','stop study','atr study']):
+        value=progress.get('stop_distance_research') or {}
+        if value.get('stale',True):return 'Stop-distance research evidence is unavailable or stale. I cannot confirm progress; it has no trading authority.'
+        if value.get('state')=='failed':return 'Stop-distance research failed. Its results cannot qualify a correction; live learning and trading rules are unchanged.'
+        if value.get('state')=='completed_research_only':
+            corrected=value['corrected'];passed=corrected['review']['passed']
+            return (f"Stop-distance research completed: {corrected['trades']} separate-period simulated trades with corrected ATR units, "
+                    f"net R{corrected['net_cash']:.2f}. Historical review {'passed' if passed else 'failed'}. "
+                    'Live learning and trading rules are unchanged.' + ('' if voice else
+                    ' This is an earlier disjoint historical period, not fresh forward proof. Zero trades cannot qualify a correction.'))
+        return f"Stop-distance research is running: {str(value.get('state','preparing')).replace('_',' ')}. No live learning or trading change."
     if "entry model" in q or "entry research" in q:
         value=progress.get("entry_comparison") or {}
         if value.get("stale",True):return "The entry-model comparison report is unavailable or stale. I cannot confirm progress; it cannot enable broker trading."

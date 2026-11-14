@@ -1,0 +1,157 @@
+{
+  "schema": "atlas_M5_stop_research_result_v1",
+  "state": "completed_research_only",
+  "separate_historical_review_passed": false,
+  "selected_for_live": null,
+  "broker_eligible": false,
+  "auto_promotion": false,
+  "orders_sent": 0,
+  "future_forward_required": true,
+  "protocol_sha256": "27f0e734b96b083446c0aa19651e685291fef881182d29663d1d4e8669270c25",
+  "prediction_receipt_sha256": "335d9c320702b47f8027dcd56fc1b5436309d6fabd3ef9943a47974fb6dd6948",
+  "full_live_policy_parity": false,
+  "results": {
+    "discovery": {
+      "unchanged_baseline": {
+        "trades": 10,
+        "wins": 2,
+        "net_cash": -94.06046800000149,
+        "return_fraction": -0.009406046800000123,
+        "profit_factor": 0.3450206160802893,
+        "max_drawdown": 0.009406046800000149,
+        "max_drawdown_r": 5.322571454827614,
+        "mean_net_r": -0.5322571454827614,
+        "rejections": {
+          "higher_timeframe_confluence": 3752,
+          "near_session_close_no_new_trades": 182,
+          "outside_active_session": 629,
+          "near_session_open_no_new_trades": 33,
+          "timing_discipline": 859,
+          "pilot_setup_family": 39,
+          "max_consecutive_losses_reached": 290,
+          "volatility_protection": 2
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1"
+          ]
+        },
+        "first_bar_stopouts": 8
+      },
+      "reviewed_ATR_point_conversion": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "return_fraction": 0.0,
+        "profit_factor": null,
+        "max_drawdown": 0.0,
+        "max_drawdown_r": 0.0,
+        "mean_net_r": null,
+        "rejections": {
+          "higher_timeframe_confluence": 3935,
+          "near_session_close_no_new_trades": 194,
+          "outside_active_session": 685,
+          "near_session_open_no_new_trades": 33,
+          "timing_discipline": 907,
+          "pilot_setup_family": 30,
+          "no_risk_bounded_volume": 10,
+          "volatility_protection": 2
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "fewer_than_2_dates",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1"
+          ]
+        },
+        "first_bar_stopouts": 0
+      }
+    },
+    "separate_validation": {
+      "unchanged_baseline": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "return_fraction": 0.0,
+        "profit_factor": null,
+        "max_drawdown": 0.0,
+        "max_drawdown_r": 0.0,
+        "mean_net_r": null,
+        "rejections": {
+          "near_session_open_no_new_trades": 19,
+          "higher_timeframe_confluence": 4826,
+          "near_session_close_no_new_trades": 189,
+          "outside_active_session": 707,
+          "timing_discipline": 15,
+          "pilot_setup_family": 1
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "fewer_than_2_dates",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1"
+          ]
+        },
+        "first_bar_stopouts": 0
+      },
+      "reviewed_ATR_point_conversion": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "return_fraction": 0.0,
+        "profit_factor": null,
+        "max_drawdown": 0.0,
+        "max_drawdown_r": 0.0,
+        "mean_net_r": null,
+        "rejections": {
+          "near_session_open_no_new_trades": 19,
+          "higher_timeframe_confluence": 4826,
+          "near_session_close_no_new_trades": 189,
+          "outside_active_session": 707,
+          "timing_discipline": 15,
+          "pilot_setup_family": 1
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "fewer_than_2_dates",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1"
+          ]
+        },
+        "first_bar_stopouts": 0
+      }
+    }
+  },
+  "report_sha256": "48c26e910ee03840da1edac77569f3a5d2477ac66a93669c72d9634113e07b66",
+  "source_receipt_sha256": "c916bda0d1dca9664d5b7377e2651f5d56bb0d6077c53762882cad0a61f984a9",
+  "validation_period": {
+    "validation_start_utc": "2026-04-01T00:00:00+00:00",
+    "validation_end_utc": "2026-05-01T00:00:00+00:00",
+    "separation": "Disjoint earlier historical period, not future out-of-sample proof. Prior chart availability cannot establish blindness."
+  }
+}

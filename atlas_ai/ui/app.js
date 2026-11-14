@@ -1359,6 +1359,11 @@ function renderResearchProgress(status) {
   const costs = progress.costs || {};
   const penalties = progress.penalty_shadow || {};
   const entryComparison = progress.entry_comparison || {};
+  const stopStudy = progress.stop_distance_research || {};
+  setText("research-stop-study", stopStudy.stale !== false ? "Current study evidence unavailable" :
+    stopStudy.state === "completed_research_only"
+      ? `${(stopStudy.corrected || {}).trades ?? "unknown"} separate-period simulated trades with corrected ATR units; historical review ${(stopStudy.corrected || {}).review?.passed ? "passed" : "failed"}. Live trading unchanged.`
+      : `${String(stopStudy.state || "preparing").replace(/_/g," ")}; research only. Live learning unchanged.`);
   const entrySizing = Object.values((entryComparison.sizing_audit || {}).models || {});
   const entrySizingText = entrySizing.length
     ? ` ${entrySizing.reduce((n,m) => n + m.risk_budget_exceeded,0)}/${entrySizing.reduce((n,m) => n + m.complete_signals,0)} signals exceed the simulation risk budget at minimum lot.` : "";

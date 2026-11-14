@@ -146,6 +146,35 @@
       "artifacts_root": "storage/m5_system_backtest_20261114_v3",
       "summary": "docs/M5_SYSTEM_BACKTEST_20261114.json",
       "interpretation": "All six enabled strategies included. Small losing diagnostic sample; strict evidence replay cannot reconstruct visual/macro/execution evidence. No strategy or risk changes or broker lifecycle proof."
+    },
+    {
+      "id": "m5_stop_research_20261114",
+      "evidence_type": "matched_retrospective_disjoint_period_not_guaranteed_blind",
+      "hypothesis": "ATR-price distances require division by broker point size; volatility-scaled protection may reduce first-M5-bar stopouts but must fit the unchanged risk budget.",
+      "interventions": [
+        "unchanged_baseline",
+        "reviewed_ATR_point_conversion"
+      ],
+      "validation_period": [
+        "2026-04-01T00:00:00Z",
+        "2026-05-01T00:00:00Z"
+      ],
+      "discovery_baseline_trades": 10,
+      "discovery_baseline_net_cash_zar": -94.060468,
+      "discovery_corrected_trades": 0,
+      "discovery_corrected_sizing_rejections": 10,
+      "separate_validation_baseline_trades": 0,
+      "separate_validation_corrected_trades": 0,
+      "historical_review_passed": false,
+      "reason": "insufficient_qualifying_trades; corrected protection exceeds the unchanged minimum-lot risk budget in the discovery sample",
+      "live_training_changed": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "fresh_forward_required": true,
+      "artifacts_root": "storage/m5_stop_research_20261114",
+      "protocol_sha256": "27f0e734b96b083446c0aa19651e685291fef881182d29663d1d4e8669270c25",
+      "summary": "docs/M5_STOP_RESEARCH_20261114.json",
+      "learning_scope": "Durable factual research evidence only; no live allocator, strategy, risk or execution mutation."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

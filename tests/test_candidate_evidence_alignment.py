@@ -85,7 +85,7 @@ def test_distance_adapter_preserves_signal_and_price_units_and_never_activates_i
 
 
 def test_visual_strength_cannot_override_weak_candle_momentum():
-    trader=AtlasTrader.__new__(AtlasTrader);trader.settings=NS(timing_allow_mid_range_strong_momentum=False)
+    trader=AtlasTrader.__new__(AtlasTrader);trader.settings=NS(timeframe="M1",timing_allow_mid_range_strong_momentum=False)
     s=status();v=observation();v.update(visual_watch_used_for_decision=True,
         visual_confirmation="supports_setup",visual_features={"visual_momentum":"strong","visual_location":"pullback","visual_direction":"up"})
     s["visual_chart_read"]=v

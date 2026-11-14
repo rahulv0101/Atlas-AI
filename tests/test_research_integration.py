@@ -188,3 +188,29 @@ def test_sizing_attribution_is_bound_to_completed_report(reports):
     save_signed(directory,'sizing_audit',audit)
     value=load_research_progress(folder,now=now)['entry_comparison']
     assert value['state']=='completed_research_only' and 'sizing_audit' not in value
+
+
+def test_stop_research_remains_evidence_only_in_typed_and_voice_paths(reports):
+    import hashlib
+    folder,_,now=reports;directory=folder/'stop';directory.mkdir()
+    atomic_json(folder/'m5_stop_research_active.json',{'run_dir':str(directory)})
+    save_signed(directory,'protocol',{'broker_eligible':False,'auto_promotion':False,
+        'validation_start_utc':'2026-04-01T00:00:00Z','validation_end_utc':'2026-05-01T00:00:00Z'})
+    stats={'trades':0,'wins':0,'net_cash':0.,'mean_net_r':None,'review':{'passed':False},'rejections':{'no_risk_bounded_volume':5}}
+    report={'state':'completed_research_only','broker_eligible':False,'selected_for_live':None,
+        'protocol_sha256':hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest(),
+        'results':{'separate_validation':{'reviewed_ATR_point_conversion':stats,'unchanged_baseline':stats}}}
+    save_signed(directory,'report',report)
+    summary=load_research_progress(folder,now=now)
+    assert not summary['stop_distance_research']['live_learning_changed']
+    from atlas_ai.research_status import research_answer
+    for voice in [False,True]:
+        text=research_answer(summary,'How is the stop distance research doing?',voice=voice)
+        assert '0 separate-period simulated trades' in text and 'review failed' in text
+        assert 'Live learning and trading rules are unchanged' in text
+    response=AnswerEngine().answer('How is the stop distance research doing?',{'runtime':{'research_progress':summary}})
+    assert response.relevance_passed and response.selected_domain=='research_progress'
+    from atlas_ai.brain.intent import classify_intent_candidates
+    assert classify_intent_candidates('What are your limitations for stop research?')[0].name!='research_progress'
+    report['protocol_sha256']='wrong';save_signed(directory,'report',report)
+    assert load_research_progress(folder,now=now)['stop_distance_research']['state']=='unavailable'
