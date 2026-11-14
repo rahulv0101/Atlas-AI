@@ -161,3 +161,30 @@ def test_penalty_progress_uses_shared_evidence_and_never_claims_trade_approval(r
     response=AnswerEngine().answer("How is the penalty comparison doing?",context)
     assert response.relevance_passed and response.selected_domain=="research_progress"
     assert "3/30" in response.text and "no trading authority" in response.text
+def test_entry_comparison_answers_do_not_fall_back_to_current_trade_state():
+    from atlas_ai.research_status import research_answer
+    from atlas_ai.brain.intent import classify_intent_candidates
+    assert classify_intent_candidates('How is the entry model comparison doing?')[0].name=='research_progress'
+    assert classify_intent_candidates('What are your limitations for entry research?')[0].name!='research_progress'
+    progress={'entry_comparison':{'stale':False,'state':'completed_research_only','selection':{'selected_for_forward_paper':None}}}
+    for voice in [True,False]:
+        answer=research_answer(progress,'How is the entry model comparison doing?',voice=voice)
+        assert 'none' in answer and 'No broker' in answer and 'HOLD' not in answer
+
+
+def test_sizing_attribution_is_bound_to_completed_report(reports):
+    import hashlib
+    folder,_,now=reports
+    directory=folder/'entry';directory.mkdir()
+    atomic_json(folder/'smc_entry_comparison_active.json',{'run_dir':str(directory)})
+    save_signed(directory,'protocol',{'broker_eligible':False})
+    save_signed(directory,'report',{'protocol_sha256':hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest(),
+                                  'selection':{'selected_for_forward_paper':None}})
+    audit={'report_sha256':hashlib.sha256((directory/'report.json').read_bytes()).hexdigest(),
+           'broker_eligible':False,'models':{'event':{'complete_signals':13,'risk_budget_exceeded':12}}}
+    save_signed(directory,'sizing_audit',audit)
+    assert load_research_progress(folder,now=now)['entry_comparison']['sizing_audit']==audit
+    audit['report_sha256']='changed'
+    save_signed(directory,'sizing_audit',audit)
+    value=load_research_progress(folder,now=now)['entry_comparison']
+    assert value['state']=='completed_research_only' and 'sizing_audit' not in value

@@ -17,6 +17,9 @@ def classify_intent_candidates(query: str) -> list[IntentCandidate]:
 
     cands: list[IntentCandidate] = []
     add = cands.append
+    if (any(p in q for p in ("entry model comparison", "entry model test", "entry research"))
+        and any(p in q for p in ("progress", "how is", "how's", "status", "doing", "result", "finished", "complete", "passed", "fail"))):
+        add(IntentCandidate("research_progress",0.995,["specific_entry_research_terms"]))
     if any(p in q for p in ("smc validation", "smc test", "smc backtest")):
         add(IntentCandidate("research_progress",0.995,["specific_smc_validation_terms"]))
     if any(p in q for p in ("learning experiment", "learned ranker", "learning model", "activity review", "inactivity review", "seven-day review", "seven day review", "startup verification", "reboot test", "penalty comparison", "penalty shadow", "confidence penalty test")):

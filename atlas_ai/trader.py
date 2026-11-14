@@ -1172,6 +1172,10 @@ class AtlasTrader:
                 from atlas_ai.strategies.smc_retest import evaluate
             elif progress.get("model")=="smc_framework_v4":
                 from atlas_ai.strategies.smc_framework import evaluate
+            elif progress.get("model")=="smc_event_retest_v5":
+                from atlas_ai.strategies.smc_entry_models import event_retest as evaluate
+            elif progress.get("model")=="smc_sweep_reclaim_v5":
+                from atlas_ai.strategies.smc_entry_models import sweep_reclaim as evaluate
             from atlas_ai.data.broker_clock import broker_time_to_utc
             info=mt5.symbol_info(self.settings.symbol);tick=mt5.symbol_info_tick(self.settings.symbol)
             if info is None or tick is None:raise ValueError("broker_quote_unavailable")

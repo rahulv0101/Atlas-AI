@@ -15,7 +15,7 @@ FRAMEWORK_RULES={'families':['sweep_reversal','BOS_continuation'],'priority':'co
 FRAMEWORK_RULES['reaction_location']='recent_12_closed_M5_bar_extreme_reached_H1_or_M15_zone_before_entry'
 
 
-def evaluate(frame,context,quote,now):
+def context_observation(frame,context,quote,now):
     try:
         closed=closed_bars(frame,'M5',now).tail(80)
         side=context.get('details',{}).get('D1')
@@ -27,6 +27,11 @@ def evaluate(frame,context,quote,now):
         left=sequence(frame,context,quote,now,setup_policy=policy,retest_policy=first_retest)
     except (KeyError,TypeError,ValueError,OverflowError):
         left=reversal(frame,context,quote,now)
+    return left
+
+
+def evaluate(frame,context,quote,now):
+    left=context_observation(frame,context,quote,now)
     result={**left,'strategy':NAME,'schema':'atlas_smc_framework_v4',
         'rules':{**left['rules'],'context':{**CONTEXT_RULES,'location':'recent_M5_pullback_reference_in_H1_or_M15_half'},
             'retest':dict(RETEST_RULES),'framework':dict(FRAMEWORK_RULES)},'family':'sweep_reversal'}

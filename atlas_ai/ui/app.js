@@ -1358,6 +1358,14 @@ function renderResearchProgress(status) {
   const activity = progress.activity || {};
   const costs = progress.costs || {};
   const penalties = progress.penalty_shadow || {};
+  const entryComparison = progress.entry_comparison || {};
+  const entrySizing = Object.values((entryComparison.sizing_audit || {}).models || {});
+  const entrySizingText = entrySizing.length
+    ? ` ${entrySizing.reduce((n,m) => n + m.risk_budget_exceeded,0)}/${entrySizing.reduce((n,m) => n + m.complete_signals,0)} signals exceed the simulation risk budget at minimum lot.` : "";
+  setText("research-entry-models", entryComparison.stale !== false ? "Current comparison evidence unavailable" :
+    entryComparison.state === "completed_research_only"
+      ? `Research complete; development-qualified paper candidate: ${(entryComparison.selection || {}).selected_for_forward_paper || "none"}.${entrySizingText} No broker authority.`
+      : `${String(entryComparison.phase || "preparing").replace(/_/g," ")}; source bar ${entryComparison.bar ?? "unknown"}/${entryComparison.bars ?? "unknown"}. Offline research only.`);
   setText("research-penalties", penalties.stale !== false ? "Current paired-test evidence unavailable" :
     `${String(penalties.state || "unknown").replace(/_/g," ")}; ${(penalties.first_stage || {}).resolved_pairs ?? "unknown"}/30 + ${(penalties.validation_stage || {}).resolved_pairs ?? "unknown"}/30 paired cases; ${penalties.pending_pairs ?? "unknown"} pending. Paper only.`);
   const startup = progress.startup || {};
@@ -2670,7 +2678,11 @@ function renderStatus(s, runtime) {
   const topDown = (view || {}).higher_timeframe || {};
   const smc = (view || {}).smc_composite || {};
   const smcPolicy = document.getElementById("smc-context-policy");
-  if (smcPolicy) smcPolicy.textContent = smc.strategy === "smc_framework_v4"
+  if (smcPolicy) smcPolicy.textContent = smc.strategy === "smc_event_retest_v5"
+    ? "Event retest research: higher-timeframe pullback, impulse followed by a confirmed structure break, then the first fresh-zone retest. No broker authority."
+    : smc.strategy === "smc_sweep_reclaim_v5"
+    ? "Sweep-reclaim research: higher-timeframe pullback, liquidity sweep, then the first directional reclaim close. No broker authority."
+    : smc.strategy === "smc_framework_v4"
     ? "SMC v4: D1/H4 direction, H1/M15 reaction zones, then M5 sweep reversal OR BOS continuation. Research observer; the active trader's execution gate is separate."
     : ["smc_pullback_v2", "smc_retest_v3"].includes(smc.strategy)
     ? `${smc.strategy === "smc_retest_v3" ? "SMC v3" : "SMC v2"}: D1/H4 direction; H1/M15 pullback zones; M5 trigger. ${smc.strategy === "smc_retest_v3" ? "Independent zone visits; confirmation within two bars. " : ""}This observer is separate from the active trader's confluence gate.`

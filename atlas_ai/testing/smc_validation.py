@@ -62,7 +62,7 @@ def stage(rows):
     return m
 
 
-def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None,evaluator=evaluate):
+def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None,evaluator=evaluate,context_provider=None):
     f=frames['M5'].reset_index(drop=True);times=pd.to_datetime(f.time,utc=True)
     execution=f.copy();execution['spread']=f.spread.shift(1)
     feed=HistoricalFeed({tf:frames[tf] for tf in TIMEFRAMES})
@@ -88,11 +88,13 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
         if finish>boundaries[stage_index]:counts['split_boundary_purge']+=1;continue
         if times.iloc[entry]!=now or not times.iloc[i-79:last+1].diff().dropna().eq(pd.Timedelta(minutes=5)).all():
             counts['input_or_outcome_gap']+=1;continue
-        feed.now=now
-        key=now.floor('15min')
-        if key!=context_key:
-            cached_context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC');context_key=key
-        context={**cached_context,'evaluated_at':now.isoformat()}
+        if context_provider is not None:context=context_provider(now)
+        else:
+            feed.now=now
+            key=now.floor('15min')
+            if key!=context_key:
+                cached_context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC');context_key=key
+            context={**cached_context,'evaluated_at':now.isoformat()}
         quote={'bid':float(f.open.iloc[entry]),'ask':float(f.open.iloc[entry])+float(execution.spread.iloc[entry])*spec.point,
             'point':spec.point,'at':now.isoformat()}
         result=evaluator(f.iloc[max(0,i-79):i+1],context,quote,now)

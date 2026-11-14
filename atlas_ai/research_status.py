@@ -115,11 +115,55 @@ def load_research_progress(storage, *, now=None):
     smc=paper_progress(storage);age=_age(smc.get("checked_at"),now)
     smc.update(stale=age is None or age>180,age_seconds=age)
     result["smc_validation"]=smc
+    try:
+        pointer=_read(storage/"smc_entry_comparison_active.json")
+        directory=Path(pointer["run_dir"]).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/"protocol.json",signed=True)
+        if protocol.get("broker_eligible") is not False:raise ValueError("unexpected_comparison_authority")
+        if (directory/"report.json").exists():
+            report=_read(directory/"report.json",signed=True)
+            if report.get("protocol_sha256")!=hashlib.sha256((directory/"protocol.json").read_bytes()).hexdigest():raise ValueError("comparison_protocol_changed")
+            result["entry_comparison"]={"state":"completed_research_only","selection":report.get("selection",{}),"models":report.get("models",{}),"stale":False,"broker_eligible":False}
+            try:
+                audit=_read(directory/"sizing_audit.json",signed=True)
+                if audit.get("report_sha256")!=hashlib.sha256((directory/"report.json").read_bytes()).hexdigest() or audit.get("broker_eligible") is not False:
+                    raise ValueError("sizing_audit_mismatch")
+                if not isinstance(audit.get("models"),dict) or any(
+                    not isinstance(m,dict) or any(type(m.get(k)) is not int or m[k]<0
+                    for k in ["complete_signals","risk_budget_exceeded"])
+                    or m["risk_budget_exceeded"]>m["complete_signals"]
+                    for m in audit["models"].values()):
+                    raise ValueError("invalid_sizing_counts")
+                result["entry_comparison"]["sizing_audit"]=audit
+            except (OSError,ValueError,KeyError,TypeError):
+                pass  # Completed comparison remains valid when optional attribution is unavailable.
+        else:
+            path=directory/"progress.json";value=_read(path)
+            age=_age(datetime.fromtimestamp(path.stat().st_mtime,timezone.utc).isoformat(),now)
+            result["entry_comparison"]={k:value.get(k) for k in ["phase","bar","bars","sampled_windows","model","cases"]}
+            result["entry_comparison"].update(state="running_research_only",stale=age is None or age>600,age_seconds=age,broker_eligible=False)
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result["entry_comparison"]={"state":"unavailable","stale":True,"broker_eligible":False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if "entry model" in q or "entry research" in q:
+        value=progress.get("entry_comparison") or {}
+        if value.get("stale",True):return "The entry-model comparison report is unavailable or stale. I cannot confirm progress; it cannot enable broker trading."
+        if value.get("state")=="completed_research_only":
+            selected=(value.get("selection") or {}).get("selected_for_forward_paper")
+            models=(value.get("sizing_audit") or {}).get("models") or {}
+            sizing=""
+            if models:
+                total=sum(m["complete_signals"] for m in models.values())
+                rejected=sum(m["risk_budget_exceeded"] for m in models.values())
+                sizing=f"{rejected} of {total} complete signals exceeded the frozen simulation risk budget at minimum lot. "
+            return (f"Entry research is complete. Development-qualified paper candidate: {selected or 'none'}. "
+                + sizing + "No broker model is activated." + ("" if voice else " These are reused historical diagnostics; fresh forward evidence and full execution checks remain necessary."))
+        return (f"Entry research is running: {str(value.get('phase','preparing')).replace('_',' ')}. "
+            f"Source bar {value.get('bar','unknown')} of {value.get('bars','unknown')}. No broker authority.")
     if "smc" in q:
         smc=progress.get("smc_validation") or {}
         if smc.get("stale",True):return "The SMC validation report is unavailable or stale. I cannot confirm its progress; it has no broker authority."

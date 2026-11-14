@@ -43,20 +43,31 @@ def evaluator_for(manifest):
     if name=='smc_framework_v4':
         from atlas_ai.strategies.smc_framework import evaluate as framework
         return framework
+    if name=='smc_event_retest_v5':
+        from atlas_ai.strategies.smc_entry_models import event_retest
+        return event_retest
+    if name=='smc_sweep_reclaim_v5':
+        from atlas_ai.strategies.smc_entry_models import sweep_reclaim
+        return sweep_reclaim
     raise ValueError('unsupported_frozen_model')
 
 
-def initialize(directory,model='smc_composite_v1',reuse=None):
+def initialize(directory,model='smc_composite_v1',reuse=None,*,activate=True,reuse_costs=False):
     s=load_settings();storage=Path(s.storage_dir);directory=directory.resolve()
     directory.relative_to(storage.resolve());directory.mkdir(parents=True,exist_ok=False)
     if s.timeframe!='M5' or not s.top_down_confluence_enabled or s.backtest_max_hold_bars!=12:
         raise ValueError('configured_top_down_M5_and_12_bar_research_horizon_required')
-    check_account(s);now=datetime.now(timezone.utc);end=pd.Timestamp(now).floor('5min');start=end-pd.Timedelta(days=180)
-    spec,evidence,limits=broker_snapshot(s)
+    if not reuse_costs:check_account(s)
+    now=datetime.now(timezone.utc);end=pd.Timestamp(now).floor('5min');start=end-pd.Timedelta(days=180)
+    if reuse_costs and reuse is None:raise ValueError('reused_costs_require_verified_source')
+    if not reuse_costs:spec,evidence,limits=broker_snapshot(s)
     if reuse is not None:
         reuse=reuse.resolve();reuse.relative_to(storage.resolve());old=signed(reuse,'manifest')
         if old['account_scope']!=account_scope(s) or old['settings']['symbol']!=s.symbol:raise ValueError('historical_reuse_scope_changed')
         start=pd.Timestamp(old['history_start']);end=pd.Timestamp(old['history_end'])
+        if reuse_costs:
+            if json.loads(json.dumps(safe_settings(s)))!=old['settings']:raise ValueError('settings_changed_in_matched_comparison')
+            spec=BrokerSpec(**old['spec']);evidence={**old['cost_evidence'],'reference_manifest_sha256':digest(reuse/'manifest.json')};limits=old['limits']
     hashes={}
     for folder in ['atlas_ai','tools']:
         for p in (ROOT/folder).rglob('*.py'):
@@ -64,6 +75,7 @@ def initialize(directory,model='smc_composite_v1',reuse=None):
             target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,target);hashes[relative.as_posix()]=digest(p)
     manifest={'schema':'atlas_smc_validation_v1','method':METHOD,'frozen_at':now.isoformat(),
         'model':model,'history_reused_after_prior_diagnostic':reuse is not None,
+        'paper_activation_requested':activate,'matched_frozen_cost_reference':reuse_costs,
         'history_start':start.isoformat(),'history_end':end.isoformat(),'settings':safe_settings(s),
         'spec':asdict(spec),'cost_evidence':evidence,'limits':limits,'account_scope':account_scope(s),
         'source_hashes':hashes,'environment':environment_versions(),'broker_eligible':False,'orders_sent':0,
@@ -85,7 +97,7 @@ def initialize(directory,model='smc_composite_v1',reuse=None):
     save_signed(directory,'inputs',{tf:digest(directory/(tf+'.csv')) for tf in (*TIMEFRAMES,'M5')})
     # Activated paper observation has no dependency on a historical pass and no
     # ability to enable broker trading. The historical screen is separate.
-    atomic_json(storage/'smc_validation_active.json',{'run_dir':str(directory)})
+    if activate:atomic_json(storage/'smc_validation_active.json',{'run_dir':str(directory)})
     print(json.dumps({'state':'frozen_inputs_ready','run_dir':str(directory)}),flush=True)
 
 
@@ -213,8 +225,9 @@ def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mode',choices=['init','history','watch','once']);p.add_argument('--run-dir',type=Path,required=True)
-    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2','smc_retest_v3','smc_framework_v4'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path);a=p.parse_args()
-    if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs);return
+    p.add_argument('--model',choices=['smc_composite_v1','smc_pullback_v2','smc_retest_v3','smc_framework_v4','smc_event_retest_v5','smc_sweep_reclaim_v5'],default='smc_composite_v1');p.add_argument('--reuse-inputs',type=Path)
+    p.add_argument('--no-activate',action='store_true');p.add_argument('--reuse-costs',action='store_true');a=p.parse_args()
+    if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs,activate=not a.no_activate,reuse_costs=a.reuse_costs);return
     if a.mode=='history':run_history(a.run_dir);return
     with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny):
         while True:

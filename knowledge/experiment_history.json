@@ -78,6 +78,42 @@
       "artifacts_root": "storage/smc_validation/framework_v4_fast_20261113",
       "trace_artifacts_root": "storage/audits/smc_retest_trace_20261113",
       "interpretation": "Separate setup families and pullback-location timing remove zero-signal behavior; activity and performance evidence remain insufficient for broker activation."
+    },
+    {
+      "id": "smc_entry_comparison_20261113",
+      "models": [
+        "smc_event_retest_v5",
+        "smc_sweep_reclaim_v5"
+      ],
+      "evidence_type": "retrospective_reused_history",
+      "historical_review_passed": false,
+      "complete_signals": 80,
+      "nominal_initial_balance_zar": 10000,
+      "nominal_risk_budget_zar": 50,
+      "signals_exceeding_initial_risk_budget_at_minimum_lot": 78,
+      "margin_rejections_at_initial_balance": 0,
+      "lot_cap_rejections": 0,
+      "stage_trades": {
+        "event_retest": {
+          "development": 1,
+          "validation": 0,
+          "holdout": 0
+        },
+        "sweep_reclaim": {
+          "development": 0,
+          "validation": 0,
+          "holdout": 1
+        }
+      },
+      "simulated_net_cash_zar": {
+        "event_retest": -45.211377,
+        "sweep_reclaim": 217.150316
+      },
+      "selected_for_forward_paper": null,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/smc_entry_comparison_20261113",
+      "interpretation": "Neither passed development. One holdout win cannot select a model. Minimum-lot structural stop risk exceeds the frozen nominal budget for 78/80 signals; no risk increases or execution activation."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
