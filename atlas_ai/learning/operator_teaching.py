@@ -230,9 +230,9 @@ def build_structured_lesson_from_status(status: dict[str, Any]) -> dict[str, Any
     confidence_effect = "no_confidence_boost"
     evidence_required = missing[:6] or ["clearer confluence evidence"]
     if "higher-timeframe" in primary.lower() or "htf_bias" in primary.lower():
-        correction = "Do not treat M1 direction as executable while higher-timeframe bias conflicts."
+        correction = "Do not treat entry-timeframe direction as executable while higher-timeframe bias conflicts."
         confidence_effect = "reduce_or_hold_confidence_until_alignment"
-        evidence_required = ["M1 direction aligns with HTF bias", "setup trigger remains valid"]
+        evidence_required = ["entry-timeframe direction aligns with HTF bias", "setup trigger remains valid"]
     loss_text = " ".join(
         [
             primary.lower(),

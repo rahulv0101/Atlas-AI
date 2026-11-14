@@ -12,7 +12,7 @@ from atlas_ai.market_context import build_context_snapshot
 from atlas_ai.strategies.inventory import base_inventory
 
 
-def historical_decision(trader,chosen,signals,window,regime,bias,snapshot,now,*,cache=None,namespace=None):
+def historical_decision(trader,chosen,signals,window,regime,bias,snapshot,now,*,cache=None,namespace=None,higher_context=None):
     cache={} if cache is None else cache
     seed=float(chosen.confidence)
     key=("chart",id(trader.settings),namespace,chosen.strategy,chosen.side,seed)
@@ -23,7 +23,7 @@ def historical_decision(trader,chosen,signals,window,regime,bias,snapshot,now,*,
     status={"symbol":trader.settings.symbol,"timeframe":trader.settings.timeframe,
         "updated_at":now.isoformat(),"session":trader._session_label(now),"regime":regime,
         "chosen":{**asdict(chosen),"signal_confidence_seed":seed},"signals":[asdict(s) for s in signals],
-        "higher_timeframe":{"bias":bias},"chart_features":chart,"risk":asdict(snapshot),
+        "higher_timeframe":higher_context or {"bias":bias},"chart_features":chart,"risk":asdict(snapshot),
         "setup_family":trader._strategy_to_setup_family(chosen.strategy),
         "learning_mode":trader.settings.learning_mode,"mode_label":profile["mode_label"],"thresholds":profile,
         "visual_chart_read":{"status":"unavailable_historical","visual_watch_used_for_decision":False},
@@ -44,7 +44,8 @@ def historical_decision(trader,chosen,signals,window,regime,bias,snapshot,now,*,
         return {"timing_passed":bool(timing["passed"]),"safety":safety,"confidence":None,"threshold":threshold}
     support_key=("raw_support",id(trader.settings),namespace)
     if support_key not in cache:
-        raw=[s.generate_signal(window) for s in base_inventory(trader.settings.timeframe) if trader._strategy_enabled(s.name)]
+        raw=[s.generate_signal(window) for s in base_inventory(trader.settings.timeframe,
+            top_down=bool(getattr(trader.settings,'top_down_confluence_enabled',False))) if trader._strategy_enabled(s.name)]
         cache[support_key]={side:sum(s.side==side and s.confidence>0 for s in raw) for side in ("buy","sell")}
     support=max(trader._same_side_support_count(signals,chosen.side),cache[support_key][chosen.side])
     status["same_side_support"]={"count":support}

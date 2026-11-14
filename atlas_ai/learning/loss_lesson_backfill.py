@@ -356,7 +356,7 @@ def _execution_lesson(classification: str, setup_family: str) -> dict[str, Any]:
             "confirmation_required": ["strong_m1_momentum", "structure_hold", "avoid_first_push"],
         },
         "weak_pullback": {
-            "correction": "Wait for pullback location and M1 momentum to turn back with the setup.",
+            "correction": "Wait for pullback location and entry-timeframe momentum to turn back with the setup.",
             "confirmation_required": ["valid_pullback_location", "m1_momentum_turn", "controlled_wick_pressure"],
         },
         "late_entry": {

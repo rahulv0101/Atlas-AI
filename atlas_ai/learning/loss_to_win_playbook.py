@@ -21,8 +21,8 @@ def _lesson_template(classification: str) -> dict[str, Any]:
     code = _label(classification, "weak_structure")
     table: dict[str, dict[str, Any]] = {
         "weak_pullback": {
-            "failed_when": ["pullback entered before M1 momentum turned", "entry quality was not clean enough"],
-            "corrected_entry": "Only treat the pullback as tradable after price reaches a valid reaction zone and M1 momentum turns back with the setup.",
+            "failed_when": ["pullback entered before entry-timeframe momentum turned", "entry quality was not clean enough"],
+            "corrected_entry": "Only treat the pullback as tradable after price reaches a valid reaction zone and entry-timeframe momentum turns back with the setup.",
             "confirmation_required": ["valid_pullback_location", "strong_or_turning_m1_momentum", "controlled_wick_pressure"],
             "avoid_until": ["mid_range_removed", "momentum_not_mixed"],
             "failure_axis": "location_or_structure",

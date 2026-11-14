@@ -7,6 +7,19 @@ import subprocess
 import pytest
 
 
+@pytest.mark.parametrize('timeframe',['M1','M5','M15',None])
+def test_timing_summary_uses_current_timeframe_without_assuming_m1(timeframe):
+    node=shutil.which('node')
+    if not node:pytest.skip('Node required')
+    source=(Path(__file__).resolve().parents[1]/'atlas_ai/ui/app.js').read_text(encoding='utf-8')
+    helper=source[source.index('function entryWaitingSummary('):source.index('function renderOperatorOverview(')]
+    payload={'timeframe':timeframe,'timing_discipline':{'hard_block':True,'missing':['strong_or_turning_m1_momentum']}}
+    script=helper+'\nprocess.stdout.write(JSON.stringify(entryWaitingSummary('+json.dumps(payload)+')));'
+    completed=subprocess.run([node,'-'],input=script,text=True,capture_output=True,check=True,timeout=15)
+    value=json.loads(completed.stdout)
+    assert value['detail']==f"Waiting for {timeframe or 'Entry-timeframe'} momentum."
+
+
 @pytest.mark.parametrize("action,display,expected", [
     ("hold", {"state": "waiting", "label": "WAITING", "detail": "No directional trade signal selected."}, "WAITING"),
     ("blocked", {"state": "waiting", "label": "WAITING", "detail": "Waiting for clean entry timing."}, "WAITING"),
@@ -19,7 +32,7 @@ def test_dashboard_uses_api_readiness_instead_of_inventing_ready_from_side(actio
         pytest.skip("Node is required to execute the dashboard renderer")
     source = (Path(__file__).resolve().parents[1] / "atlas_ai/ui/app.js").read_text(encoding="utf-8")
     renderer = source[source.index("function entryWaitingSummary("):source.index("function renderVisualChartRead(")]
-    payload = {"action": action, "message": display["detail"] if display else "Current decision", "execution_readiness": {"display": display} if display else {}}
+    payload = {"timeframe": "M5", "action": action, "message": display["detail"] if display else "Current decision", "execution_readiness": {"display": display} if display else {}}
     if action == "blocked" and display and display["label"] == "WAITING":
         payload["timing_discipline"] = {"hard_block": True, "missing": ["tradable_location", "strong_or_turning_m1_momentum", "visual_confirmation"]}
     script = '''
@@ -36,7 +49,7 @@ function titleCase(value) { return value; }
     values = json.loads(completed.stdout)
     assert values["cmd-readiness"] == expected
     if action == "blocked" and display and display["label"] == "WAITING":
-        assert values["cmd-readiness-detail"] == "Waiting for a clear entry location, M1 momentum, chart confirmation."
+        assert values["cmd-readiness-detail"] == "Waiting for a clear entry location, M5 momentum, chart confirmation."
         assert values["cmd-blocker"] == "Entry timing"
     elif action == "hold" and display:
         assert values["cmd-readiness-detail"] == "No buy or sell candidate is available in this cycle."

@@ -16,7 +16,7 @@
     "developing": [
       "some playbook ingredients are present",
       "one or more confirmations are still missing",
-      "operator should observe or wait for M1 confirmation"
+      "operator should observe or wait for entry-timeframe confirmation"
     ],
     "not_ready": [
       "price is mid-range",

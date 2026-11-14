@@ -1240,9 +1240,14 @@ def run_backtest(mode_override: str = "") -> None:
     settings=load_settings()
     stamp=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     output=Path(settings.storage_dir)/"guarded_research"/f"backtest_{stamp}"
-    result=run_broker_history(output)
+    if str(getattr(settings,'timeframe','')).upper()=='M5' and bool(getattr(settings,'top_down_confluence_enabled',False)):
+        from tools.m5_system_backtest import run as run_m5
+        result=run_m5(output)
+    else:
+        result=run_broker_history(output)
     print("Atlas historical policy research: no broker orders, no live activation")
-    print(f"State: {result['state']} | comparisons: {len(result['comparisons'])}")
+    print(f"State: {result['state']} | comparisons: {len(result.get('comparisons',{}))}" if 'diagnostic' not in result
+          else f"State: {result['state']} | M5 diagnostic trades: {result['diagnostic']['trades']}")
     print(f"Report: {output / 'report.json'}")
     print("Historical visual/macro/execution evidence remains unavailable; see report limitations.")
 

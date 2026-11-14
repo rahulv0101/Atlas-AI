@@ -114,6 +114,38 @@
       "auto_promotion": false,
       "artifacts_root": "storage/smc_entry_comparison_20261113",
       "interpretation": "Neither passed development. One holdout win cannot select a model. Minimum-lot structural stop risk exceeds the frozen nominal budget for 78/80 signals; no risk increases or execution activation."
+    },
+    {
+      "id": "M5_system_backtest_20261114",
+      "evidence_type": "retrospective_reused_history_current_policy_diagnostic",
+      "timeframe": "M5",
+      "higher_timeframes": [
+        "D1",
+        "H4",
+        "H1",
+        "M15"
+      ],
+      "strategies": [
+        "ema_crossover",
+        "momentum_continuation",
+        "pullback_trend",
+        "gold_micro_impulse",
+        "gold_breakout_retest",
+        "gold_liquidity_sweep"
+      ],
+      "historical_review_passed": false,
+      "diagnostic_trades": 10,
+      "diagnostic_wins": 2,
+      "diagnostic_losses": 8,
+      "diagnostic_net_cash_zar": -94.06046800000149,
+      "nominal_initial_balance_zar": 10000.0,
+      "strict_evidence_trades": 0,
+      "full_live_policy_parity": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "artifacts_root": "storage/m5_system_backtest_20261114_v3",
+      "summary": "docs/M5_SYSTEM_BACKTEST_20261114.json",
+      "interpretation": "All six enabled strategies included. Small losing diagnostic sample; strict evidence replay cannot reconstruct visual/macro/execution evidence. No strategy or risk changes or broker lifecycle proof."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

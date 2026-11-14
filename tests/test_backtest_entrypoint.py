@@ -26,3 +26,15 @@ def test_backtest_rejects_live_override_before_any_broker_read(monkeypatch):
     monkeypatch.setattr(audit,"run_broker_history",run)
     with pytest.raises(ValueError,match="cannot enable live"):main.run_backtest(mode_override="live")
     run.assert_not_called()
+
+
+def test_m5_backtest_entrypoint_preserves_configured_native_top_down_policy(tmp_path,monkeypatch):
+    from tools import m5_system_backtest
+    monkeypatch.setattr(main,'load_settings',lambda:SimpleNamespace(storage_dir=str(tmp_path),
+                        timeframe='M5',top_down_confluence_enabled=True))
+    legacy=Mock(side_effect=AssertionError('Must not force M1'))
+    monkeypatch.setattr(audit,'run_broker_history',legacy)
+    run=Mock(return_value={'state':'completed_research_only','diagnostic':{'trades':0}})
+    monkeypatch.setattr(m5_system_backtest,'run',run)
+    main.run_backtest()
+    run.assert_called_once();legacy.assert_not_called()

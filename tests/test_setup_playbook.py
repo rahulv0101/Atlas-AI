@@ -191,7 +191,7 @@ def test_setup_radar_trigger_checklist_explains_mid_range_pullback_wait() -> Non
     labels = " ".join(str(x.get("label", "")) for x in top["trigger_checklist"])
     assert top["trigger_state"] == "forming_waiting_for_confirmations"
     assert "pull back into a valid structure" in labels
-    assert "M1 momentum" in labels
+    assert "entry-timeframe momentum" in labels
     assert "mid-range" in " ".join(radar["conditions_slowing_setups"])
 
 

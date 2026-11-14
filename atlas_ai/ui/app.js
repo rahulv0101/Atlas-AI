@@ -1130,7 +1130,7 @@ function entryWaitingSummary(status) {
     const needs = [];
     if (missing.has("tradable_location") || missing.has("visual_tradable_location")) needs.push("a clear entry location");
     if (missing.has("fresh_entry_or_retest")) needs.push("a fresh entry or retest");
-    if (missing.has("strong_or_turning_m1_momentum")) needs.push("M1 momentum");
+    if (missing.has("strong_or_turning_m1_momentum")) needs.push(`${(timing.observed || (timing.structured_result || {}).observed || {}).entry_timeframe || data.timeframe || "Entry-timeframe"} momentum`);
     if (missing.has("visual_confirmation")) needs.push("chart confirmation");
     const detail = needs.length ? `Waiting for ${needs.join(", ")}.` : "Waiting for the entry checks to pass.";
     return { headline: "Entry timing", detail, next: "Atlas will check the next market update." };

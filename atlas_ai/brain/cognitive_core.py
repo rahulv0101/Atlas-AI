@@ -118,7 +118,7 @@ def build_cognitive_core(
     current_question = {
         "what_atlas_sees": {
             "symbol": str(status.get("symbol", "XAUUSD") or "XAUUSD"),
-            "timeframe": str(status.get("timeframe", "M1") or "M1"),
+            "timeframe": str(status.get("timeframe", "unknown") or "unknown"),
             "session": str(session.get("current_session") or context.get("session") or "unknown"),
             "regime": str(context.get("regime") or dict(status.get("market_regime", {}) or {}).get("regime") or "unknown"),
             "structure": str(context.get("trend_structure") or "unknown"),

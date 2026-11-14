@@ -47,19 +47,27 @@ def policy_trader(settings,store):
     return trader
 
 
-def cache_candidates(frame,settings,store,progress=lambda **kw:None,*,start_index=250):
-    if bool(getattr(settings,"top_down_confluence_enabled",False)):
+def cache_candidates(frame,settings,store,progress=lambda **kw:None,*,start_index=250,native_frames=None):
+    top_down=bool(getattr(settings,"top_down_confluence_enabled",False))
+    if top_down and native_frames is None:
         raise ValueError("Top-down policy requires separate higher-timeframe histories; single-frame replay is unsupported")
+    if top_down and settings.timeframe!="M5":raise ValueError("Top-down replay requires M5 entries")
     trader=policy_trader(settings,store)
-    strategies=[s for s in base_inventory(settings.timeframe) if trader._strategy_enabled(s.name)]
+    strategies=[s for s in base_inventory(settings.timeframe,top_down=top_down) if trader._strategy_enabled(s.name)]
     timeframe={"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}
     tf=settings.m1_htf_alignment_timeframe if settings.timeframe=="M1" else settings.higher_timeframe_confirm
-    biases=higher_timeframe_bias(frame,timeframe[tf]);cache=[];counts=Counter()
+    minutes=timeframe[settings.timeframe];cache=[];counts=Counter()
+    if top_down:
+        from atlas_ai.testing.smc_validation import HistoricalFeed
+        from atlas_ai.data.top_down import collect,TIMEFRAMES
+        if any(tf not in native_frames for tf in TIMEFRAMES):raise ValueError("all_native_higher_timeframes_required")
+        feed=HistoricalFeed(native_frames);context_key=None;higher_context=None
+    else:biases=higher_timeframe_bias(frame,timeframe[tf])
     for i in range(max(250,start_index),len(frame)-1):
         at=pd.Timestamp(frame.time.iloc[i],tz="UTC") if pd.Timestamp(frame.time.iloc[i]).tzinfo is None else pd.Timestamp(frame.time.iloc[i]).tz_convert("UTC")
-        available=at+pd.Timedelta(minutes=1)
+        available=at+pd.Timedelta(minutes=minutes)
         if pd.Timestamp(frame.time.iloc[i+1]).tz_localize(None)!=available.tz_localize(None):
-            counts["missing_next_minute"]+=1;continue
+            counts["missing_next_minute" if minutes==1 else "missing_next_bar"]+=1;continue
         window=frame.iloc[max(0,i-1199):i+1]
         context=trader._signal_generation_context(window,available.to_pydatetime())
         signals=[]
@@ -71,13 +79,22 @@ def cache_candidates(frame,settings,store,progress=lambda **kw:None,*,start_inde
             if signal.side in {"buy","sell"}:counts[strategy.name+":gated_directional"]+=1
         if any(s["side"] in {"buy","sell"} and s["confidence"]>0 for s in signals):
             regime=trader._market_regime(list(window.close.tail(60)))
+            if top_down:
+                key=available.floor('15min')
+                if key!=context_key:
+                    feed.now=available
+                    higher_context=collect(feed,available,broker_timezone=settings.mt5_server_timezone or 'UTC');context_key=key
+                higher={**higher_context,'evaluated_at':available.isoformat()}
+            else:higher=None
             cache.append({"index":i,"available_at":available.isoformat(),"signals":signals,
-                "regime":regime,"higher_tf_bias":biases[i]})
+                "regime":regime,"higher_tf_bias":higher['bias'] if top_down else biases[i],
+                **({'higher_context':higher} if top_down else {})})
         if i%500==0:progress(stage="cache",bar=i,bars=len(frame),candidate_bars=len(cache))
     return cache,dict(counts),[s.name for s in strategies]
 
 
 def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict=False,start=None,end=None,decision_cache=None):
+    minutes={"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}[settings.timeframe]
     trader=policy_trader(settings,store);risk=RiskManager(settings)
     calendar=DayTradingSessionControl(max_trades_per_day=min(settings.max_trades_per_day,limits["day_trades"]),
         max_consecutive_losses=min(settings.max_consecutive_losses,limits["loss_streak"]),
@@ -112,6 +129,10 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
         else:
             scores,_=trader._contextual_signal_scores(signals,window,snapshot,regime,bias,{}, {},at)
             chosen=trader.allocator.choose(directional,score_overrides=scores)
+        if bool(getattr(settings,'top_down_confluence_enabled',False)):
+            from atlas_ai.data.top_down import entry_gate
+            if not entry_gate(item.get('higher_context') or {},chosen.side)['passed']:
+                rejections['higher_timeframe_confluence']+=1;continue
         if settings.require_higher_tf_alignment and chosen.side!=bias:
             rejections["higher_timeframe_alignment"]+=1;continue
         support=trader._same_side_support_count(signals,chosen.side)
@@ -119,7 +140,7 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
         if trader._strategy_to_setup_family(chosen.strategy)!=limits["setup_family"]:
             rejections["pilot_setup_family"]+=1;continue
         decision=historical_decision(trader,chosen,signals,window,regime,bias,snapshot,at,
-            cache=decision_cache,namespace=(id(frame),i))
+            cache=decision_cache,namespace=(id(frame),i),higher_context=item.get('higher_context'))
         if not decision["timing_passed"]:rejections["timing_discipline"]+=1;continue
         if decision["safety"]["volatility_action"]=="block_new_entries":
             rejections["volatility_protection"]+=1;continue
@@ -143,14 +164,14 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
         weekly_floor=week_start*(1-settings.max_weekly_drawdown)
         if modeled_stop+friction>balance-max(daily_floor,weekly_floor):
             rejections["remaining_day_week_risk_budget"]+=1;continue
-        held=min(settings.backtest_max_hold_bars,session.minutes_to_close-10)
+        held=min(settings.backtest_max_hold_bars,(session.minutes_to_close-10)//minutes)
         if held<1:rejections["session_close_buffer"]+=1;continue
         last=entry_index+held-1
         if (last>=len(frame) or (end is not None and
-                pd.Timestamp(frame.time.iloc[last]).tz_localize(None)+pd.Timedelta(minutes=1)>pd.Timestamp(end).tz_localize(None))):
+                pd.Timestamp(frame.time.iloc[last]).tz_localize(None)+pd.Timedelta(minutes=minutes)>pd.Timestamp(end).tz_localize(None))):
             rejections["incomplete_exit_window"]+=1;continue
         times=pd.to_datetime(frame.time.iloc[entry_index:last+1],utc=True)
-        if not times.diff().dropna().eq(pd.Timedelta(minutes=1)).all():
+        if not times.diff().dropna().eq(pd.Timedelta(minutes=minutes)).all():
             rejections["gap_in_execution_window"]+=1;continue
         trade=simulate(frame,entry_index,chosen,volume,spec,settings,variant,
             last_index=last if held<settings.backtest_max_hold_bars else None)

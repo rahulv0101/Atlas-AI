@@ -3633,7 +3633,7 @@ class AtlasTrader:
                 "confirmation_required": ["strong_m1_momentum", "structure_hold", "avoid_first_push"],
             },
             "weak_pullback": {
-                "correction": "Wait for the pullback to reach a valid reaction zone and for M1 momentum to turn back with the setup.",
+                "correction": "Wait for the pullback to reach a valid reaction zone and for entry-timeframe momentum to turn back with the setup.",
                 "confirmation_required": ["valid_pullback_location", "m1_momentum_turn", "controlled_wick_pressure"],
             },
             "late_entry": {
@@ -4255,7 +4255,7 @@ class AtlasTrader:
         labels = {
             "tradable_location": "tradable location",
             "fresh_entry_or_retest": "fresh entry or retest",
-            "strong_or_turning_m1_momentum": "strong/turning M1 momentum",
+            "strong_or_turning_m1_momentum": "strong/turning entry-timeframe momentum",
             "structure_hold": "structure hold",
             "sweep_rejection_or_structure_reclaim": "sweep rejection or structure reclaim",
             "new_york_extra_momentum_confirmation": "New York momentum confirmation",
@@ -4285,7 +4285,7 @@ class AtlasTrader:
         reason_code = None if passed else cls._timing_reason_code(missing)
         missing_text = cls._format_timing_missing(missing)
         if observed.get("entry_timeframe"):
-            missing_text = missing_text.replace("M1 momentum",str(observed["entry_timeframe"])+" momentum")
+            missing_text = missing_text.replace("entry-timeframe momentum",str(observed["entry_timeframe"])+" momentum")
         if passed and side not in {"buy", "sell"}:
             detail = "Timing check not applicable: no directional signal was selected; this is not an entry approval."
         elif passed:

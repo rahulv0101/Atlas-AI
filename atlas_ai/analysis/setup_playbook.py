@@ -103,7 +103,7 @@ def _setup_phase(candidate: dict[str, Any]) -> str:
 def _confirmation_label(code: str) -> str:
     labels = {
         "pullback_entry_location": "price must pull back into a valid structure/reaction zone",
-        "momentum_confirmation": "M1 momentum must turn back in the setup direction",
+        "momentum_confirmation": "entry-timeframe momentum must turn back in the setup direction",
         "breakout_or_retest_location": "breakout must retest or hold a clean reaction level",
         "breakout_follow_through": "breakout needs follow-through after the retest",
         "range_context": "range context must be clearly defined",
@@ -402,7 +402,7 @@ def score_setup_playbook(
         missing=missing,
         supporting_evidence=[f"structure={trend_structure}", f"momentum={momentum}", f"location={location}"],
         risk_notes=common_risk,
-        execution_focus="wait for M1 confirmation in the pullback direction before existing gates can approve.",
+        execution_focus="wait for entry-timeframe confirmation in the pullback direction before existing gates can approve.",
     ))
 
     present = []

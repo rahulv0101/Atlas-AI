@@ -5,7 +5,7 @@
     {
       "id": "false_continuation_requires_confirmation",
       "title": "False Continuation Requires Confirmation",
-      "lesson": "A continuation idea is not executable just because direction exists. Atlas must require structure to hold, strong or turning M1 momentum, and same-side support before trusting continuation again.",
+      "lesson": "A continuation idea is not executable just because direction exists. Atlas must require structure to hold, strong or turning entry-timeframe momentum, and same-side support before trusting continuation again.",
       "failed_when": [
         "continuation was assumed before structure held",
         "momentum was mixed or weak",
@@ -37,7 +37,7 @@
     {
       "id": "momentum_must_confirm",
       "title": "Momentum Must Confirm",
-      "lesson": "Mixed M1 momentum is not enough for a continuation setup after recent losses. Atlas should wait for strong or clearly turning momentum before treating the setup as corrected.",
+      "lesson": "Mixed entry-timeframe momentum is not enough for a continuation setup after recent losses. Atlas should wait for strong or clearly turning momentum before treating the setup as corrected.",
       "failed_when": [
         "momentum was weak",
         "momentum was mixed",
