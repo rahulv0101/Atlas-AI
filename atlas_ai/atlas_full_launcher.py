@@ -754,6 +754,34 @@ def _run_launch_cycle(config: AtlasWakeConfig, attempt_index: int = 1, max_attem
     return summary
 
 
+def run_backend_launch(config: AtlasWakeConfig | None = None) -> dict[str, Any]:
+    """Start the existing guarded backend without a desktop or browser window."""
+    config = config or load_atlas_wake_config()
+    setup_logging(config)
+    os.environ["ATLAS_WAKE_LAUNCH_PROFILE"] = str(config.launch_profile or "").strip().lower()
+    steps = []
+    validation = _validate_guarded_demo_commands(config)
+    steps.append({"step": "guarded_demo_command_validation", "result": validation.__dict__})
+    reason = "invalid_launch_configuration"
+    ok = False
+    if validation.status != "failed":
+        started = _start_mt5_if_needed(config)
+        ready = _wait_for_mt5(config)
+        steps.extend([{"step": "mt5_launch", "result": started.__dict__},
+                      {"step": "mt5_readiness", "result": ready.__dict__}])
+        reason = "mt5_not_ready"
+        if ready.status == "healthy":
+            started = _start_backend_if_needed(config)
+            ready = _wait_for_backend(config)
+            steps.extend([{"step": "backend_launch", "result": started.__dict__},
+                          {"step": "backend_readiness", "result": ready.__dict__}])
+            ok = ready.status == "healthy"
+            reason = "backend_only_ready" if ok else "backend_not_ready"
+    return {"startup_sequence": steps, "desktop_ui_enabled": False,
+            "health": {"checked_at": datetime.now(timezone.utc).isoformat(),
+                       "overall_result": "SUCCESS" if ok else "FAILED", "overall_reason": reason}}
+
+
 def run_full_launch(config: AtlasWakeConfig | None = None) -> dict[str, Any]:
     config = config or load_atlas_wake_config()
     setup_logging(config)

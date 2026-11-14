@@ -71,3 +71,39 @@ def test_simultaneous_shortcut_clicks_do_not_launch_twice(launcher, tmp_path, mo
     with observation_lock(tmp_path / "storage/atlas_fullstack_startup.lock"):
         assert launcher.main() == 0
     start.assert_not_called()
+
+
+def test_saved_backend_only_preference_never_starts_desktop_or_audio(launcher,tmp_path,monkeypatch):
+    import json
+    from unittest.mock import Mock
+    (tmp_path/'.venv/Scripts').mkdir(parents=True);(tmp_path/'.venv/Scripts/python.exe').touch()
+    (tmp_path/'storage').mkdir()
+    (tmp_path/'storage/operator_interface.json').write_text(json.dumps({'desktop_ui_enabled':False}))
+    monkeypatch.setattr(launcher,'ROOT',tmp_path);monkeypatch.setattr(launcher,'VENV_ROOT',tmp_path/'.venv')
+    launch=Mock(return_value={'health':{'overall_result':'SUCCESS'}})
+    monkeypatch.setattr(launcher,'run_backend_launch',launch)
+    forbidden=Mock(side_effect=AssertionError('Desktop/audio must stay down'))
+    monkeypatch.setattr(launcher,'run_full_launch',forbidden);monkeypatch.setattr(launcher,'_ensure_audio_path',forbidden)
+    monkeypatch.setattr(launcher,'_ensure_acceptance_observation',Mock())
+    assert launcher._start()==0
+    launch.assert_called_once();forbidden.assert_not_called()
+
+
+def test_backend_launch_retains_readiness_gates_without_frontend(monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+    from atlas_ai import atlas_full_launcher as full
+    cfg=SimpleNamespace(launch_profile='guarded_demo')
+    monkeypatch.setattr(full,'setup_logging',lambda c:None)
+    for name in ['_validate_guarded_demo_commands','_start_mt5_if_needed','_wait_for_mt5','_start_backend_if_needed','_wait_for_backend']:
+        monkeypatch.setattr(full,name,Mock(return_value=SimpleNamespace(status='healthy')))
+    forbidden=Mock(side_effect=AssertionError('No frontend in backend-only operation'))
+    monkeypatch.setattr(full,'_start_frontend_if_needed',forbidden)
+    result=full.run_backend_launch(cfg)
+    assert result['health']['overall_result']=='SUCCESS' and result['desktop_ui_enabled'] is False
+    forbidden.assert_not_called()
+    full._wait_for_mt5.return_value=SimpleNamespace(status='failed')
+    full._start_backend_if_needed.reset_mock()
+    result=full.run_backend_launch(cfg)
+    assert result['health']['overall_result']=='FAILED'
+    full._start_backend_if_needed.assert_not_called()

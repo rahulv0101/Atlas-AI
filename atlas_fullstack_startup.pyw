@@ -128,7 +128,7 @@ def _ensure_audio_path() -> None:
 
 _bootstrap_venv_imports()
 
-from atlas_ai.atlas_full_launcher import run_full_launch
+from atlas_ai.atlas_full_launcher import run_full_launch, run_backend_launch
 from atlas_ai.atlas_wake_config import load_atlas_wake_config
 
 
@@ -137,6 +137,20 @@ def _start() -> int:
     if not (VENV_ROOT / "Scripts" / "python.exe").exists():
         logging.error("Atlas startup failed: .venv\\Scripts\\python.exe not found.")
         return 1
+
+    preference = ROOT / "storage/operator_interface.json"
+    if preference.exists():
+        value = json.loads(preference.read_text(encoding="utf-8"))
+        if type(value.get("desktop_ui_enabled")) is not bool:
+            raise ValueError("desktop_ui_enabled must be an explicit boolean")
+        if value["desktop_ui_enabled"] is False:
+            logging.info("Starting or reusing backend only; desktop UI disabled by operator preference.")
+            summary = run_backend_launch(load_atlas_wake_config())
+            (ROOT / "storage/atlas_fullstack_startup_result.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            ok = summary["health"]["overall_result"] == "SUCCESS"
+            if ok:
+                _ensure_acceptance_observation()
+            return 0 if ok else 1
 
     if _is_core_stack_running():
         logging.info("Atlas core stack already running. Skipping relaunch.")
