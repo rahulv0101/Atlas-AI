@@ -301,6 +301,19 @@
       "live_policy_changed": false,
       "summary": "docs/STRUCTURAL_TIMING_RESULTS_20261116.json",
       "interpretation": "Reconstructed closed-candle structural location/turn evidence resolves generic-label timing rejection in research. Earlier R50 affordability failures apply to a R10000 scenario, not automatically to the current demo account. The corrected model still failed profit/sample reviews and is not broker-enabled."
+    },
+    {
+      "id": "structural_strategy_diagnosis_20261116",
+      "evidence_type": "receipt_bound_fixed_sample_diagnosis_not_new_strategy_validation",
+      "simulated_trades_reproduced": 10,
+      "full_risk_early_stops": 4,
+      "losses_opposing_generic_M5_trend": 5,
+      "total_losses": 6,
+      "take_profit_exits": 0,
+      "profit_factor_pooled_fixed_sample": 0.9025604423883178,
+      "policy_changed": false,
+      "summary": "docs/STRUCTURAL_STRATEGY_DIAGNOSIS_20261116.json",
+      "interpretation": "Early follow-through failures and low realized payoff explain the fixed sample loss; M5 trend opposition is an association, not a validated filter. Tick ordering remains unresolved and no strategy was activated."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

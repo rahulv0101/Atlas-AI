@@ -1,0 +1,514 @@
+{
+  "schema": "atlas_fixed_strategy_diagnosis_v1",
+  "state": "completed_read_only_diagnosis",
+  "checked_at": "2026-11-16T17:39:20.811211+00:00",
+  "source_report_sha256": "eb426157ae77efe27cd9e710ae5b0e11ebe8a032c4cacc678898e63f4c2dfffa",
+  "diagnostic_source_sha256": "ad169df263874db237fa1f160ca1399cd99096414ab670c136341070ebb3acca",
+  "protocol_sha256": "712221776caef2cf5af6d3a7e59607d3380de04b34c8affa15c325b43ff8ba8a",
+  "payoffs": {
+    "trades": 10,
+    "wins": 4,
+    "losses": 6,
+    "win_rate": 0.4,
+    "gross_winning_cash": 385.42459525497696,
+    "gross_losing_cash": 427.0346639999893,
+    "net_cash_sum_separate_stage_runs": -41.61006874501231,
+    "profit_factor_pooled_fixed_sample": 0.9025604423883178,
+    "mean_win_cash": 96.35614881374424,
+    "mean_loss_cash": 71.17244399999821,
+    "break_even_win_rate_at_observed_payoffs": 0.42483759222598744,
+    "note": "Descriptive pooled fixed sample; stages reset independently. Not one continuous portfolio or a stable forecast."
+  },
+  "exit_reasons": {
+    "stop_loss": 6,
+    "max_hold": 3,
+    "stale_exit": 1
+  },
+  "losing_exit_reasons": {
+    "stop_loss": 4,
+    "max_hold": 1,
+    "stale_exit": 1
+  },
+  "full_risk_stop_count": 4,
+  "M5_alignment_outcomes": {
+    "True": {
+      "trades": 3,
+      "wins": 2
+    },
+    "False": {
+      "trades": 7,
+      "wins": 2
+    }
+  },
+  "trades": [
+    {
+      "stage": "development",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-05-22T17:20:00+00:00",
+      "side": "sell",
+      "exit_reason": "stop_loss",
+      "net_cash": -117.94290720000063,
+      "net_r": -1.0043290043289677,
+      "initial_risk_cash": 117.43453260000493,
+      "confidence": 0.69,
+      "session": "new_york",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 2,
+      "initial_target_R": 3.4242424242422174,
+      "M5_generic_trend": "downtrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.2768,
+        "volatility_pct": 0.0645,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.8455,
+          "reason": "close-to-close slope -0.2768% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.276766,
+            "atr_pct": 0.064538,
+            "range_pct": 0.8233,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": true,
+      "completed_preexit_bars": 1,
+      "completed_preexit_mfe_r": 0.17316017316013965,
+      "completed_preexit_mae_r": 0.3708513708514446,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": true
+    },
+    {
+      "stage": "development",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-05-28T07:35:00+00:00",
+      "side": "sell",
+      "exit_reason": "max_hold",
+      "net_cash": -47.61775419999137,
+      "net_r": -0.37317397078347747,
+      "initial_risk_cash": 127.6020245999957,
+      "confidence": 0.59,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 12,
+      "initial_target_R": 3.0106241699868312,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.3935,
+        "volatility_pct": 0.0672,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -0.3935% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.393485,
+            "atr_pct": 0.067172,
+            "range_pct": 0.874143,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 11,
+      "completed_preexit_mfe_r": 0.8339973439574977,
+      "completed_preexit_mae_r": 0.7675962815404967,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    },
+    {
+      "stage": "development",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-06-19T07:30:00+00:00",
+      "side": "sell",
+      "exit_reason": "stale_exit",
+      "net_cash": -9.150742799999385,
+      "net_r": -0.06330597889800467,
+      "initial_risk_cash": 144.5478445999957,
+      "confidence": 0.59,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 4,
+      "initial_target_R": 3.1688159437280836,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.6555,
+        "volatility_pct": 0.0646,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -0.6555% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.655535,
+            "atr_pct": 0.064623,
+            "range_pct": 1.338506,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 3,
+      "completed_preexit_mfe_r": 0.11606096131299078,
+      "completed_preexit_mae_r": 0.6248534583821906,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    },
+    {
+      "stage": "development",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-07-13T07:45:00+00:00",
+      "side": "sell",
+      "exit_reason": "stop_loss",
+      "net_cash": -104.89462580000094,
+      "net_r": -1.0048701298701623,
+      "initial_risk_cash": 104.38625119999756,
+      "confidence": 0.71,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 3,
+      "initial_target_R": 2.147727272727326,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.2988,
+        "volatility_pct": 0.055,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.8519,
+          "reason": "close-to-close slope -0.2988% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.298804,
+            "atr_pct": 0.055049,
+            "range_pct": 0.478632,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 2,
+      "completed_preexit_mfe_r": 0.13961038961041355,
+      "completed_preexit_mae_r": 0.7581168831169127,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": true
+    },
+    {
+      "stage": "development",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-08-06T10:25:00+00:00",
+      "side": "buy",
+      "exit_reason": "stop_loss",
+      "net_cash": -75.74781540000433,
+      "net_r": -1.0067567567566986,
+      "initial_risk_cash": 75.23944080000864,
+      "confidence": 0.59,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 2,
+      "initial_target_R": 3.0833333333328894,
+      "M5_generic_trend": "downtrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.4008,
+        "volatility_pct": 0.0557,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope 0.4008% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": 0.400825,
+            "atr_pct": 0.055684,
+            "range_pct": 0.733355,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 1,
+      "completed_preexit_mfe_r": 0.0,
+      "completed_preexit_mae_r": 0.777027027026897,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": true
+    },
+    {
+      "stage": "validation",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-09-14T10:55:00+00:00",
+      "side": "sell",
+      "exit_reason": "stop_loss",
+      "net_cash": -71.6808185999926,
+      "net_r": -1.0071428571427967,
+      "initial_risk_cash": 71.17244399999693,
+      "confidence": 0.71,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 1,
+      "initial_target_R": 2.059523809523812,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 1.0502,
+        "volatility_pct": 0.0503,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -1.0502% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -1.050231,
+            "atr_pct": 0.050343,
+            "range_pct": 1.296722,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 0,
+      "completed_preexit_mfe_r": null,
+      "completed_preexit_mae_r": null,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": true
+    },
+    {
+      "stage": "holdout",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-10-22T08:35:00+00:00",
+      "side": "sell",
+      "exit_reason": "stop_loss",
+      "net_cash": 5.615076284996241,
+      "net_r": 0.04583051891651558,
+      "initial_risk_cash": 122.51827860000033,
+      "confidence": 0.73,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 8,
+      "initial_target_R": 2.8326417704011018,
+      "M5_generic_trend": "downtrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.1473,
+        "volatility_pct": 0.0534,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.5295,
+          "reason": "close-to-close slope -0.1473% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.147304,
+            "atr_pct": 0.053436,
+            "range_pct": 0.712407,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": true,
+      "completed_preexit_bars": 7,
+      "completed_preexit_mfe_r": 1.011065006915619,
+      "completed_preexit_mae_r": 0.9253112033195072,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    },
+    {
+      "stage": "holdout",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-10-23T16:20:00+00:00",
+      "side": "sell",
+      "exit_reason": "max_hold",
+      "net_cash": 142.11309209999013,
+      "net_r": 1.8512850667557077,
+      "initial_risk_cash": 76.7645646000034,
+      "confidence": 0.59,
+      "session": "new_york",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 12,
+      "initial_target_R": 3.3487858719644477,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "strong",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.6817,
+        "volatility_pct": 0.0672,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -0.6817% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.681678,
+            "atr_pct": 0.06722,
+            "range_pct": 1.364469,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 11,
+      "completed_preexit_mfe_r": 1.209713024282411,
+      "completed_preexit_mae_r": 0.9403973509933842,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    },
+    {
+      "stage": "holdout",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-11-11T13:25:00+00:00",
+      "side": "sell",
+      "exit_reason": "max_hold",
+      "net_cash": 173.6184975,
+      "net_r": 1.3427923753414874,
+      "initial_risk_cash": 129.29660659999416,
+      "confidence": 0.75,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 12,
+      "initial_target_R": 3.454783748361903,
+      "M5_generic_trend": "downtrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.4036,
+        "volatility_pct": 0.0424,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -0.4036% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.403577,
+            "atr_pct": 0.042412,
+            "range_pct": 0.500512,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": true,
+      "completed_preexit_bars": 11,
+      "completed_preexit_mfe_r": 1.4652686762778953,
+      "completed_preexit_mae_r": 0.13892529488859676,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    },
+    {
+      "stage": "holdout",
+      "strategy": "smc_structural_timing_sweep_v8",
+      "entry_at": "2026-11-12T11:10:00+00:00",
+      "side": "sell",
+      "exit_reason": "stop_loss",
+      "net_cash": 64.07792936999063,
+      "net_r": 0.8939341182410876,
+      "initial_risk_cash": 71.68081860000031,
+      "confidence": 0.59,
+      "session": "london",
+      "ambiguous_stop_first": false,
+      "bars_to_exit_including_exit_bar": 8,
+      "initial_target_R": 6.489361702127589,
+      "M5_generic_trend": "uptrend",
+      "M5_generic_momentum": "mixed",
+      "M5_generic_location": "mid_range",
+      "regime": {
+        "name": "trend",
+        "trend_strength": 0.6793,
+        "volatility_pct": 0.0653,
+        "regime_label": "trending",
+        "regime_label_detail": {
+          "label": "trending",
+          "confidence": 0.95,
+          "reason": "close-to-close slope -0.6793% exceeds trend threshold",
+          "metrics": {
+            "samples": 60,
+            "slope_pct": -0.679291,
+            "atr_pct": 0.065277,
+            "range_pct": 1.280832,
+            "trend_threshold_pct": 0.12,
+            "high_volatility_atr_pct": 0.06,
+            "low_volatility_atr_pct": 0.02
+          },
+          "policy_note": "regime label is observational only; ranking weights are unchanged"
+        }
+      },
+      "M5_trend_aligned": false,
+      "completed_preexit_bars": 7,
+      "completed_preexit_mfe_r": 1.8014184397162785,
+      "completed_preexit_mae_r": 0.08747044917265816,
+      "exit_bar_order_unknown": true,
+      "full_risk_stop": false
+    }
+  ],
+  "strategy_or_risk_policy_changed": false,
+  "orders_sent": 0,
+  "limitations": [
+    "Ten simulated trades across independently reset stages; associations are not causal proof.",
+    "OHLC paths do not establish tick ordering, broker fills or exact intrabar exit times.",
+    "No post-hoc filter or management setting was selected or activated."
+  ],
+  "diagnostic_tests_passed": 7,
+  "source_reproduction_verified": true,
+  "tick_review": {
+    "state": "stopped_unresponsive_history_request",
+    "verified_tick_cases": 0,
+    "conclusion": "Intrabar ordering remains unresolved. No tick-based strategy or execution claim is made.",
+    "orders_sent": 0
+  },
+  "receipts": {
+    "diagnostic_report_sha256": "9ed23aa19b41bf819e856bca5afd776190f9464c627668b526c1619a3b735efa",
+    "tick_review_status_sha256": "94e4a5c655b1c8ab15b457297888f87d47accb6137b295cc4caff125d6b51622"
+  }
+}
