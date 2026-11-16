@@ -127,3 +127,5 @@ reported 4,135 windows without confluence and 23 without a complete sweep.
 The detector's synthetic buy/sell tests demonstrate that it can emit valid
 sequences, but do not establish a market edge. This declared sequence has not
 shown sufficient frequency on the available periods and is not activated.
+
+A receipt-bound near-miss audit reconstructed all nine reported retest windows with identical rejection reasons. This confirms reproduction, not a profitable repair. Run tools.audit_sequence_near_misses to retain the candles and reasons in a separate local audit. No thresholds or live policies changed.
