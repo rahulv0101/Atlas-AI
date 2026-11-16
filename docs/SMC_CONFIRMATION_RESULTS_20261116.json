@@ -1,0 +1,155 @@
+{
+  "experiment": "smc_confirmation_correction_20261116_v2",
+  "state": "completed_research_only",
+  "data_status": "Previously inspected retrospective history; not blind or prospective validation.",
+  "rules": {
+    "context": "existing_D1_H4_H1_M15_entry_gate",
+    "confirmation_delay_closed_M5_bars": 3,
+    "pending_limit": "one_setup_per_model; first_anchor_priority; expiry_consumes_current_bar",
+    "bar_updates": "one_decision_per_closed_bar; duplicates_ignored; unavailable_windows_retire",
+    "confirmation": "existing_shared_timing_gate_and_directional_M5_close_beyond_anchor_close",
+    "protection": "original_buffered_structural_stop_never_tightened; Ask_spread_cannot_reduce_sell_protection",
+    "target": "nearest_current_HTF_liquidity_at_least_2R_before_costs",
+    "budget": "explicit_frozen_nominal_budget_including_roundtrip_fees_and_3_points_slippage_each_side",
+    "stale_or_breached_setup": "retire_no_rearm",
+    "unavailable_confirmation_windows": "retire",
+    "execution_authority": "none",
+    "auto_promotion": false
+  },
+  "models": {
+    "smc_event_retest_confirmed_v6": {
+      "eligible_candidates": 0,
+      "counts": {
+        "higher_timeframe_confluence:all_four_higher_timeframes_required": 13,
+        "confirmation:await_actual_directional_M5_timing_confirmation": 4,
+        "confirmation:confirmation_window_expired": 1
+      },
+      "historical_review_passed": false,
+      "stages": {
+        "development": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "validation": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "holdout": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        }
+      }
+    },
+    "smc_sweep_reclaim_confirmed_v6": {
+      "eligible_candidates": 0,
+      "counts": {
+        "higher_timeframe_confluence:all_four_higher_timeframes_required": 65,
+        "confirmation:await_actual_directional_M5_timing_confirmation": 33,
+        "confirmation:confirmation_window_expired": 7,
+        "protection:original_structural_protection_breached": 2,
+        "confirmation:unavailable_confirmation_window_retired": 1
+      },
+      "historical_review_passed": false,
+      "stages": {
+        "development": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "validation": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "holdout": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        }
+      }
+    }
+  },
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "auto_promotion": false,
+  "live_policy_changed": false,
+  "operator_view_published": true,
+  "existing_paper_observers_changed": false,
+  "focused_tests_passed": 57,
+  "receipts": {
+    "protocol.json": "522b225bd8b75bb70a46192c4401fe51b80c2642473f5763b99c3b5d8ea10590",
+    "report.json": "451595b064a4ebedafab077316c57f3fed9eadbb5ae5baaf55ae055df2fb6fcf",
+    "prediction_receipt.json": "f84e024c77212cbd373d1e9264305f127e2f56ae9c9bad0f8eeef84d8afbd95c",
+    "source_receipt.json": "7ad22fa1183c01abef2a494abb006786edc06b75cbb3f4b617704ece77a211dc",
+    "operator_view/protocol.json": "d79a90fb2008efd30a300c7c35d7eb29af95560f5c902ecc9a30af37fa4798ac",
+    "operator_view/report.json": "b42f8a8c2a1031e7301c253c579b13aa46c1c44dcc7c2fc3dc7a1dd4ea16057d"
+  },
+  "limits": [
+    "Previously inspected source population; not a new chart detector or independent validation.",
+    "Zero candidates reached the affordability check, so improved affordability is unproven.",
+    "No profitable edge, actual broker fills or natural lifecycle demonstrated."
+  ]
+}

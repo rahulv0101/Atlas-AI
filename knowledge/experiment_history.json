@@ -251,6 +251,18 @@
       "live_policy_changed": false,
       "summary": "docs/SMC_BACKTEST_RERUN_RESULTS_20261116.json",
       "interpretation": "Neither model qualifies. Model pullback context conflicts with all-four directional confluence; timing and min-lot affordability also constrain candidates. Audits overlap and are not one executable portfolio."
+    },
+    {
+      "id": "smc_confirmation_correction_20261116_v2",
+      "evidence_type": "fixed_research_confirmation_adapter_on_prior_SMC_observations_not_blind",
+      "eligible_candidates": 0,
+      "shared_policy_trades": 0,
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "operator_report_updated": true,
+      "summary": "docs/SMC_CONFIRMATION_RESULTS_20261116.json",
+      "interpretation": "Alignment and confirmation handoff is explicit; original protection and risk are preserved. One aligned event anchor expired; seven sweep anchors expired, two breached protection and one lost its confirmation window. No model qualified; this adapter cannot discover setups outside the original source population."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
