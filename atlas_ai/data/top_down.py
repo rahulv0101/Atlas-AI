@@ -23,9 +23,24 @@ def closed_bars(frame, timeframe, now, *, broker_timezone="UTC"):
     result=frame.loc[mask].copy()
     if len(result)<30:raise ValueError("insufficient_closed_candles")
     age=(now-ends.loc[mask].iloc[-1]).total_seconds()
+    freshness_basis="elapsed_time"
+    if timeframe=="D1" and age>MINUTES[timeframe]*120:
+        local_now=now.tz_convert(broker_timezone)
+        monday=local_now.normalize()
+        last_end=ends.loc[mask].iloc[-1].tz_convert(broker_timezone)
+        forming=times[(times<=now)&(ends>now)]
+        current_monday=any(at.tz_convert(broker_timezone).normalize()==monday for at in forming)
+        # A Friday D1 bar closes at Saturday's broker midnight. On Monday,
+        # require today's forming D1 bar as independent proof the feed resumed.
+        # Its price is never included in the directional calculation.
+        if (local_now.weekday()==0 and last_end==monday-pd.DateOffset(days=2)
+                and current_monday):
+            age=(now-monday.tz_convert("UTC")).total_seconds()
+            freshness_basis="weekend_confirmed_by_current_daily_bar"
     if age>MINUTES[timeframe]*120:raise ValueError("stale_closed_candles")
     closes=[float(v) for v in result.close.tail(30)]
     if any(not math.isfinite(v) or v<=0 for v in closes):raise ValueError("invalid_closed_prices")
+    result.attrs.update(freshness_basis=freshness_basis,freshness_age_seconds=age)
     return result
 
 
@@ -42,6 +57,7 @@ def collect(feed, now, *, broker_timezone="UTC"):
             details[tf]=bias
             evidence[tf]={"bias":bias,"last_closed_bar_utc":pd.to_datetime(frame.time.iloc[-1],utc=True).isoformat(),
                 "closed_bars":len(frame),"recent_high":high,"recent_low":low,
+                "freshness_basis":frame.attrs["freshness_basis"],"freshness_age_seconds":frame.attrs["freshness_age_seconds"],
                 "recent_closes":[float(v) for v in frame.close.tail(6)],
                 "basis":"10_vs_30_closed_close_average","status":"available"}
         except Exception as exc:

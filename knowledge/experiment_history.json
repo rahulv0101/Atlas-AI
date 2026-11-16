@@ -175,6 +175,17 @@
       "protocol_sha256": "27f0e734b96b083446c0aa19651e685291fef881182d29663d1d4e8669270c25",
       "summary": "docs/M5_STOP_RESEARCH_20261114.json",
       "learning_scope": "Durable factual research evidence only; no live allocator, strategy, risk or execution mutation."
+    },
+    {
+      "id": "m5_daily_weekend_freshness_20261116",
+      "evidence_type": "software_regression_and_read_only_broker_integration",
+      "change": "Recognize the Friday closed D1 candle on Monday only when a current forming Monday D1 bar proves that the feed resumed. Forming prices remain excluded.",
+      "observed_before": "D1 unknown: stale_closed_candles; other native frames sell",
+      "observed_after": "D1/H4/H1/M15 all available and sell in the direct broker check",
+      "risk_policy_changed": false,
+      "strategy_logic_changed": false,
+      "performance_proven": false,
+      "prior_reports_boundary": "Earlier frozen reports retain their original freshness implementation; they do not validate this repaired version. A new frozen replay is required for current-version performance claims."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

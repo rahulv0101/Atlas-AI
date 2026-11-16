@@ -71,6 +71,38 @@ def test_daily_calendar_close_handles_broker_dst_boundary():
     assert out.time.iloc[-1].tz_convert('Europe/Athens').day==24
 
 
+@pytest.mark.parametrize('date',['2026-11-16','2026-10-26'])
+def test_monday_daily_reference_requires_current_forming_bar_and_handles_dst(date):
+    monday=pd.Timestamp(date,tz='Europe/Athens')
+    friday=monday-pd.DateOffset(days=3)
+    dates=pd.date_range(end=friday,periods=50,freq='B').append(pd.DatetimeIndex([monday])).tz_convert('UTC')
+    f=pd.DataFrame({'time':dates,'close':range(2000,2051)})
+    now=(monday+pd.Timedelta(hours=8)).tz_convert('UTC')
+    out=closed_bars(f,'D1',now,broker_timezone='Europe/Athens')
+    assert out.time.iloc[-1]==friday.tz_convert('UTC')
+    assert out.attrs['freshness_basis']=='weekend_confirmed_by_current_daily_bar'
+    assert out.attrs['freshness_age_seconds']==8*3600
+    f.loc[f.index[-1],'close']=999999
+    assert closed_bars(f,'D1',now,broker_timezone='Europe/Athens').equals(out)
+    with pytest.raises(ValueError,match='stale_closed_candles'):
+        closed_bars(f.iloc[:-1],'D1',now,broker_timezone='Europe/Athens')
+    # A future timestamp cannot establish that the feed has resumed.
+    f.loc[f.index[-1],'time']=now+pd.Timedelta(hours=1)
+    with pytest.raises(ValueError,match='stale_closed_candles'):
+        closed_bars(f,'D1',now,broker_timezone='Europe/Athens')
+
+
+def test_weekend_exception_does_not_accept_a_missing_friday_or_stuck_tuesday_feed():
+    monday=pd.Timestamp('2026-11-16',tz='Europe/Athens')
+    dates=pd.date_range(end=monday-pd.DateOffset(days=4),periods=50,freq='B').append(pd.DatetimeIndex([monday])).tz_convert('UTC')
+    f=pd.DataFrame({'time':dates,'close':range(2000,2051)})
+    with pytest.raises(ValueError,match='stale_closed_candles'):
+        closed_bars(f,'D1',monday+pd.Timedelta(hours=8),broker_timezone='Europe/Athens')
+    f.loc[f.index[-2],'time']=(monday-pd.DateOffset(days=3)).tz_convert('UTC')
+    with pytest.raises(ValueError,match='stale_closed_candles'):
+        closed_bars(f.iloc[:-1],'D1',monday+pd.Timedelta(days=1,hours=8),broker_timezone='Europe/Athens')
+
+
 def test_m5_sweep_inventory_is_explicit_and_legacy_defaults_unchanged():
     assert 'gold_liquidity_sweep' not in {s.name for s in base_inventory('M5')}
     assert 'gold_liquidity_sweep' in {s.name for s in base_inventory('M5',top_down=True)}
