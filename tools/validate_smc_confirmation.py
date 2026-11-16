@@ -30,7 +30,9 @@ from tools.smc_validation import validate
 from tools.m5_stop_research import review
 
 
-def run(source, output):
+def run(source, output, *, fresh_detectors=False):
+    from atlas_ai.testing.aligned_smc import detect, MODELS as FRESH_MODELS, RULES as FRESH_RULES
+    model_map = {name: name.replace('_v7', '_confirmed_v7') for name in FRESH_MODELS} if fresh_detectors else MODELS
     original = signed(source, 'protocol')
     report = signed(source, 'report')
     receipt = signed(source, 'prediction_receipt')
@@ -60,12 +62,13 @@ def run(source, output):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
             hashes[rel.as_posix()] = digest(target)
-    protocol = {'schema': 'atlas_smc_confirmation_correction_v1', 'models': MODELS, 'rules': RULES,
+    protocol = {'schema': 'atlas_smc_confirmation_correction_v2', 'models': model_map, 'rules': RULES,
+        'fresh_detectors': fresh_detectors, 'detector_rules': FRESH_RULES if fresh_detectors else None,
         'frozen_at': datetime.now(timezone.utc).isoformat(), 'source_protocol_sha256': digest(source/'protocol.json'),
         'source_report_sha256': digest(source/'report.json'), 'source_predictions_sha256': receipt['sha256'],
         'settings': manifest['settings'], 'spec': manifest['spec'], 'limits': manifest['limits'],
         'history_start': manifest['history_start'], 'history_end': manifest['history_end'],
-        'scope': 'Only original eligible SMC prediction windows; inherited session/gap/outcome availability screens apply.',
+        'scope': 'Original eligible closed-M5 time grid; fresh detection across every window, not restricted to prior candidates.' if fresh_detectors else 'Only original eligible SMC prediction windows; inherited session/gap/outcome availability screens apply.',
         'data_status': 'Previously inspected retrospective history; not blind or prospective validation.',
         'selection': 'One fixed adapter per model; no search/retuning; all three chronological stages must pass original review.',
         'stage_state': 'Reset pending setups at each chronological split. No cross-split trades.',
@@ -79,10 +82,16 @@ def run(source, output):
     feed = HistoricalFeed({tf: frames[tf] for tf in TIMEFRAMES})
     start, end = pd.Timestamp(manifest['history_start']), pd.Timestamp(manifest['history_end'])
     bounds = [start, start+(end-start)*.6, start+(end-start)*.8, end]
-    counts = {name: Counter() for name in MODELS.values()}
-    rows = {name: [] for name in MODELS.values()}
-    states = {name: Confirmation(name) for name in MODELS}
+    counts = {name: Counter() for name in model_map.values()}
+    detector_counts = {name: Counter() for name in model_map}
+    rows = {name: [] for name in model_map.values()}
+    def new_states():
+        return {name: Confirmation(name, research_name=target) for name, target in model_map.items()}
+    states = new_states()
     current_stage = None
+    context_key = None
+    cached_context = None
+    windows = 0
     with patch.object(mt5, 'initialize', deny), patch.object(mt5, 'order_send', deny), tempfile.TemporaryDirectory(prefix='atlas_confirmation_') as temp:
         cfg = settings_for(manifest, temp)
         spec = BrokerSpec(**manifest['spec'])
@@ -93,19 +102,32 @@ def run(source, output):
                 now = pd.Timestamp(record['now'])
                 stage = next(j for j in range(3) if bounds[j] <= now < bounds[j+1])
                 if stage != current_stage:
-                    states = {name: Confirmation(name) for name in MODELS}
+                    states = new_states()
                     current_stage = stage
-                if not any(v.get('candidate') for v in record['predictions'].values()) and not any(v.pending for v in states.values()):
+                if not fresh_detectors and not any(v.get('candidate') for v in record['predictions'].values()) and not any(v.pending for v in states.values()):
                     continue
                 i = indices[pd.Timestamp(record['input_last_bar'])]
                 window = frame.iloc[max(0, i-1199):i+1]
                 feed.now = now
-                context = collect(feed, now, broker_timezone=cfg.mt5_server_timezone or 'UTC')
+                if not fresh_detectors or context_key != now.floor('15min'):
+                    cached_context = collect(feed, now, broker_timezone=cfg.mt5_server_timezone or 'UTC')
+                    context_key = now.floor('15min')
+                context = {**cached_context, 'evaluated_at': now.isoformat()}
                 quote = {**record['quote'], 'digits': spec.digits}
+                raw_values = detect(window, context, quote, now) if fresh_detectors else record['predictions']
+                windows += 1
+                if fresh_detectors:
+                    out.write(json.dumps({'available_at': now.isoformat(), 'detectors': raw_values}, allow_nan=False)+'\n')
+                    for name, v in raw_values.items():
+                        detector_counts[name][v['stage']+':'+v['reason']] += 1
+                    if windows % 250 == 0:
+                        atomic_json(output/'progress.json', {'phase': 'fresh_detector_predictions_before_labels',
+                            'windows': windows, 'eligible_counts': {n: len(v) for n, v in rows.items()},
+                            'checked_at': datetime.now(timezone.utc).isoformat()})
                 regime = trader._market_regime(list(window.close.tail(60)))
                 snapshot = RiskSnapshot(cfg.backtest_initial_balance, cfg.backtest_initial_balance, 0, 0, (quote['ask']-quote['bid'])/spec.point, 0, 0)
                 for source_name, state in states.items():
-                    raw = record['predictions'][source_name]
+                    raw = raw_values[source_name]
                     if not raw.get('candidate') and not state.pending:
                         continue
                     def timing(signal):
@@ -120,7 +142,8 @@ def run(source, output):
                     if observation['candidate']:
                         rows[state.name].append({'index': i, 'available_at': now.isoformat(), 'signals': [observation['candidate']],
                             'regime': regime, 'higher_tf_bias': context['bias'], 'higher_context': context})
-        save_signed(output, 'candidate_cache', {'rows': rows, 'counts': {k: dict(v) for k, v in counts.items()}})
+        save_signed(output, 'candidate_cache', {'rows': rows, 'counts': {k: dict(v) for k, v in counts.items()},
+            'detector_counts': {k: dict(v) for k, v in detector_counts.items()}})
         save_signed(output, 'prediction_receipt', {'protocol_sha256': digest(output/'protocol.json'),
             'observations_sha256': digest(output/'observations.jsonl'), 'candidate_cache_sha256': digest(output/'candidate_cache.json'),
             'predictions_completed_before_labels': True})
@@ -135,7 +158,9 @@ def run(source, output):
                     KnowledgeStore(temp), manifest['limits'], start=bounds[j].to_pydatetime(), end=bounds[j+1].to_pydatetime())
                 stats['review'] = review(stats)
                 stages[label] = stats
-            result['models'][name] = {'counts': dict(counts[name]), 'eligible_candidates': len(cache), 'stages': stages,
+            raw_name = next(k for k, v in model_map.items() if v == name)
+            result['models'][name] = {'counts': dict(counts[name]), 'detector_counts': dict(detector_counts[raw_name]),
+                                     'eligible_candidates': len(cache), 'stages': stages,
                                      'historical_review_passed': all(v['review']['passed'] for v in stages.values())}
         result.update(state='completed_research_only', selected_for_broker=None,
                       prediction_receipt_sha256=digest(output/'prediction_receipt.json'))
@@ -150,7 +175,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--fresh-detectors', action='store_true')
     args = parser.parse_args()
-    result = run(args.source.resolve(), args.output.resolve())
+    result = run(args.source.resolve(), args.output.resolve(), fresh_detectors=args.fresh_detectors)
     print(json.dumps({name: {'eligible_candidates': r['eligible_candidates'], 'historical_review_passed': r['historical_review_passed']}
                       for name, r in result['models'].items()}))

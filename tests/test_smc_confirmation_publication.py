@@ -20,7 +20,8 @@ def fixture(storage):
         'candidate_cache_sha256': digest(directory/'candidate_cache.json')})
     save_signed(directory, 'report', {'state': 'completed_research_only', 'broker_eligible': False,
         'auto_promotion': False, 'orders_sent': 0, 'selected_for_broker': None,
-        'models': {'model_v6': {'eligible_candidates': 0, 'counts': {}, 'stages': {}}},
+        'models': {'model_v6': {'eligible_candidates': 0, 'counts': {},
+                              'detector_counts': {'micro_sweep:await_confirmation': 2}, 'stages': {}}},
         'protocol_sha256': digest(directory/'protocol.json'),
         'prediction_receipt_sha256': digest(directory/'prediction_receipt.json')})
     return directory
@@ -39,6 +40,7 @@ def test_verified_view_reaches_existing_answer_path_without_changing_paper_autho
     assert result['selection']['selected_for_broker'] is None
     assert result['selection']['selected_for_forward_paper'] is None
     assert list(result['models']) == ['model_v6']
+    assert result['models']['model_v6']['detector_counts'] == {'micro_sweep:await_confirmation': 2}
 
 
 def test_changed_observations_cannot_replace_the_operator_report(tmp_path):

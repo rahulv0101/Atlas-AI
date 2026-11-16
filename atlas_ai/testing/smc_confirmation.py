@@ -45,9 +45,9 @@ def affordable(signal, entry, spec, settings, limits, *, spread_points=0.):
 
 
 class Confirmation:
-    def __init__(self, source_model):
+    def __init__(self, source_model, *, research_name=None):
         self.source_model = source_model
-        self.name = MODELS[source_model]
+        self.name = MODELS[source_model] if research_name is None else research_name
         self.pending = None
         self.retired = set()
         self.last_bar = None

@@ -37,7 +37,8 @@ def publish(directory, storage):
         'purpose': 'Read-only operator view; cannot activate a strategy or a paper observer.'})
     models = {}
     for name, model in report['models'].items():
-        models[name] = {'eligible_candidates': model['eligible_candidates'], 'counts': model['counts'], 'stages': {}}
+        models[name] = {'eligible_candidates': model['eligible_candidates'], 'counts': model['counts'],
+                        'detector_counts': model.get('detector_counts', {}), 'stages': {}}
         for stage, stats in model['stages'].items():
             models[name]['stages'][stage] = {
                 'trades': stats['trades'], 'wins': stats['wins'], 'net_cash': stats['net_cash'],

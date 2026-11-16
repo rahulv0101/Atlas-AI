@@ -263,6 +263,26 @@
       "operator_report_updated": true,
       "summary": "docs/SMC_CONFIRMATION_RESULTS_20261116.json",
       "interpretation": "Alignment and confirmation handoff is explicit; original protection and risk are preserved. One aligned event anchor expired; seven sweep anchors expired, two breached protection and one lost its confirmation window. No model qualified; this adapter cannot discover setups outside the original source population."
+    },
+    {
+      "id": "smc_aligned_v7_20261116",
+      "evidence_type": "fresh_detectors_on_reused_retrospective_time_grid_not_blind",
+      "models": {
+        "smc_aligned_fvg_confirmed_v7": {
+          "eligible_candidates": 0,
+          "historical_review_passed": false,
+          "trades": 0
+        },
+        "smc_aligned_micro_sweep_confirmed_v7": {
+          "eligible_candidates": 0,
+          "historical_review_passed": false,
+          "trades": 0
+        }
+      },
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "summary": "docs/ALIGNED_SMC_RESULTS_20261116.json",
+      "interpretation": "Fresh aligned FVG and five-bar micro-sweep hypotheses are evaluated through unchanged shared gates. No broker activation follows a research result."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
