@@ -1,0 +1,466 @@
+{
+  "experiment": "structural_timing_handoff_20261116",
+  "state": "completed_research_only",
+  "matched_virtual_starting_balance": 100000.0,
+  "risk_fraction_unchanged": 0.005,
+  "lot_cap_unchanged": 0.01,
+  "rules": {
+    "scope": "research_only_not_live_policy",
+    "maximum_anchor_age_M5_bars": 3,
+    "turning": "first_closed_directional_body_at_least_0.55_range_beyond_previous_bar_and_setup_confirmation_level",
+    "location": "independently_reconstructed_first_FVG_visit_or_five_bar_sweep_reclaim",
+    "all_four_confluence": true,
+    "second_visit_or_prior_confirmation": "reject",
+    "risk_threshold_confidence_and_volatility_changes": false
+  },
+  "matched_fields_verified": true,
+  "comparisons": {
+    "smc_structural_evidence_v8_20261116_v2": {
+      "evidence_counts": {
+        "closed_structural_location_and_turn_verified": 20,
+        "directional_body_and_structure_turn_not_confirmed": 57,
+        "structural_confirmation_already_occurred": 7,
+        "sweep_or_original_protection_invalid": 1
+      },
+      "models": {
+        "smc_structural_timing_fvg_v8": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          }
+        },
+        "smc_structural_timing_sweep_v8": {
+          "eligible_candidates": 0,
+          "counts": {
+            "affordability:natural_stop_exceeds_minimum_lot_risk_budget": 19,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 65,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 3,
+            "confirmation:confirmation_window_expired": 15,
+            "liquidity_target:nearest_HTF_target_below_2R_before_costs": 1,
+            "protection:original_structural_protection_breached": 9,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          }
+        }
+      }
+    },
+    "smc_structural_v8_capacity_control_20261116_v2": {
+      "evidence_counts": {},
+      "models": {
+        "smc_structural_timing_fvg_v8": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          }
+        },
+        "smc_structural_timing_sweep_v8": {
+          "eligible_candidates": 0,
+          "counts": {
+            "confirmation:await_actual_directional_M5_timing_confirmation": 85,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 3,
+            "confirmation:confirmation_window_expired": 15,
+            "protection:original_structural_protection_breached": 9,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          }
+        }
+      }
+    },
+    "smc_structural_v8_capacity_20261116_v2": {
+      "evidence_counts": {
+        "closed_structural_location_and_turn_verified": 20,
+        "directional_body_and_structure_turn_not_confirmed": 26,
+        "sweep_or_original_protection_invalid": 1
+      },
+      "models": {
+        "smc_structural_timing_fvg_v8": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          }
+        },
+        "smc_structural_timing_sweep_v8": {
+          "eligible_candidates": 19,
+          "counts": {
+            "candidate_ready:aligned_confirmed_affordable": 19,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 27,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 2,
+            "liquidity_target:nearest_HTF_target_below_2R_before_costs": 1,
+            "confirmation:confirmation_window_expired": 3,
+            "protection:original_structural_protection_breached": 3,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "historical_review_passed": false,
+          "stages": {
+            "development": {
+              "trades": 5,
+              "wins": 0,
+              "net_cash": -355.35384540000814,
+              "mean_net_r": -0.6904871681274621,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 3.4524358406373103,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 6
+              }
+            },
+            "validation": {
+              "trades": 1,
+              "wins": 0,
+              "net_cash": -71.68081859999802,
+              "mean_net_r": -1.0071428571427967,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 1.0071428571427967,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 1
+              }
+            },
+            "holdout": {
+              "trades": 4,
+              "wins": 4,
+              "net_cash": 385.4245952549827,
+              "mean_net_r": 1.0334605198136997,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 2
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "auto_promotion": false,
+  "focused_tests_passed": 76,
+  "current_account_exact_values_published": false,
+  "superseded_v1_receipts_rejected_before_publication": true,
+  "receipts": {
+    "smc_structural_evidence_v8_20261116_v2": {
+      "protocol.json": "9acca4ee388c27196199e9600a3baad7e7fc3177d3b0021f19f4c8b730e3630f",
+      "report.json": "31a3547ab33c1d4069aef899d01b105d7bcd66871c5279f30c613d6ccc56d5ba",
+      "prediction_receipt.json": "e01501617a1fe699195b71c7f94dbbd3ea399c7dddb9227c951a7527c825533a",
+      "source_receipt.json": "be11c7fca80649adffe033e6e0878f0113bea95f59210343ae867b29b744a991"
+    },
+    "smc_structural_v8_capacity_control_20261116_v2": {
+      "protocol.json": "dcac24a1c6523a714717ed39e13ae448dc281aa372d9218a950f58722f5bd3c3",
+      "report.json": "c927032287e66930da9fb7511f10ccb7ee62871f7b641addec263d0b6a54dd99",
+      "prediction_receipt.json": "fe9e0c2100ed295c572597e7e01cc19a00c54910aa0b8a327406cb8392dec792",
+      "source_receipt.json": "9d67b8d672947d12b41b134d530be05712f414472915eb82d83e5c8d3686b40b"
+    },
+    "smc_structural_v8_capacity_20261116_v2": {
+      "protocol.json": "712221776caef2cf5af6d3a7e59607d3380de04b34c8affa15c325b43ff8ba8a",
+      "report.json": "eb426157ae77efe27cd9e710ae5b0e11ebe8a032c4cacc678898e63f4c2dfffa",
+      "prediction_receipt.json": "65ea9d7d5d9a0b1275c4793c02a42a586550be8d78fa8d0bdd9b94eb404d0dd8",
+      "source_receipt.json": "a7b32af77559352d543ed0e48461bcbd41e0e37239b3fd2994bbbedf8aa61eca"
+    }
+  },
+  "limitations": [
+    "Previously inspected retrospective candidate population; not independent forward validation.",
+    "Current frozen conversion/margin and fee reference approximate historical execution.",
+    "Stage portfolios reset independently. No natural broker lifecycle or measured actual fills demonstrated.",
+    "The feature supplement is research-only; existing broker feature and execution paths were not changed."
+  ]
+}

@@ -283,6 +283,24 @@
       "live_policy_changed": false,
       "summary": "docs/ALIGNED_SMC_RESULTS_20261116.json",
       "interpretation": "Fresh aligned FVG and five-bar micro-sweep hypotheses are evaluated through unchanged shared gates. No broker activation follows a research result."
+    },
+    {
+      "id": "structural_timing_handoff_20261116",
+      "evidence_type": "matched_research_evidence_handoff_and_demo_capacity_profile_not_blind",
+      "virtual_starting_balance": 100000.0,
+      "control_trades": 0,
+      "evidence_candidates": 19,
+      "development_trades": 5,
+      "development_wins": 0,
+      "validation_trades": 1,
+      "validation_wins": 0,
+      "holdout_trades": 4,
+      "holdout_wins": 4,
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "summary": "docs/STRUCTURAL_TIMING_RESULTS_20261116.json",
+      "interpretation": "Reconstructed closed-candle structural location/turn evidence resolves generic-label timing rejection in research. Earlier R50 affordability failures apply to a R10000 scenario, not automatically to the current demo account. The corrected model still failed profit/sample reviews and is not broker-enabled."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
