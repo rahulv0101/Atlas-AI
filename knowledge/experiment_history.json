@@ -218,6 +218,21 @@
       "summary": "docs/M5_CALIBRATION_RESULTS_20261116.json",
       "demo_observation": "Separate frozen read-only prospective M5 bar observer supervised within the fixed deadline; two 30-case stages pending. Not broker fills or a natural lifecycle.",
       "interpretation": "The candidate did not qualify. All seven validation evaluations surviving earlier gates failed minimum-lot risk sizing. Counterfactual rejected paths overlap and cannot justify loosening filters."
+    },
+    {
+      "id": "m5_structural_retest_20261116",
+      "evidence_type": "fixed_structural_retest_retrospective_research_only",
+      "complete_candidates": 7,
+      "development_trades": 0,
+      "validation_trades": 0,
+      "timing_rejections": 6,
+      "minimum_lot_risk_rejections": 1,
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "live_policy_changed": false,
+      "summary": "docs/M5_STRUCTURAL_RESULTS_20261116.json",
+      "interpretation": "All eight recorded simulated losses remain stop-first in candle-aligned broker quote history. Fixed structural replacement did not qualify; no strategy was activated."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

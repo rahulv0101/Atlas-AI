@@ -1,0 +1,67 @@
+{
+  "experiment": "m5_structural_retest_20261116",
+  "state": "completed_research_only",
+  "complete_candidates": 7,
+  "periods": {
+    "development": {
+      "trades": 0,
+      "wins": 0,
+      "net_cash": 0.0,
+      "rejections": {
+        "timing_discipline": 1
+      },
+      "review": {
+        "passed": false,
+        "reasons": [
+          "fewer_than_30_trades",
+          "fewer_than_2_dates",
+          "no_positive_mean_net_R",
+          "profit_factor_below_1_1"
+        ]
+      }
+    },
+    "validation": {
+      "trades": 0,
+      "wins": 0,
+      "net_cash": 0.0,
+      "rejections": {
+        "timing_discipline": 5,
+        "no_risk_bounded_volume": 1
+      },
+      "review": {
+        "passed": false,
+        "reasons": [
+          "fewer_than_30_trades",
+          "fewer_than_2_dates",
+          "no_positive_mean_net_R",
+          "profit_factor_below_1_1"
+        ]
+      }
+    }
+  },
+  "historical_review_passed": false,
+  "broker_eligible": false,
+  "auto_promotion": false,
+  "live_policy_changed": false,
+  "tick_audit": {
+    "recorded_cases": 10,
+    "quote_paths_reconstructed": 10,
+    "recorded_losses_stop_first": 8,
+    "ambiguous_recorded_losses_stop_first": 2,
+    "broker_fills": false,
+    "full_portfolio_recomputed": false
+  },
+  "receipts": {
+    "storage\\m5_structural_retest_20261116\\report.json": "7fee234fec3aa6938e8305f14dc9d05b48cc783a2e3f3c89986fe11674e30eaa",
+    "storage\\m5_structural_retest_20261116\\protocol.json": "5a7eaf6177f0a1899a7d45f5df0397c49923c1758d61c4bb967b89b31dd43959",
+    "storage\\m5_structural_retest_20261116\\source_receipt.json": "a9cebf5f2b120dc37b77580067bc22400213df9d8b88d680ebb6124f3cd9a09f",
+    "storage\\m5_structural_retest_20261116\\prediction_receipt.json": "b9e5a605b5026d29d2f9e273070a6fa00dceb26a14c18933fdc11bb1a947eb45",
+    "storage\\tick_loss_reconstruction_20261116\\report.json": "577024de224897e148af8e3a3d7496442800898f7f21c692d188efe8d6b61360",
+    "storage\\tick_loss_reconstruction_20261116\\protocol.json": "4aaa27636395523500d38a3719c6cc3643fb224f4e8c77ac64033ecaba5155c1"
+  },
+  "limits": [
+    "Previously inspected retrospective periods; not blind validation.",
+    "No actual fills or natural automated lifecycle demonstrated.",
+    "The model does not require OB or FVG."
+  ]
+}
