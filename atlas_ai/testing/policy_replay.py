@@ -93,7 +93,7 @@ def cache_candidates(frame,settings,store,progress=lambda **kw:None,*,start_inde
     return cache,dict(counts),[s.name for s in strategies]
 
 
-def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict=False,start=None,end=None,decision_cache=None):
+def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict=False,start=None,end=None,decision_cache=None,audit=None):
     minutes={"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}[settings.timeframe]
     trader=policy_trader(settings,store);risk=RiskManager(settings)
     calendar=DayTradingSessionControl(max_trades_per_day=min(settings.max_trades_per_day,limits["day_trades"]),
@@ -102,28 +102,34 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
         cooldown_minutes_after_loss_cluster=settings.cooldown_minutes_after_loss_streak)
     balance=float(settings.backtest_initial_balance);day_start=week_start=balance
     day=week=None;busy=-1;trades=[];rejections=Counter();equity=[balance]
+    def reject(reason):
+        rejections[reason]+=1
+        if audit is not None:
+            audit({"index":i,"available_at":item["available_at"],"reason":reason,
+                   "signal":asdict(chosen) if chosen is not None else None})
     for item in cache:
+        chosen=None
         i=item["index"];entry_index=i+1;at=pd.Timestamp(item["available_at"]).to_pydatetime()
         if start is not None and at<start:continue
         if end is not None and at>=end:continue
-        if entry_index<=busy:rejections["open_position"]+=1;continue
+        if entry_index<=busy:reject("open_position");continue
         if day!=at.date():
             day=at.date();day_start=balance;calendar.maybe_reset_new_day(now=at)
         week_key=at.date()-timedelta(days=at.weekday())
         if week!=week_key:week=week_key;week_start=balance
         daily=max(0.,(day_start-balance)/day_start);weekly=max(0.,(week_start-balance)/week_start)
         session=calendar.check(now=at,runtime_flags={"daily_loss_pct":daily*100})
-        if not session.allowed:rejections[session.reason]+=1;continue
+        if not session.allowed:reject(session.reason);continue
         spread=float(frame.spread.iloc[entry_index])
         snapshot=RiskSnapshot(balance,balance,daily,0,spread,weekly,calendar.consecutive_losses)
         allowed,reason=risk.evaluate(snapshot)
-        if not allowed:rejections[reason]+=1;continue
+        if not allowed:reject(reason);continue
         signals=[TradeSignal(**s) for s in item["signals"] if strategy is None or s["strategy"]==strategy]
         # Simulated outcomes cannot masquerade as verified broker-performance evidence.
         statistics={} if settings.strategy_filter_evidence_source=="confirmed_demo_positions" else trader.allocator.stats()
         signals,_=trader._filter_weak_strategies(signals,statistics=statistics)
         directional=[s for s in signals if s.side in {"buy","sell"} and s.confidence>0]
-        if not directional:rejections["no_directional_signal"]+=1;continue
+        if not directional:reject("no_directional_signal");continue
         window=frame.iloc[max(0,i-1199):i+1];regime=item["regime"];bias=item["higher_tf_bias"]
         if len(directional)==1:chosen=directional[0]
         else:
@@ -132,47 +138,47 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
         if bool(getattr(settings,'top_down_confluence_enabled',False)):
             from atlas_ai.data.top_down import entry_gate
             if not entry_gate(item.get('higher_context') or {},chosen.side)['passed']:
-                rejections['higher_timeframe_confluence']+=1;continue
+                reject('higher_timeframe_confluence');continue
         if settings.require_higher_tf_alignment and chosen.side!=bias:
-            rejections["higher_timeframe_alignment"]+=1;continue
+            reject("higher_timeframe_alignment");continue
         support=trader._same_side_support_count(signals,chosen.side)
-        if support<settings.min_same_side_signals:rejections["same_side_support"]+=1;continue
+        if support<settings.min_same_side_signals:reject("same_side_support");continue
         if trader._strategy_to_setup_family(chosen.strategy)!=limits["setup_family"]:
-            rejections["pilot_setup_family"]+=1;continue
+            reject("pilot_setup_family");continue
         decision=historical_decision(trader,chosen,signals,window,regime,bias,snapshot,at,
             cache=decision_cache,namespace=(id(frame),i),higher_context=item.get('higher_context'))
-        if not decision["timing_passed"]:rejections["timing_discipline"]+=1;continue
+        if not decision["timing_passed"]:reject("timing_discipline");continue
         if decision["safety"]["volatility_action"]=="block_new_entries":
-            rejections["volatility_protection"]+=1;continue
-        if decision["confidence"]<decision["threshold"]:rejections["atlas_conviction_threshold"]+=1;continue
+            reject("volatility_protection");continue
+        if decision["confidence"]<decision["threshold"]:reject("atlas_conviction_threshold");continue
         chosen.confidence=decision["confidence"]
         if strict:
-            rejections["historical_visual_macro_and_execution_evidence_unavailable"]+=1;continue
+            reject("historical_visual_macro_and_execution_evidence_unavailable");continue
         minimum=max(spec.trade_stops_level,spec.trade_freeze_level)+max(2,round(spread*.35))
         stop_points=max(chosen.stop_loss_points,minimum)
         volume=risk.lot_size(balance,stop_points,spec.tick_value_loss,point_size=spec.point,
             tick_size=spec.tick_size,volume_step=spec.volume_step,minimum_volume=spec.volume_min)
         tier=float(trader._size_tier_profile(balance)["max_lot"])
         volume=floor_volume(min(volume,limits["lot_cap"],AtlasTrader._GUARDED_DEMO_MAX_LOT,tier,spec.volume_max),spec.volume_step)
-        if volume<spec.volume_min:rejections["no_risk_bounded_volume"]+=1;continue
-        if volume*spec.margin_per_lot>balance:rejections["insufficient_model_margin"]+=1;continue
+        if volume<spec.volume_min:reject("no_risk_bounded_volume");continue
+        if volume*spec.margin_per_lot>balance:reject("insufficient_model_margin");continue
         modeled_stop=abs(spec.cash(-stop_points*spec.point,volume))
         friction=spec.roundtrip_fee_per_lot*volume+abs(spec.cash(-2*variant.slippage_points_per_side*spec.point,volume))
         if modeled_stop+friction>balance*settings.max_risk_per_trade:
-            rejections["risk_budget_including_fees_slippage"]+=1;continue
+            reject("risk_budget_including_fees_slippage");continue
         daily_floor=day_start*(1-calendar.daily_loss_limit/100)
         weekly_floor=week_start*(1-settings.max_weekly_drawdown)
         if modeled_stop+friction>balance-max(daily_floor,weekly_floor):
-            rejections["remaining_day_week_risk_budget"]+=1;continue
+            reject("remaining_day_week_risk_budget");continue
         held=min(settings.backtest_max_hold_bars,(session.minutes_to_close-10)//minutes)
-        if held<1:rejections["session_close_buffer"]+=1;continue
+        if held<1:reject("session_close_buffer");continue
         last=entry_index+held-1
         if (last>=len(frame) or (end is not None and
                 pd.Timestamp(frame.time.iloc[last]).tz_localize(None)+pd.Timedelta(minutes=minutes)>pd.Timestamp(end).tz_localize(None))):
-            rejections["incomplete_exit_window"]+=1;continue
+            reject("incomplete_exit_window");continue
         times=pd.to_datetime(frame.time.iloc[entry_index:last+1],utc=True)
         if not times.diff().dropna().eq(pd.Timedelta(minutes=minutes)).all():
-            rejections["gap_in_execution_window"]+=1;continue
+            reject("gap_in_execution_window");continue
         trade=simulate(frame,entry_index,chosen,volume,spec,settings,variant,
             last_index=last if held<settings.backtest_max_hold_bars else None)
         busy=trade["exit_bar"];balance+=trade["net_cash"];equity.append(balance)

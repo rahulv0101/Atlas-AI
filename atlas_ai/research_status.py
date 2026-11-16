@@ -169,11 +169,50 @@ def load_research_progress(storage, *, now=None):
         result['stop_distance_research']=value
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['stop_distance_research']={'state':'unavailable','stale':True,'broker_eligible':False,'live_learning_changed':False}
+    try:
+        pointer=_read(storage/'m5_calibration_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/'protocol.json',signed=True)
+        if protocol.get('broker_eligible') is not False or protocol.get('auto_promotion') is not False:raise ValueError('research_only_required')
+        value={'state':'preparing','broker_eligible':False,'live_policy_changed':False,'historical_review_passed':False}
+        params=_read(directory/'calibration.json',signed=True) if (directory/'calibration.json').exists() else {}
+        if params:
+            if params.get('protocol_sha256')!=hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest():raise ValueError('calibration_protocol_mismatch')
+            value['research_thresholds']={k:params.get(k) for k in ['scale','elevated_pct','extreme_pct','pairs','dates']}
+        report=_read(directory/'report.json',signed=True) if (directory/'report.json').exists() else {}
+        if report.get('state')=='completed_research_only':
+            if (report.get('protocol_sha256')!=hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest()
+                or report.get('calibration_sha256')!=hashlib.sha256((directory/'calibration.json').read_bytes()).hexdigest()
+                or report.get('selected_for_live') is not None):raise ValueError('calibration_report_mismatch')
+            value.update(state='completed_research_only',stale=False,historical_review_passed=report.get('historical_review_passed') is True,
+                         validation={lane:{k:stats.get(k) for k in ['trades','wins','net_cash','review','rejections']}
+                                     for lane,stats in report.get('results',{}).get('validation',{}).items()})
+        else:
+            status=_read(directory/'progress.json') if (directory/'progress.json').exists() else {'phase':'preparing','checked_at':protocol.get('frozen_at')}
+            age=_age(status.get('checked_at'),now)
+            value.update(state=status.get('phase','preparing'),stale=age is None or age>900,period=status.get('period'),lane=status.get('lane'),bar=status.get('bar'),bars=status.get('bars'))
+        if (directory/'forward_status.json').exists():
+            forward=_read(directory/'forward_status.json');age=_age(forward.get('checked_at'),now)
+            value['demo_observation']={k:forward.get(k) for k in ['state','start','deadline','lanes','late_candidates_discarded']}
+            value['demo_observation'].update(stale=age is None or age>900)
+        result['m5_calibration']=value
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['m5_calibration']={'state':'unavailable','stale':True,'broker_eligible':False,'live_policy_changed':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'm5 calibration' in q or 'm5 proposal' in q:
+        value=progress.get('m5_calibration') or {}
+        if value.get('stale',True):return 'M5 calibration evidence is unavailable or stale. I cannot confirm progress. Live policy is unchanged.'
+        if value.get('state')=='failed':return 'The M5 calibration study failed and needs review. Live policy is unchanged.'
+        if value.get('state')=='completed_research_only':
+            proposed=(value.get('validation') or {}).get('fixed_M5_proposal') or {}
+            return (f"M5 calibration research completed. Validation proposal: {proposed.get('trades','unknown')} simulated trades. "
+                f"Historical review {'passed' if value.get('historical_review_passed') else 'not passed'}. Live policy is unchanged."
+                + ('' if voice else ' Demo observation is separate, read-only research; no automatic broker activation.'))
+        return f"M5 calibration is running: {str(value.get('state','preparing')).replace('_',' ')}. Research thresholds do not change the live guard."
     if any(term in q for term in ['stop distance research','stop-distance research','stop research','stop study','atr study']):
         value=progress.get('stop_distance_research') or {}
         if value.get('stale',True):return 'Stop-distance research evidence is unavailable or stale. I cannot confirm progress; it has no trading authority.'

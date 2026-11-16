@@ -1362,6 +1362,17 @@ function renderLearningCritic(status) {
 
 function renderResearchProgress(status) {
   const progress = status.research_progress || {};
+  const m5 = progress.m5_calibration || {};
+  const researchLimit = (m5.research_thresholds || {}).extreme_pct;
+  const m5Limit = researchLimit != null && Number.isFinite(Number(researchLimit))
+    ? ` Research-only extreme cutoff ${Number(researchLimit).toFixed(4)}%.` : "";
+  const demo = m5.demo_observation || {};
+  const demoLane = (demo.lanes || {}).fixed_M5_proposal || {};
+  const demoState = demo.state ? `${demo.stale ? "Last known (stale): " : ""}${String(demo.state).replace(/_/g," ")}` : "not yet observed";
+  setText("research-m5-calibration", m5.stale !== false ? "Current calibration evidence unavailable" :
+    m5.state === "completed_research_only"
+      ? `Historical review ${m5.historical_review_passed ? "passed" : "not passed"}.${m5Limit} Demo: ${demoState}; ${demoLane.trades ?? "unknown"} simulated cases. Live policy unchanged.`
+      : `${String(m5.state || "preparing").replace(/_/g," ")}.${m5Limit} Live policy unchanged.`);
   const learning = progress.learning || {};
   const paper = progress.acceptance || {};
   const activity = progress.activity || {};

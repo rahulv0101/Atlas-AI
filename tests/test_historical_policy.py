@@ -106,6 +106,16 @@ def test_real_risk_session_and_size_adapters_enforce_daily_trade_cap(tmp_path,mo
     assert not result["broker_eligible"] and result["orders_sent"]==0
 
 
+def test_optional_rejection_audit_does_not_change_portfolio_decisions(tmp_path,monkeypatch):
+    data,cache,cfg,store,limits=fixture_replay(tmp_path,monkeypatch)
+    expected=replay(data,cache,cfg,spec(),ExitVariant('current',.05,0),store,limits)
+    rows=[]
+    actual=replay(data,cache,cfg,spec(),ExitVariant('current',.05,0),store,limits,audit=rows.append)
+    assert actual==expected
+    assert len(rows)==1 and rows[0]['reason']=='max_trades_per_day_reached'
+    assert rows[0]['signal'] is None  # A previous iteration's trade cannot leak into a preselection rejection.
+
+
 def test_strict_replay_cannot_invent_historical_visual_evidence(tmp_path,monkeypatch):
     data,cache,cfg,store,limits=fixture_replay(tmp_path,monkeypatch)
     result=replay(data,cache,cfg,spec(),ExitVariant("current",.05,0),store,limits,strict=True)

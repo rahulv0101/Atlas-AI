@@ -214,3 +214,25 @@ def test_stop_research_remains_evidence_only_in_typed_and_voice_paths(reports):
     assert classify_intent_candidates('What are your limitations for stop research?')[0].name!='research_progress'
     report['protocol_sha256']='wrong';save_signed(directory,'report',report)
     assert load_research_progress(folder,now=now)['stop_distance_research']['state']=='unavailable'
+
+
+def test_M5_calibration_thresholds_remain_research_only_and_bound_to_protocol(reports):
+    import hashlib
+    folder,_,now=reports;directory=folder/'calibration';directory.mkdir()
+    atomic_json(folder/'m5_calibration_active.json',{'run_dir':str(directory)})
+    save_signed(directory,'protocol',{'broker_eligible':False,'auto_promotion':False})
+    protocol_hash=hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest()
+    save_signed(directory,'calibration',{'protocol_sha256':protocol_hash,'scale':2.,'extreme_pct':.14})
+    calibration_hash=hashlib.sha256((directory/'calibration.json').read_bytes()).hexdigest()
+    report={'state':'completed_research_only','protocol_sha256':protocol_hash,'calibration_sha256':calibration_hash,
+        'selected_for_live':None,'historical_review_passed':False,'results':{'validation':{
+            'fixed_M5_proposal':{'trades':0,'net_cash':0,'review':{'passed':False}}}}}
+    save_signed(directory,'report',report)
+    summary=load_research_progress(folder,now=now)
+    assert summary['m5_calibration']['research_thresholds']['extreme_pct']==.14
+    assert not summary['m5_calibration']['live_policy_changed']
+    response=AnswerEngine().answer('How is the M5 calibration doing?',{'runtime':{'research_progress':summary}})
+    assert response.relevance_passed and response.selected_domain=='research_progress'
+    assert '0 simulated trades' in response.text and 'Live policy is unchanged' in response.text
+    report['calibration_sha256']='changed';save_signed(directory,'report',report)
+    assert load_research_progress(folder,now=now)['m5_calibration']['state']=='unavailable'

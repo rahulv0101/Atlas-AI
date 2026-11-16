@@ -31,6 +31,7 @@ from tools.learned_ranker_supervision import ensure_learning
 from tools.recover_paper_prefix import recover as recover_paper_prefix
 from tools.penalty_shadow import ensure as ensure_penalty_shadow
 from tools.smc_validation import ensure as ensure_smc_validation
+from tools.m5_demo_observer import ensure as ensure_m5_demo
 
 
 def read(path,default=None):
@@ -204,6 +205,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     try:result["smc_validation"]=ensure_smc_validation(plan["storage_dir"],state,can_start=can_start and remaining>0,now=now)
     except Exception as exc:
         result["smc_validation"]={"state":"blocked_evidence_review_required","error":type(exc).__name__,"broker_eligible":False,"orders_sent":0}
+    try:result['m5_demo']=ensure_m5_demo(plan['storage_dir'],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:
+        result['m5_demo']={'state':'blocked_evidence_review_required','error':type(exc).__name__,'broker_eligible':False,'orders_sent':0}
     return result
 
 
