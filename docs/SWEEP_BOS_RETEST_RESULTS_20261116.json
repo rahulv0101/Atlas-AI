@@ -1,0 +1,232 @@
+{
+  "schema": "atlas_sweep_BOS_retest_portable_v1",
+  "generated_at": "2026-11-16T18:52:53.108476+00:00",
+  "local_evidence": "storage\\sweep_bos_retest_v10_20261116",
+  "rules": {
+    "direction": "D1_H4_H1_M15_all_aligned",
+    "sweep_lookback": 20,
+    "maximum_sweep_age_bars": 12,
+    "minimum_sweep_wick_ratio": 0.42,
+    "BOS": "first_close_through_swing_confirmed_before_sweep_within_next_3_bars",
+    "displacement_ATR": 1.25,
+    "displacement_body_ratio": 0.6,
+    "retest": "first_visit_to_broken_swing_plus_minus_max_2_points_or_0.1_prior_ATR",
+    "maximum_BOS_to_entry_bars": 6,
+    "touch_confirmation_bars": 2,
+    "rejection": "body_at_least_0.55_range_close_beyond_zone_and_previous_opposite_extreme",
+    "earlier_weak_retest_confirmation": "consumes_setup",
+    "stop": "beyond_sweep_and_entire_episode_extreme_plus_original_buffer",
+    "target_R_before_costs": 2.0,
+    "target": "only_if_nearest_HTF_liquidity_permits_2R",
+    "entry_slippage_points": 3.0,
+    "confidence": 0.65,
+    "parameter_search": false,
+    "broker_eligible": false,
+    "auto_promotion": false
+  },
+  "periods": {
+    "primary": [
+      "2026-05-20T09:50:00+00:00",
+      "2026-09-05T09:50:00+00:00",
+      "2026-10-11T09:50:00+00:00",
+      "2026-11-16T09:50:00+00:00"
+    ],
+    "separate": [
+      "2026-04-01T00:00:00+00:00",
+      "2026-05-01T00:00:00+00:00"
+    ]
+  },
+  "interpretation": "Primary history motivated redesign; April is disjoint but already inspected. Neither is blind or prospective evidence.",
+  "historical_review_passed": false,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "auto_promotion": false,
+  "receipt_hashes": {
+    "protocol": "e903fe5b1d9d7b777e05d9fc913dafb2ca54596551771e1caf7a45f7648b5194",
+    "source_receipt": "d0c8d302d9ef3f167b5ba47065dee3350179b4098c0d4ca7b2cd6072eb13de85",
+    "prediction_receipt": "a35c1c5026bfa5bd8ff8fb73e5d2815cc72e2ee7e27a36797f522c4fd8acba75",
+    "report": "70a5c557c731fb2e2a365601af52e93a46edf19655c0c80f1e786cdb4fd07314"
+  },
+  "models": {
+    "smc_sweep_bos_retest_v10": {
+      "eligible_candidates": 0,
+      "counts": {
+        "primary": {
+          "higher_timeframe_confluence:all_four_higher_timeframes_required": 20004,
+          "liquidity_sweep:await_reclaimed_20_bar_liquidity_sweep": 4263,
+          "structure_break:first_swing_break_lacked_displacement": 18,
+          "protection:sweep_extreme_breached": 521,
+          "structure_break:await_displacement_through_pre_sweep_swing": 238,
+          "retest:await_first_zone_touch_and_rejection": 6,
+          "retest:BOS_retest_window_expired": 3
+        },
+        "separate": {
+          "higher_timeframe_confluence:all_four_higher_timeframes_required": 4135,
+          "liquidity_sweep:await_reclaimed_20_bar_liquidity_sweep": 22,
+          "protection:sweep_extreme_breached": 1
+        }
+      },
+      "stages": {
+        "development": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "validation": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "holdout": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        },
+        "separate_validation": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        }
+      }
+    }
+  },
+  "control": {
+    "primary": {
+      "eligible_candidates": 26,
+      "stages": {
+        "development": {
+          "trades": 6,
+          "wins": 0,
+          "net_cash": -570.2268429999967,
+          "mean_net_r": -0.7424678970232111,
+          "profit_factor": 0.0,
+          "max_drawdown_r": 4.454807382139267,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {
+            "volatility_protection": 8
+          }
+        },
+        "validation": {
+          "trades": 4,
+          "wins": 0,
+          "net_cash": -247.40897199999017,
+          "mean_net_r": -0.7314421302216587,
+          "profit_factor": 0.0,
+          "max_drawdown_r": 2.925768520886635,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {
+            "volatility_protection": 2
+          }
+        },
+        "holdout": {
+          "trades": 4,
+          "wins": 4,
+          "net_cash": 385.4245952549827,
+          "mean_net_r": 1.0334605198136997,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades"
+            ]
+          },
+          "rejections": {
+            "volatility_protection": 2
+          }
+        }
+      }
+    },
+    "separate": {
+      "eligible_candidates": 0,
+      "stages": {
+        "separate_validation": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "mean_net_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          },
+          "rejections": {}
+        }
+      }
+    }
+  },
+  "control_provenance": "Receipt-bound unchanged v8 control from same corrected-coverage run, inputs, costs, settings and stages; not newly rerun."
+}

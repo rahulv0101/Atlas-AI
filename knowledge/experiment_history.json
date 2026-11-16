@@ -323,6 +323,16 @@
       "live_policy_changed": false,
       "summary": "docs/ENTRY_HORIZON_RESULTS_20261116.json",
       "interpretation": "Same proposal rerun with actual detector recent-20-bar coverage. Prior 80-bar result retained. No best-lane selection, automatic activation or profitability claim."
+    },
+    {
+      "id": "sweep_BOS_retest_v10_20261116",
+      "evidence_type": "fixed_sequence_redesign_on_inspected_primary_and_disjoint_inspected_April_not_blind",
+      "eligible_candidates": 0,
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "summary": "docs/SWEEP_BOS_RETEST_RESULTS_20261116.json",
+      "interpretation": "Require a reclaimed sweep, preconfirmed swing break and first fresh broken-level retest before shared gates. Negative or empty outcomes are retained; no automatic activation."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
