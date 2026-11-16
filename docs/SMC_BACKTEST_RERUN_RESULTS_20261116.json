@@ -1,0 +1,241 @@
+{
+  "experiment": "smc_entry_rerun_20261116",
+  "state": "completed_research_only",
+  "history_start": "2026-05-20T09:50:00+00:00",
+  "history_end": "2026-11-16T09:50:00+00:00",
+  "eligible_prediction_windows": 17902,
+  "prediction_phase_completed_before_labels": true,
+  "native_models": {
+    "smc_event_retest_v5": {
+      "stages": {
+        "development": {
+          "trades": 1,
+          "days": 1,
+          "wins": 0,
+          "losses": 1,
+          "mean_r": -1.011062724838029,
+          "profit_factor": 0.0,
+          "max_drawdown_r": 1.011062724838029,
+          "net_cash": -45.24533940000124,
+          "review_passed": false
+        },
+        "validation": {
+          "trades": 0,
+          "days": 0,
+          "wins": 0,
+          "losses": 0,
+          "mean_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "net_cash": 0,
+          "review_passed": false
+        },
+        "holdout": {
+          "trades": 0,
+          "days": 0,
+          "wins": 0,
+          "losses": 0,
+          "mean_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "net_cash": 0,
+          "review_passed": false
+        }
+      },
+      "counts": {
+        "stage:displacement": 2333,
+        "stage:setup_location": 2691,
+        "stage:structure_reclaim": 5492,
+        "stage:entry_zone": 184,
+        "session_or_close_buffer": 9923,
+        "input_or_outcome_gap": 7304,
+        "stage:M5_retest": 567,
+        "stage:higher_timeframe_confluence": 6594,
+        "stage:liquidity_target": 16,
+        "stage:candidate_ready": 14,
+        "minimum_volume_risk_or_margin": 13,
+        "open_paper_position": 12,
+        "stage:pullback_context": 5,
+        "split_boundary_purge": 1
+      },
+      "reason_counts": {
+        "displacement:no_directional_impulse_in_pre_break_window": 2333,
+        "setup_location:await_H1_or_M15_reaction_zone": 1770,
+        "structure_reclaim:await_confirmed_structure_break_with_recent_impulse": 5492,
+        "entry_zone:no_fresh_zone_after_structure_confirmation": 184,
+        "M5_retest:await_first_zone_touch_and_rejection": 361,
+        "higher_timeframe_confluence:D1_H4_direction_must_agree": 6594,
+        "M5_retest:setup_extreme_breached_before_confirmation": 65,
+        "setup_location:entry_outside_H4_reference_range": 921,
+        "liquidity_target:nearest_HTF_target_below_2R_before_fees_slippage": 16,
+        "M5_retest:setup_already_confirmed_on_prior_bar": 147,
+        "candidate_ready:structure_then_fresh_zone_confirmation": 14,
+        "pullback_context:no_observed_H1_or_M15_countertrend_pullback": 5
+      }
+    },
+    "smc_sweep_reclaim_v5": {
+      "stages": {
+        "development": {
+          "trades": 0,
+          "days": 0,
+          "wins": 0,
+          "losses": 0,
+          "mean_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "net_cash": 0,
+          "review_passed": false
+        },
+        "validation": {
+          "trades": 0,
+          "days": 0,
+          "wins": 0,
+          "losses": 0,
+          "mean_r": null,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "net_cash": 0,
+          "review_passed": false
+        },
+        "holdout": {
+          "trades": 1,
+          "days": 1,
+          "wins": 1,
+          "losses": 0,
+          "mean_r": 5.673605450961897,
+          "profit_factor": null,
+          "max_drawdown_r": 0.0,
+          "net_cash": 217.31954369999877,
+          "review_passed": false
+        }
+      },
+      "counts": {
+        "stage:sweep_reclaim": 8495,
+        "stage:setup_location": 2691,
+        "stage:candidate_ready": 75,
+        "minimum_volume_risk_or_margin": 74,
+        "session_or_close_buffer": 9919,
+        "input_or_outcome_gap": 7304,
+        "stage:liquidity_target": 40,
+        "stage:higher_timeframe_confluence": 6594,
+        "stage:pullback_context": 5,
+        "open_paper_position": 12,
+        "split_boundary_purge": 1
+      },
+      "reason_counts": {
+        "sweep_reclaim:await_sweep_and_first_directional_reclaim_close": 8497,
+        "setup_location:await_H1_or_M15_reaction_zone": 1770,
+        "candidate_ready:sweep_followed_by_first_reclaim_confirmation": 75,
+        "liquidity_target:nearest_HTF_target_below_2R_before_fees_slippage": 40,
+        "higher_timeframe_confluence:D1_H4_direction_must_agree": 6594,
+        "setup_location:entry_outside_H4_reference_range": 921,
+        "pullback_context:no_observed_H1_or_M15_countertrend_pullback": 5
+      }
+    }
+  },
+  "selection": {
+    "selected_for_forward_paper": null,
+    "development_qualified": [],
+    "selected_for_broker": null,
+    "broker_eligible": false,
+    "automatic_broker_activation": false
+  },
+  "sizing_audit": {
+    "smc_event_retest_v5": {
+      "complete_signals": 14,
+      "risk_budget_exceeded": 13,
+      "lot_cap_exceeded": 0,
+      "margin_exceeded": 0,
+      "minimum_risk_cash": 44.75027937287421,
+      "median_risk_cash": 90.79570356000296,
+      "maximum_risk_cash": 324.7012778514499,
+      "risk_budget_cash": 50.0
+    },
+    "smc_sweep_reclaim_v5": {
+      "complete_signals": 75,
+      "risk_budget_exceeded": 74,
+      "lot_cap_exceeded": 0,
+      "margin_exceeded": 0,
+      "minimum_risk_cash": 38.30360527857196,
+      "median_risk_cash": 115.63585484857542,
+      "maximum_risk_cash": 590.2592230714238,
+      "risk_budget_cash": 50.0
+    }
+  },
+  "shared_policy_models": {
+    "smc_event_retest_v5": {
+      "development": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "higher_timeframe_confluence": 11
+        }
+      },
+      "validation": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "higher_timeframe_confluence": 1
+        }
+      },
+      "holdout": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "higher_timeframe_confluence": 1,
+          "timing_discipline": 1
+        }
+      }
+    },
+    "smc_sweep_reclaim_v5": {
+      "development": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "higher_timeframe_confluence": 41,
+          "timing_discipline": 5
+        }
+      },
+      "validation": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "higher_timeframe_confluence": 18,
+          "timing_discipline": 1
+        }
+      },
+      "holdout": {
+        "trades": 0,
+        "wins": 0,
+        "net_cash": 0.0,
+        "rejections": {
+          "timing_discipline": 4,
+          "higher_timeframe_confluence": 6
+        }
+      }
+    }
+  },
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "auto_promotion": false,
+  "live_policy_changed": false,
+  "receipts": {
+    "protocol.json": "eb1952cd4bd3255e6853379246486f3c4fa4a4feb3d54e4f6a5cca82e5b2e241",
+    "report.json": "4a85a3b883093a968dd5c78c3024d78bfc8de7c783dcf231c41c52c3e283aa03",
+    "prediction_receipt.json": "b944ba490ad9734099a43e7ec1f054daf2a4ce4c87a1535e95cbba3ec7433642",
+    "shared_policy_candidates.json": "df84fc649fbaa23bdf5ccd1167797f9a5b88ed9d832d21d191551c753cb09f2d",
+    "shared_policy_report.json": "0d10114d63b3572239665ada7d18e083d23c39c3a54ae02e3d03b70a06832c9d",
+    "sizing_audit.json": "6714cfa6c3e36ca210820b5cccc316965ab73dc726c6ef35b484d9a46483548b"
+  },
+  "limitations": [
+    "Retrospective overlapping history, not new blind validation.",
+    "Current frozen currency/margin specification and zero fee reference are approximations, not measured actual fills.",
+    "Native screening and shared-policy compatibility replay are separate evidence lanes; not full live-pipeline parity.",
+    "Sizing and gate rejection audits overlap and must not be added."
+  ]
+}

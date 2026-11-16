@@ -233,6 +233,24 @@
       "live_policy_changed": false,
       "summary": "docs/M5_STRUCTURAL_RESULTS_20261116.json",
       "interpretation": "All eight recorded simulated losses remain stop-first in candle-aligned broker quote history. Fixed structural replacement did not qualify; no strategy was activated."
+    },
+    {
+      "id": "smc_entry_rerun_20261116",
+      "evidence_type": "fresh_download_retrospective_current_frozen_code_not_blind",
+      "eligible_prediction_windows": 17902,
+      "native_event_retest_trades": 1,
+      "native_event_retest_net_cash": -45.24533940000124,
+      "native_sweep_reclaim_trades": 1,
+      "native_sweep_reclaim_net_cash": 217.31954369999877,
+      "complete_candidate_observations": 89,
+      "initial_budget_sizing_rejections": 87,
+      "shared_policy_confluence_rejections": 78,
+      "shared_policy_timing_rejections": 11,
+      "shared_policy_trades": 0,
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "summary": "docs/SMC_BACKTEST_RERUN_RESULTS_20261116.json",
+      "interpretation": "Neither model qualifies. Model pullback context conflicts with all-four directional confluence; timing and min-lot affordability also constrain candidates. Audits overlap and are not one executable portfolio."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
