@@ -1,0 +1,551 @@
+{
+  "schema": "atlas_entry_horizon_portable_results_v1",
+  "generated_at": "2026-11-16T18:34:23.315978+00:00",
+  "research_only": true,
+  "broker_eligible": false,
+  "live_policy_changed": false,
+  "orders_sent": 0,
+  "auto_promotion": false,
+  "interpretation": "Primary period motivated the proposal and is exploratory. April is disjoint, previously available history, not blind or prospective proof.",
+  "rules": {
+    "entry": {
+      "M5_trend": "existing_8_21_close_measure_aligned_for_two_consecutive_closed_bars",
+      "structure": "close_beyond_prior_confirmed_two_left_two_right_swing"
+    },
+    "target": {
+      "target_R_before_costs": 2.0,
+      "hold_M5_bars": 12,
+      "reference": "median_range_of_last_20_nonoverlapping_closed_12_bar_blocks",
+      "minimum_contiguous_blocks": 12,
+      "feasibility": "2R_distance_not_above_reference_range"
+    },
+    "stop_risk_and_management_changes": false,
+    "parameter_search": false,
+    "broker_eligible": false,
+    "selection": "only_preregistered_combined_intervention_may_support_hypothesis; never_best_lane_selection"
+  },
+  "coverage": "Fresh detection on both periods; detector-native 20-bar recent continuity plus complete 12-bar outcome availability. Older closed context may span scheduled closures. Supersedes inherited 80-bar screen without changing strategy parameters.",
+  "primary_period": [
+    "2026-05-20T09:50:00+00:00",
+    "2026-11-16T09:50:00+00:00"
+  ],
+  "separate_period": [
+    "2026-04-01T00:00:00+00:00",
+    "2026-05-01T00:00:00+00:00"
+  ],
+  "combined_review_passed": false,
+  "periods": {
+    "primary": {
+      "raw_detection_counts": {
+        "higher_timeframe_confluence:all_four_higher_timeframes_required": 20004,
+        "session_or_close_buffer": 9929,
+        "micro_sweep:await_local_liquidity_sweep_and_reclaim": 4920,
+        "candidate_ready:aligned_natural_structure_observed": 38,
+        "input_outcome_or_boundary_gap": 154,
+        "liquidity_target:nearest_HTF_target_below_2R_before_fees_slippage": 91
+      },
+      "variants": {
+        "control": {
+          "eligible_candidates": 26,
+          "counts": {
+            "candidate_ready:aligned_confirmed_affordable": 26,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 29,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 2,
+            "liquidity_target:nearest_HTF_target_below_2R_before_costs": 1,
+            "confirmation:confirmation_window_expired": 3,
+            "protection:original_structural_protection_breached": 5,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "stages": {
+            "development": {
+              "trades": 6,
+              "wins": 0,
+              "net_cash": -570.2268429999967,
+              "mean_net_r": -0.7424678970232111,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 4.454807382139267,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 8
+              }
+            },
+            "validation": {
+              "trades": 4,
+              "wins": 0,
+              "net_cash": -247.40897199999017,
+              "mean_net_r": -0.7314421302216587,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 2.925768520886635,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 2
+              }
+            },
+            "holdout": {
+              "trades": 4,
+              "wins": 4,
+              "net_cash": 385.4245952549827,
+              "mean_net_r": 1.0334605198136997,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 2
+              }
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 14,
+            "wins": 4,
+            "net_cash": -432.2112197450042,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "entry_only": {
+          "eligible_candidates": 0,
+          "counts": {
+            "entry_policy:await_confirmed_M5_swing_break": 17,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 111,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 4,
+            "entry_policy:await_two_closed_aligned_M5_trends": 88,
+            "confirmation:confirmation_window_expired": 19,
+            "protection:original_structural_protection_breached": 13,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "target_only": {
+          "eligible_candidates": 17,
+          "counts": {
+            "candidate_ready:aligned_confirmed_affordable": 17,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 54,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 3,
+            "liquidity_target:nearest_HTF_target_below_2R_before_costs": 1,
+            "confirmation:confirmation_window_expired": 10,
+            "affordability:2R_exceeds_typical_past_hour_range": 9,
+            "protection:original_structural_protection_breached": 6,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "stages": {
+            "development": {
+              "trades": 5,
+              "wins": 0,
+              "net_cash": -355.35384540000814,
+              "mean_net_r": -0.6904871681274621,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 3.4524358406373103,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 4
+              }
+            },
+            "validation": {
+              "trades": 3,
+              "wins": 0,
+              "net_cash": -186.57347819999268,
+              "mean_net_r": -0.7885687061301665,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 2.3657061183904995,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 1
+              }
+            },
+            "holdout": {
+              "trades": 2,
+              "wins": 2,
+              "net_cash": 206.19102146997466,
+              "mean_net_r": 1.3726095924983976,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades"
+                ]
+              },
+              "rejections": {
+                "volatility_protection": 2
+              }
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 10,
+            "wins": 2,
+            "net_cash": -335.73630213002616,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "combined": {
+          "eligible_candidates": 0,
+          "counts": {
+            "entry_policy:await_confirmed_M5_swing_break": 17,
+            "confirmation:await_actual_directional_M5_timing_confirmation": 111,
+            "higher_timeframe_confluence:alignment_lost_before_confirmation": 4,
+            "entry_policy:await_two_closed_aligned_M5_trends": 88,
+            "confirmation:confirmation_window_expired": 19,
+            "protection:original_structural_protection_breached": 13,
+            "confirmation:unavailable_confirmation_window_retired": 2
+          },
+          "stages": {
+            "development": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            },
+            "holdout": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        }
+      }
+    },
+    "separate": {
+      "raw_detection_counts": {
+        "session_or_close_buffer": 1627,
+        "higher_timeframe_confluence:all_four_higher_timeframes_required": 4135,
+        "micro_sweep:await_local_liquidity_sweep_and_reclaim": 23
+      },
+      "variants": {
+        "control": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "stages": {
+            "separate_validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "entry_only": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "stages": {
+            "separate_validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "target_only": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "stages": {
+            "separate_validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        },
+        "combined": {
+          "eligible_candidates": 0,
+          "counts": {},
+          "stages": {
+            "separate_validation": {
+              "trades": 0,
+              "wins": 0,
+              "net_cash": 0.0,
+              "mean_net_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "review": {
+                "passed": false,
+                "reasons": [
+                  "fewer_than_30_trades",
+                  "fewer_than_2_dates",
+                  "no_positive_mean_net_R",
+                  "profit_factor_below_1_1"
+                ]
+              },
+              "rejections": {}
+            }
+          },
+          "descriptive_stage_sum": {
+            "trades": 0,
+            "wins": 0,
+            "net_cash": 0.0,
+            "interpretation": "Descriptive sum of independently reset stages; not one continuous portfolio."
+          }
+        }
+      }
+    }
+  },
+  "local_evidence": "storage\\entry_horizon_coverage_20261116",
+  "receipt_hashes": {
+    "protocol": "c869ee9cc94c695d47bae60cb09e828178b0e5f9fa18fe02f0581ce0909c0002",
+    "source_receipt": "273433736bd3f491f7e422af5edb5ec9a8173897f020ee7d86d6efd836d3ac62",
+    "report": "5d7b34114891f17ae5764f2bf336104cf96bd35fd72fcfecd1c8240246c3aab9",
+    "primary_raw_receipt": "7baa300201342ddb19ef51f7482999b0bbf3970701c5e1ac89613027baf6db24",
+    "separate_raw_receipt": "9bfd8c08dda7abd2ba88b74c002dc19058ae45b95868b81510695680301a0668",
+    "primary_prediction_receipt": "a8d5d0ef073bb514c928223b98f771c11e38ddca29ab995aae19b66e98cdd9b7",
+    "separate_prediction_receipt": "5cb0db97ef4d01b919775259d783bbdad0d3cb8067c8d3ec2c03012ba8432077",
+    "separate_context_audit": "4270af8c8ba1ca09292caf1f6193a1a00af26c55be62d24f0e5981437a0509b1"
+  },
+  "earlier_coverage_limited_result": {
+    "directory": "storage/entry_horizon_proposal_20261116",
+    "report_sha256": "eff4e8e82a091d96939c5315998df71eef7f7fdf9838af03726a7e78f94e5d1d",
+    "interpretation": "Retained unchanged; inherited 80-bar continuity differs from detector-native recent-20-bar coverage."
+  },
+  "coverage_comparison": {
+    "old_control_trades": 10,
+    "corrected_control_trades": 14,
+    "original_trade_entries_exits_cash_retained": 10,
+    "additional_trades": 4,
+    "additional_wins": 0
+  },
+  "separate_context_attribution": {
+    "schema": "atlas_entry_horizon_context_attribution_v1",
+    "evaluated_windows": 4158,
+    "patterns": {
+      "D1:sell | H4:buy | H1:buy | M15:buy": 418,
+      "D1:sell | H4:buy | H1:buy | M15:flat": 65,
+      "D1:sell | H4:buy | H1:buy | M15:sell": 489,
+      "D1:sell | H4:buy | H1:sell | M15:sell": 435,
+      "D1:sell | H4:buy | H1:sell | M15:buy": 549,
+      "D1:unknown | H4:unknown | H1:sell | M15:sell": 11,
+      "D1:unknown | H4:buy | H1:sell | M15:sell": 36,
+      "D1:unknown | H4:buy | H1:sell | M15:flat": 3,
+      "D1:unknown | H4:buy | H1:sell | M15:buy": 43,
+      "D1:unknown | H4:buy | H1:buy | M15:buy": 51,
+      "D1:unknown | H4:buy | H1:buy | M15:flat": 3,
+      "D1:unknown | H4:buy | H1:buy | M15:sell": 51,
+      "D1:sell | H4:buy | H1:sell | M15:flat": 140,
+      "D1:sell | H4:buy | H1:flat | M15:buy": 50,
+      "D1:sell | H4:buy | H1:flat | M15:sell": 21,
+      "D1:sell | H4:unknown | H1:sell | M15:sell": 11,
+      "D1:sell | H4:flat | H1:buy | M15:buy": 71,
+      "D1:sell | H4:sell | H1:buy | M15:buy": 79,
+      "D1:sell | H4:sell | H1:buy | M15:flat": 22,
+      "D1:sell | H4:sell | H1:buy | M15:sell": 15,
+      "D1:sell | H4:unknown | H1:buy | M15:sell": 11,
+      "D1:buy | H4:buy | H1:buy | M15:buy": 23,
+      "D1:buy | H4:buy | H1:buy | M15:flat": 6,
+      "D1:buy | H4:buy | H1:buy | M15:sell": 30,
+      "D1:buy | H4:flat | H1:buy | M15:sell": 22,
+      "D1:buy | H4:flat | H1:flat | M15:sell": 12,
+      "D1:buy | H4:sell | H1:sell | M15:sell": 611,
+      "D1:buy | H4:sell | H1:sell | M15:flat": 71,
+      "D1:buy | H4:sell | H1:sell | M15:buy": 418,
+      "D1:buy | H4:sell | H1:flat | M15:sell": 23,
+      "D1:buy | H4:sell | H1:buy | M15:sell": 202,
+      "D1:buy | H4:sell | H1:buy | M15:buy": 149,
+      "D1:buy | H4:unknown | H1:buy | M15:sell": 11,
+      "D1:buy | H4:sell | H1:buy | M15:flat": 6
+    },
+    "unavailable_evidence": {
+      "D1:stale_closed_candles": 198,
+      "H4:stale_closed_candles": 44
+    },
+    "separate_raw_sha256": "8d9ff5faaa2ecc2c0057f85102895fc0e9bb772d4abb480790a42445adf57e51",
+    "archive_inputs_sha256": "bf08ea2cb7e327fc110e40a6553235e490e42077d1bbcf3b4443b82561024507",
+    "protocol_sha256": "c869ee9cc94c695d47bae60cb09e828178b0e5f9fa18fe02f0581ce0909c0002",
+    "policy_changed": false,
+    "orders_sent": 0
+  }
+}

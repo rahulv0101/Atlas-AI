@@ -314,6 +314,15 @@
       "policy_changed": false,
       "summary": "docs/STRUCTURAL_STRATEGY_DIAGNOSIS_20261116.json",
       "interpretation": "Early follow-through failures and low realized payoff explain the fixed sample loss; M5 trend opposition is an association, not a validated filter. Tick ordering remains unresolved and no strategy was activated."
+    },
+    {
+      "id": "entry_horizon_coverage_20261116",
+      "evidence_type": "fixed_2x2_proposal_reused_primary_and_disjoint_previously_inspected_April_history_not_blind",
+      "combined_review_passed": false,
+      "broker_eligible": false,
+      "live_policy_changed": false,
+      "summary": "docs/ENTRY_HORIZON_RESULTS_20261116.json",
+      "interpretation": "Same proposal rerun with actual detector recent-20-bar coverage. Prior 80-bar result retained. No best-lane selection, automatic activation or profitability claim."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
