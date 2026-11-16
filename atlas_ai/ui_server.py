@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
+import math
 import os
 import re
 import subprocess
@@ -1260,6 +1261,13 @@ def _build_volatility_protection_review(status_payload: dict[str, Any]) -> dict[
     spread_liquidity = dict(system_health.get("spread_liquidity", {}) or dict(decision_analysis.get("macro_context", {}) or {}).get("execution_friction", {}) or {})
     vol_intel = dict(status_payload.get("volatility_intelligence", {}) or {})
     vol_perf = dict(status_payload.get("volatility_learning_performance", {}) or {})
+    try:
+        raw_vol = dict(status_payload.get("regime", {}) or {}).get("volatility_pct")
+        measured_vol = float(raw_vol) if raw_vol is not None else None
+        if measured_vol is not None and (not math.isfinite(measured_vol) or measured_vol < 0):
+            measured_vol = None
+    except (ValueError, TypeError):
+        measured_vol = None
     action = str(safety_layer.get("volatility_action", status_payload.get("volatility_action", "")) or "")
     state = str(safety_layer.get("volatility_state", status_payload.get("volatility_state", "")) or "")
     reason = str(safety_layer.get("volatility_reason", status_payload.get("volatility_reason", "")) or "")
@@ -1295,6 +1303,9 @@ def _build_volatility_protection_review(status_payload: dict[str, Any]) -> dict[
         "action": action or "unknown",
         "reason": reason,
         "evidence": {
+            "volatility_pct": measured_vol,
+            "entry_timeframe": str(status_payload.get("timeframe", "") or ""),
+            "volatility_metric": "mean_absolute_close_to_close_percent",
             "regime": str(regime.get("regime", regime.get("state", "")) or ""),
             "regime_confidence": regime.get("regime_confidence", regime.get("score")),
             "regime_reasons": regime_reasons,
@@ -2130,6 +2141,8 @@ def _blocker_code(reason: str) -> str:
     text = str(reason or "").strip().lower()
     if not text:
         return "none"
+    if "volatility protection active" in text:
+        return "volatility_protection"
     if ":" in text and re.match(r"^[a-z0-9_:-]+$", text):
         return text.split(":", 1)[0]
     if "higher-timeframe alignment" in text or "htf_bias" in text:
@@ -2456,6 +2469,8 @@ def _build_execution_readiness(
             if any(item["lane"] == "safety" for item in blockers)
             else "Restore current backend/broker evidence and review automation controls."
             if system_blockers
+            else "Wait for volatility protection to clear; normal entry and risk gates must still pass."
+            if any(item["code"] == "volatility_protection" for item in blockers)
             else "Wait for the active session and a qualifying directional setup."
             if blockers
             else "Atlas can evaluate the next gated execution request."

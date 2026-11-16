@@ -1150,6 +1150,15 @@ function readinessBlockerSummary(status) {
   const readiness = (status || {}).execution_readiness || {};
   const primary = readiness.primary_blocker || {};
   if (!primary.code) return null;
+  if (primary.code === "volatility_protection" || String(primary.code).startsWith("risk_guard_active_volatility_protection")) {
+    const review = (status || {}).volatility_protection_review || {};
+    const evidence = review.evidence || {};
+    const measured = evidence.volatility_pct;
+    const timeframe = evidence.entry_timeframe || (status || {}).timeframe || "entry-timeframe";
+    const reading = measured != null && Number.isFinite(Number(measured))
+      ? `Average ${timeframe} close movement: ${Number(measured).toFixed(4)}%. ` : "";
+    return { headline: "Volatility protection", detail: reading + "New entries are paused until volatility eases. Normal entry and risk checks still apply." };
+  }
   const names = {
     stale_market_data: "Market data needs refreshing",
     stale_decision: "Decision needs refreshing",

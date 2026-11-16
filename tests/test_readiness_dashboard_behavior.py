@@ -168,6 +168,21 @@ def test_cutoff_summary_does_not_claim_scanning_or_disconnection():
     assert result["headline"]=="Session cutoff" and "paused" in result["detail"]
 
 
+@pytest.mark.parametrize('code',['volatility_protection','risk_guard_active_volatility_protection_active_extreme_volatility_regime_new_ent'])
+def test_volatility_heading_is_readable_for_current_and_legacy_codes(code):
+    node=shutil.which('node')
+    if not node:pytest.skip('Node required')
+    source=(Path(__file__).resolve().parents[1]/'atlas_ai/ui/app.js').read_text(encoding='utf-8')
+    helper=source[source.index('function entryWaitingSummary('):source.index('function renderOperatorOverview(')]
+    payload={'timeframe':'M5','execution_readiness':{'primary_blocker':{'code':code,'lane':'market'}},
+             'volatility_protection_review':{'evidence':{'volatility_pct':.0818,'entry_timeframe':'M5'}}}
+    script=helper+'\nprocess.stdout.write(JSON.stringify(readinessBlockerSummary('+json.dumps(payload)+')));'
+    result=json.loads(subprocess.run([node,'-'],input=script,text=True,capture_output=True,check=True,timeout=15).stdout)
+    assert result['headline']=='Volatility protection'
+    assert '0.0818%' in result['detail'] and 'M5' in result['detail']
+    assert 'paused until volatility eases' in result['detail']
+
+
 def test_setup_hunter_does_not_show_phantom_candidates_during_flat_cutoff():
     node=shutil.which("node")
     if not node:pytest.skip("Node required")

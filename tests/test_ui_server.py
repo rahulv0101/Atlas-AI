@@ -645,6 +645,19 @@ def test_volatility_protection_review_explains_extreme_volatility_hard_block(tmp
     assert "read-only observability" in review["policy_note"]
 
 
+def test_volatility_review_exposes_price_metric_without_guessing_missing_evidence():
+    from atlas_ai.ui_server import _build_volatility_protection_review, _blocker_code
+    status={'timeframe':'M5','regime':{'volatility_pct':.0818},
+            'safety_layer':{'volatility_action':'block_new_entries','volatility_state':'extreme'}}
+    review=_build_volatility_protection_review(status)
+    assert review['evidence']['volatility_pct']==.0818
+    assert review['evidence']['entry_timeframe']=='M5'
+    assert review['evidence']['volatility_metric']=='mean_absolute_close_to_close_percent'
+    assert _blocker_code('Risk guard active: Volatility protection active: extreme volatility regime; new entries paused.')=='volatility_protection'
+    status.pop('regime')
+    assert _build_volatility_protection_review(status)['evidence']['volatility_pct'] is None
+
+
 def test_compact_status_exposes_learning_loop_status(tmp_path, monkeypatch):
     store = KnowledgeStore(str(tmp_path))
     monkeypatch.setattr("atlas_ai.ui_server.announce_ui_ready_once", lambda *_args, **_kwargs: True)
