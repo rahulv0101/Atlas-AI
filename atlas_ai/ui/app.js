@@ -691,6 +691,31 @@ function setAnalysisPillClass(elementId, kind, value) {
   }
 }
 
+function decisionBlockerDisplay(view) {
+  const analysis = (view || {}).decision_analysis || {};
+  const reasons = [];
+  const add = value => {
+    const text = String(value || "").trim();
+    if (text && !reasons.includes(text)) reasons.push(text);
+  };
+  const timing = (view || {}).timing_discipline || {};
+  if (String((view || {}).action || "").toLowerCase() === "blocked") add(view.message);
+  if (timing.hard_block === true) add(timing.detail || (timing.structured_result || {}).detail);
+  const hard = Array.isArray(analysis.hard_blockers) ? analysis.hard_blockers : (analysis.blockers || []);
+  if (Array.isArray(hard)) hard.forEach(item => add(String(item).replace(/_/g, " ")));
+  const quality = Array.isArray(analysis.top_blockers) ? analysis.top_blockers : [];
+  quality.slice(0, 3).forEach(item => {
+    const label = item.detail || String(item.name || "").replace(/_/g, " ");
+    const actual = item.actual, target = item.target;
+    add(`Setup quality: ${label}${actual != null && target != null ? ` (${actual} / ${target})` : ""}`);
+  });
+  const waiting = analysis.recommended_action === "hold" || analysis.entry_quality === "avoid";
+  return { reasons, emptyLabel: Object.keys(analysis).length === 0
+    ? "Decision evidence unavailable"
+    : waiting ? "Entry conditions not met; execution is not cleared"
+    : "No listed analysis blockers; execution checks still required" };
+}
+
 function renderDecisionAnalysis(view) {
   const analysis = ((((view || {}).decision_analysis) || {}));
   const hasAnalysis = analysis && typeof analysis === "object" && Object.keys(analysis).length > 0;
@@ -714,7 +739,7 @@ function renderDecisionAnalysis(view) {
     setAnalysisPillClass("da-bias", "bias", "neutral");
     setAnalysisPillClass("da-confidence-level", "confidence", "low");
     setAnalysisPillClass("da-entry-quality", "entry", "avoid");
-    renderChipList("da-blockers", [], "No active blockers");
+    renderChipList("da-blockers", [], "Decision evidence unavailable");
     renderDetailList("da-reasoning", ["Decision analysis unavailable"], "Decision analysis unavailable");
     renderWarningChipList("da-warnings", [], "No active warnings");
     renderDetailList("dp-observe", ["Observe stage unavailable"], "Observe stage unavailable");
@@ -810,7 +835,8 @@ function renderDecisionAnalysis(view) {
   setAnalysisPillClass("da-bias", "bias", bias);
   setAnalysisPillClass("da-confidence-level", "confidence", confidenceLevel);
   setAnalysisPillClass("da-entry-quality", "entry", entryQuality);
-  renderChipList("da-blockers", blockers, "No active blockers");
+  const blockerDisplay = decisionBlockerDisplay(view);
+  renderChipList("da-blockers", blockerDisplay.reasons, blockerDisplay.emptyLabel);
   renderDetailList("da-reasoning", reasoning, "No strong reasoning points.");
   renderWarningChipList("da-warnings", warnings, "No active warnings");
   renderDetailList("dp-observe", observeSummary, "No observe summary available");
