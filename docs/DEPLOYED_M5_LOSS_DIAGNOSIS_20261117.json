@@ -1,0 +1,208 @@
+{
+  "state": "completed_fixed_sample_diagnosis",
+  "summary": {
+    "trades": 47,
+    "wins": 14,
+    "losses": 33,
+    "flat": 0,
+    "net_cash": -233.32590659986505,
+    "mean_win_cash": 24.657456300004533,
+    "mean_loss_cash": 17.531221054543288,
+    "observed_win_rate": 0.2978723404255319,
+    "break_even_win_rate_at_observed_payoffs": 0.41554327259926466,
+    "losing_first_bar_stops": 33,
+    "ambiguous_stop_first": 8,
+    "exit_reasons": {
+      "stop_loss": 33,
+      "take_profit": 14
+    }
+  },
+  "groups": {
+    "strategy:ema_crossover": {
+      "trades": 39,
+      "wins": 10,
+      "losses": 29,
+      "flat": 0,
+      "net_cash": -257.1773103999088,
+      "mean_win_cash": 24.89943330000277,
+      "mean_loss_cash": 17.45419459999781,
+      "observed_win_rate": 0.2564102564102564,
+      "break_even_win_rate_at_observed_payoffs": 0.4121062460389036,
+      "losing_first_bar_stops": 29,
+      "ambiguous_stop_first": 8,
+      "exit_reasons": {
+        "stop_loss": 29,
+        "take_profit": 10
+      }
+    },
+    "session:asia": {
+      "trades": 20,
+      "wins": 4,
+      "losses": 16,
+      "flat": 0,
+      "net_cash": -182.21051039993836,
+      "mean_win_cash": 24.47597355000277,
+      "mean_loss_cash": 17.50715028749684,
+      "observed_win_rate": 0.2,
+      "break_even_win_rate_at_observed_payoffs": 0.4170044695878332,
+      "losing_first_bar_stops": 16,
+      "ambiguous_stop_first": 5,
+      "exit_reasons": {
+        "stop_loss": 16,
+        "take_profit": 4
+      }
+    },
+    "side:sell": {
+      "trades": 35,
+      "wins": 7,
+      "losses": 28,
+      "flat": 0,
+      "net_cash": -318.65712769994144,
+      "mean_win_cash": 24.65745630000123,
+      "mean_loss_cash": 17.544975778569647,
+      "observed_win_rate": 0.2,
+      "break_even_win_rate_at_observed_payoffs": 0.415733760222754,
+      "losing_first_bar_stops": 28,
+      "ambiguous_stop_first": 8,
+      "exit_reasons": {
+        "stop_loss": 28,
+        "take_profit": 7
+      }
+    },
+    "exit_reason:stop_loss": {
+      "trades": 33,
+      "wins": 0,
+      "losses": 33,
+      "flat": 0,
+      "net_cash": -578.5302947999285,
+      "mean_win_cash": null,
+      "mean_loss_cash": 17.531221054543288,
+      "observed_win_rate": 0.0,
+      "break_even_win_rate_at_observed_payoffs": null,
+      "losing_first_bar_stops": 33,
+      "ambiguous_stop_first": 8,
+      "exit_reasons": {
+        "stop_loss": 33
+      }
+    },
+    "session:new_york": {
+      "trades": 12,
+      "wins": 5,
+      "losses": 7,
+      "flat": 0,
+      "net_cash": 2.3178043000132433,
+      "mean_win_cash": 24.89943330000123,
+      "mean_loss_cash": 17.45419459999899,
+      "observed_win_rate": 0.4166666666666667,
+      "break_even_win_rate_at_observed_payoffs": 0.4121062460389349,
+      "losing_first_bar_stops": 7,
+      "ambiguous_stop_first": 1,
+      "exit_reasons": {
+        "stop_loss": 7,
+        "take_profit": 5
+      }
+    },
+    "session:london": {
+      "trades": 15,
+      "wins": 5,
+      "losses": 10,
+      "flat": 0,
+      "net_cash": -53.43320049993992,
+      "mean_win_cash": 24.560665500009243,
+      "mean_loss_cash": 17.623652799998613,
+      "observed_win_rate": 0.3333333333333333,
+      "break_even_win_rate_at_observed_payoffs": 0.41777735211132544,
+      "losing_first_bar_stops": 10,
+      "ambiguous_stop_first": 2,
+      "exit_reasons": {
+        "stop_loss": 10,
+        "take_profit": 5
+      }
+    },
+    "strategy:gold_micro_impulse": {
+      "trades": 3,
+      "wins": 2,
+      "losses": 1,
+      "flat": 0,
+      "net_cash": 24.723511000016018,
+      "mean_win_cash": 19.817916300008932,
+      "mean_loss_cash": 14.912321600001851,
+      "observed_win_rate": 0.6666666666666666,
+      "break_even_win_rate_at_observed_payoffs": 0.42937574003768114,
+      "losing_first_bar_stops": 1,
+      "ambiguous_stop_first": 0,
+      "exit_reasons": {
+        "take_profit": 2,
+        "stop_loss": 1
+      }
+    },
+    "exit_reason:take_profit": {
+      "trades": 14,
+      "wins": 14,
+      "losses": 0,
+      "flat": 0,
+      "net_cash": 345.2043882000634,
+      "mean_win_cash": 24.657456300004533,
+      "mean_loss_cash": null,
+      "observed_win_rate": 1.0,
+      "break_even_win_rate_at_observed_payoffs": null,
+      "losing_first_bar_stops": 0,
+      "ambiguous_stop_first": 0,
+      "exit_reasons": {
+        "take_profit": 14
+      }
+    },
+    "strategy:pullback_trend": {
+      "trades": 5,
+      "wins": 2,
+      "losses": 3,
+      "flat": 0,
+      "net_cash": -0.8721071999722767,
+      "mean_win_cash": 28.28711130000893,
+      "mean_loss_cash": 19.148776599996715,
+      "observed_win_rate": 0.4,
+      "break_even_win_rate_at_observed_payoffs": 0.4036769932579766,
+      "losing_first_bar_stops": 3,
+      "ambiguous_stop_first": 0,
+      "exit_reasons": {
+        "stop_loss": 3,
+        "take_profit": 2
+      }
+    },
+    "side:buy": {
+      "trades": 12,
+      "wins": 7,
+      "losses": 5,
+      "flat": 0,
+      "net_cash": 85.3312211000764,
+      "mean_win_cash": 24.657456300007834,
+      "mean_loss_cash": 17.454194599995684,
+      "observed_win_rate": 0.5833333333333334,
+      "break_even_win_rate_at_observed_payoffs": 0.41447424232884267,
+      "losing_first_bar_stops": 5,
+      "ambiguous_stop_first": 0,
+      "exit_reasons": {
+        "take_profit": 7,
+        "stop_loss": 5
+      }
+    }
+  },
+  "median_stop_to_preceding_ATR": 0.2302631578947365,
+  "median_stop_price_distance": 1.0,
+  "median_preceding_closed_ATR": 4.518571428571444,
+  "source_report_sha256": "891ac893e241111391f69f1f73231bf546f1cda61f491b964e44c1c2c9c65fe0",
+  "source_protocol_sha256": "69e58c6e3d03d9d033e9b65946e1cdef308a48c0526dbe5fd9629157e31a8276",
+  "candles_sha256": "b124cde11721262549aa5f9ec95ba7a3d4dc78fcc52c7fa4d782f4653d60d49f",
+  "diagnostic_source_sha256": "2e2d36cfd9df9b3506d19a249937c587ac822816a74a7fccb86cb5555ad41874",
+  "orders_sent": 0,
+  "policy_changed": false,
+  "broker_eligible": false,
+  "limits": [
+    "Previously inspected reused history; descriptive, not independent validation.",
+    "No exit-bar favorable excursion is used; intrabar tick ordering is unknown.",
+    "Frozen broker conversion and modeled costs, not measured natural fill costs.",
+    "Subgroup winners are not permission to select or activate a hindsight filter."
+  ],
+  "local_evidence": "storage\\deployed_m5_loss_diagnosis_20261117",
+  "report_sha256": "d8e6464babf77b65e8f8a111c30f94ccfacc384f3716b355c886ad9acb5bb4bf"
+}
