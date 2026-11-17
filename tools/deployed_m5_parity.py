@@ -53,7 +53,12 @@ def main():
         save_signed(output,'candidates',{'rows':candidates,'counts':counts,'strategies':names})
         execution=frames['M5'].copy();execution['spread']=execution.spread.shift(1)
         rejection=[]
+        progress(stage='diagnostic_replay',candidate_bars=len(candidates))
         diagnostic=replay(execution,candidates,cfg,BrokerSpec(**ref['spec']),ExitVariant('configured',cfg.backtest_break_even_lock_r,3.),store,ref['limits'],audit=rejection.append)
+        save_signed(output,'diagnostic_checkpoint',{'protocol_sha256':digest(output/'protocol.json'),
+            'candidate_receipt_sha256':digest(output/'candidates.json'),'diagnostic':diagnostic,
+            'strict_screen_complete':False,'orders_sent':0,'broker_eligible':False})
+        progress(stage='strict_evidence_replay',candidate_bars=len(candidates))
         strict=replay(execution,candidates,cfg,BrokerSpec(**ref['spec']),ExitVariant('configured',cfg.backtest_break_even_lock_r,3.),store,ref['limits'],strict=True)
         save_signed(output,'report',{'state':'completed_partial_parity_diagnostic','diagnostic':diagnostic,
             'strict_missing_evidence_screen':strict,'rejections':rejection,**completeness(MISSING),

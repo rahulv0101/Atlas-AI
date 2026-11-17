@@ -1,0 +1,79 @@
+{
+  "state": "completed_partial_parity_diagnostic",
+  "full_live_parity": false,
+  "missing_live_evidence": [
+    "predecision_allocator_and_contextual_ranking_state",
+    "drift_throttle_and_learning_state",
+    "online_learning_and_loss_pattern_guards",
+    "EMA_side_switch_and_fresh_cross_guard",
+    "side_balance_cluster_smart_context_and_meta_model",
+    "gold_knowledge_and_directional_structure_guards",
+    "visual_and_macro_point_in_time_evidence",
+    "broker_quotes_fills_and_account_occupancy",
+    "approval_operator_presence_and_ExecutionGate_state"
+  ],
+  "expected_live_trades_per_day": null,
+  "frequency_claim_allowed": false,
+  "orders_sent": 0,
+  "broker_eligible": false,
+  "settings_timeframe": "M5",
+  "strategies": [
+    "ema_crossover",
+    "momentum_continuation",
+    "pullback_trend",
+    "gold_micro_impulse",
+    "gold_breakout_retest",
+    "gold_liquidity_sweep"
+  ],
+  "candidate_bars": 34911,
+  "virtual_initial_balance": 10000.0,
+  "broker_spec_basis": "frozen_previous_demo_snapshot_not_current_broker_verification",
+  "local_evidence": "C:\\Users\\rv010\\Desktop\\Atlas AI\\storage\\deployed_m5_parity_20261117T205724Z",
+  "receipts": {
+    "protocol": "69e58c6e3d03d9d033e9b65946e1cdef308a48c0526dbe5fd9629157e31a8276",
+    "candidates": "66c66a674aee2ba916760201cf3ab76a0eb45f6a5fe5067044cf2ebbb04e9af5",
+    "report": "891ac893e241111391f69f1f73231bf546f1cda61f491b964e44c1c2c9c65fe0"
+  },
+  "current_source_matches_startup_hashes": {
+    "tools\\deployed_m5_parity.py": false,
+    "atlas_ai\\testing\\policy_replay.py": true,
+    "atlas_ai\\trader.py": true
+  },
+  "diagnostic": {
+    "trades": 47,
+    "wins": 14,
+    "net_cash": -233.3259065998518,
+    "profit_factor": 0.596691981911586,
+    "mean_net_r": -0.28737853509663064,
+    "max_drawdown_r": 13.506791149541641,
+    "rejections": {
+      "higher_timeframe_confluence": 23448,
+      "timing_discipline": 4820,
+      "pilot_setup_family": 168,
+      "near_session_close_no_new_trades": 1094,
+      "outside_active_session": 3914,
+      "near_session_open_no_new_trades": 135,
+      "volatility_protection": 27,
+      "max_consecutive_losses_reached": 1258
+    }
+  },
+  "strict_missing_evidence_screen": {
+    "trades": 0,
+    "wins": 0,
+    "net_cash": 0.0,
+    "profit_factor": null,
+    "mean_net_r": null,
+    "max_drawdown_r": 0.0,
+    "rejections": {
+      "higher_timeframe_confluence": 24129,
+      "timing_discipline": 5127,
+      "pilot_setup_family": 138,
+      "near_session_close_no_new_trades": 1145,
+      "outside_active_session": 4162,
+      "near_session_open_no_new_trades": 135,
+      "historical_visual_macro_and_execution_evidence_unavailable": 48,
+      "volatility_protection": 27
+    }
+  },
+  "interpretation": "Diagnostic simulations are not broker trades. Strict evidence refusals are unknown outcomes, not losses. Missing gates prevent a live-rate forecast or model activation."
+}
