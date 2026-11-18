@@ -1,0 +1,109 @@
+{
+  "state": "completed_volatility_isolation",
+  "coverage": {
+    "calibration": {
+      "valid_paired_windows": 2160,
+      "median_M5_pct": 0.046123346526141876,
+      "current_extreme_fraction": 0.08472222222222223,
+      "scaled_extreme_fraction": 0.0,
+      "screenshot_value_percentile": 0.9212962962962963
+    },
+    "validation": {
+      "valid_paired_windows": 4707,
+      "median_M5_pct": 0.051536326525003236,
+      "current_extreme_fraction": 0.18079456129169322,
+      "scaled_extreme_fraction": 0.0,
+      "screenshot_value_percentile": 0.8667941363926067
+    }
+  },
+  "calibration": {
+    "scale": 2.1946802414554627,
+    "elevated_pct": 0.09876061086549581,
+    "extreme_pct": 0.1536276169018824,
+    "pairs": 2160,
+    "dates": 10,
+    "method": "median_M5_to_M1_absolute_move_ratio_matched_295_minute_windows_no_outcome_optimization"
+  },
+  "protocol_sha256": "5999f9443b15eafb3ea6d862378a568fff983b679a1234a1a54859f790bacdbe",
+  "candidates_sha256": "cf4c2eea28b3ccb2e70467e351c3345d89efa7854155cca56d76d744e5f72246",
+  "live_policy_changed": false,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "full_live_parity": false,
+  "note": "Previously inspected retrospective validation; frozen costs and R100000 virtual capital. No automatic activation.",
+  "results": {
+    "current_boundaries": {
+      "trades": 9,
+      "wins": 7,
+      "net_cash": 669.3729265999864,
+      "return_fraction": 0.00669372926599987,
+      "profit_factor": 10.101559749000865,
+      "max_drawdown": 0.000679527381999942,
+      "max_drawdown_r": 1.0086237872797754,
+      "mean_net_r": 0.5420566382443657,
+      "rejections": {
+        "near_session_open_no_new_trades": 34,
+        "higher_timeframe_confluence": 3968,
+        "near_session_close_no_new_trades": 197,
+        "outside_active_session": 685,
+        "timing_discipline": 897,
+        "pilot_setup_family": 26,
+        "open_position": 76,
+        "volatility_protection": 2
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false,
+      "orders_sent": 0,
+      "strict_evidence_mode": false,
+      "review": {
+        "passed": false,
+        "reasons": [
+          "fewer_than_30_trades"
+        ]
+      }
+    },
+    "M5_scaled_boundaries": {
+      "trades": 11,
+      "wins": 7,
+      "net_cash": 555.3275579999754,
+      "return_fraction": 0.00555327557999985,
+      "profit_factor": 3.9603224309539273,
+      "max_drawdown": 0.0010175896645903603,
+      "max_drawdown_r": 1.0086237872797754,
+      "mean_net_r": 0.3470936921796502,
+      "rejections": {
+        "near_session_open_no_new_trades": 34,
+        "higher_timeframe_confluence": 3968,
+        "near_session_close_no_new_trades": 197,
+        "outside_active_session": 685,
+        "timing_discipline": 884,
+        "pilot_setup_family": 27,
+        "open_position": 88
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false,
+      "orders_sent": 0,
+      "strict_evidence_mode": false,
+      "review": {
+        "passed": false,
+        "reasons": [
+          "fewer_than_30_trades"
+        ]
+      }
+    }
+  },
+  "receipts": {
+    "protocol": "5999f9443b15eafb3ea6d862378a568fff983b679a1234a1a54859f790bacdbe",
+    "report": "018d67d6cde2b1cef38f71df0d29102219e0e3c10849a85d3b4b9bc4d0be8a44",
+    "candidates": "cf4c2eea28b3ccb2e70467e351c3345d89efa7854155cca56d76d744e5f72246"
+  },
+  "forward_collector_status": {
+    "state": "blocked_review_required",
+    "error": "ValueError",
+    "reason": "observed_closed_candles_revised",
+    "checked_at": "2026-11-16T17:51:18.959796+00:00",
+    "broker_eligible": false
+  },
+  "source_code_sha256_recorded_after_run": "8c0080e10e1925e03f4c8ab32099f57c9421c4a19ad32d5ff952a74f64c10e5e",
+  "live_activation_supported": false
+}

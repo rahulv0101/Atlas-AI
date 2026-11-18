@@ -32,3 +32,17 @@ and `--capital-profile storage/demo_capacity_20261118T120951Z`. The local
 capacity receipt is private; only its hash and rounded virtual scenario are
 included in the research protocol. Thirteen focused tests cover conversion,
 future-candle exclusion, unchanged candidate identity and bounded capital choice.
+
+## Completed comparison
+
+| Period | Geometry | Simulated trades | Wins | Net simulated rand | Review |
+|---|---|---:|---:|---:|---|
+| primary | unchanged | 47 | 14 | -233.33 | failed |
+| primary | corrected | 40 | 29 | 3146.17 | passed |
+| separate_April | unchanged | 0 | 0 | 0.00 | failed |
+| separate_April | corrected | 0 | 0 | 0.00 | failed |
+
+Partial live parity; previously inspected periods. Capital and broker conversion are frozen research assumptions. No automatic broker activation or live-rate forecast.
+
+Correction affordability is distinct from profitability. No strategy or observer is activated.
+Passing the software tests does not qualify a trading edge. Full live execution and fresh prospective evidence remain unproven.

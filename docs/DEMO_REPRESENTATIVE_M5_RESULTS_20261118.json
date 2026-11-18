@@ -1,0 +1,130 @@
+{
+  "full_live_parity": false,
+  "expected_live_trades_per_day": null,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "periods": {
+    "primary": {
+      "virtual_capital": 100000.0,
+      "candidate_bars": 34911,
+      "results": {
+        "unchanged": {
+          "trades": 47,
+          "wins": 14,
+          "net_cash": -233.32590659994457,
+          "profit_factor": 0.596691981911586,
+          "mean_net_r": -0.28737853509663064,
+          "max_drawdown_r": 13.506791149541641,
+          "rejections": {
+            "higher_timeframe_confluence": 23448,
+            "timing_discipline": 4820,
+            "pilot_setup_family": 168,
+            "near_session_close_no_new_trades": 1094,
+            "outside_active_session": 3914,
+            "near_session_open_no_new_trades": 135,
+            "volatility_protection": 27,
+            "max_consecutive_losses_reached": 1258
+          },
+          "review": {
+            "passed": false,
+            "reasons": [
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1",
+              "drawdown_above_6R"
+            ]
+          }
+        },
+        "corrected": {
+          "trades": 40,
+          "wins": 29,
+          "net_cash": 3146.171452568189,
+          "profit_factor": 4.499728940484345,
+          "mean_net_r": 0.4719037607933364,
+          "max_drawdown_r": 1.378767837820753,
+          "rejections": {
+            "higher_timeframe_confluence": 24097,
+            "timing_discipline": 4910,
+            "pilot_setup_family": 111,
+            "near_session_close_no_new_trades": 1145,
+            "outside_active_session": 4162,
+            "near_session_open_no_new_trades": 135,
+            "open_position": 284,
+            "volatility_protection": 27
+          },
+          "review": {
+            "passed": true,
+            "reasons": []
+          }
+        }
+      }
+    },
+    "separate_April": {
+      "virtual_capital": 100000.0,
+      "candidate_bars": 5757,
+      "results": {
+        "unchanged": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "profit_factor": null,
+          "mean_net_r": null,
+          "max_drawdown_r": 0.0,
+          "rejections": {
+            "near_session_open_no_new_trades": 19,
+            "higher_timeframe_confluence": 4826,
+            "near_session_close_no_new_trades": 189,
+            "outside_active_session": 707,
+            "timing_discipline": 15,
+            "pilot_setup_family": 1
+          },
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          }
+        },
+        "corrected": {
+          "trades": 0,
+          "wins": 0,
+          "net_cash": 0.0,
+          "profit_factor": null,
+          "mean_net_r": null,
+          "max_drawdown_r": 0.0,
+          "rejections": {
+            "near_session_open_no_new_trades": 19,
+            "higher_timeframe_confluence": 4826,
+            "near_session_close_no_new_trades": 189,
+            "outside_active_session": 707,
+            "timing_discipline": 15,
+            "pilot_setup_family": 1
+          },
+          "review": {
+            "passed": false,
+            "reasons": [
+              "fewer_than_30_trades",
+              "fewer_than_2_dates",
+              "no_positive_mean_net_R",
+              "profit_factor_below_1_1"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "receipts": {
+    "primary": {
+      "protocol_sha256": "7e432d169ce8a0511f3468da8cc8a4218afc2f96b76d26c9743653b011614ed3",
+      "report_sha256": "909b249555dd074d0d22effe00d6f1aea8c3f0e2ade7bdbcb343de794af46156"
+    },
+    "separate_April": {
+      "protocol_sha256": "71955f73827020b7cafa9397e669dd8c3d7f79c20ed2948a9f2ad24a4fc54ea9",
+      "report_sha256": "b410395eac6fd49c076e4800e6fe414bc404cc47114a06afcda2642e8639ae89"
+    }
+  },
+  "note": "Partial live parity; previously inspected periods. Capital and broker conversion are frozen research assumptions. No automatic broker activation or live-rate forecast."
+}
