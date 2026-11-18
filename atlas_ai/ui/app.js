@@ -701,6 +701,15 @@ function decisionBlockerDisplay(view) {
   const timing = (view || {}).timing_discipline || {};
   if (String((view || {}).action || "").toLowerCase() === "blocked") add(view.message);
   if (timing.hard_block === true) add(timing.detail || (timing.structured_result || {}).detail);
+  const selectedSide = String(((view || {}).chosen || {}).side || analysis.signal_bias || "").toLowerCase();
+  const analysisSide = String(analysis.final_trade_bias || "").toLowerCase();
+  if (["buy", "sell"].includes(selectedSide) && ["buy", "sell"].includes(analysisSide) && selectedSide !== analysisSide) {
+    add(`Direction conflict: selected strategy ${selectedSide.toUpperCase()}; analysis ${analysisSide.toUpperCase()}. Analysis is not approval of the selected trade.`);
+  }
+  const observed = timing.observed || (timing.condition_values || {}).observed || {};
+  if (observed.visual_watch_used && observed.location && observed.visual_location && observed.location !== observed.visual_location) {
+    add(`Location disagreement: candles ${observed.location}; visual viewport ${observed.visual_location}. Screenshot bar/price alignment is unverified.`);
+  }
   const hard = Array.isArray(analysis.hard_blockers) ? analysis.hard_blockers : (analysis.blockers || []);
   if (Array.isArray(hard)) hard.forEach(item => add(String(item).replace(/_/g, " ")));
   const quality = Array.isArray(analysis.top_blockers) ? analysis.top_blockers : [];
@@ -720,11 +729,14 @@ function decisionExecutionDisplay(view) {
   const analysis = (view || {}).decision_analysis || {};
   const timing = (view || {}).timing_discipline || {};
   const timingBlocked = timing.hard_block === true || timing.passed === false;
+  const selectedSide = String(((view || {}).chosen || {}).side || analysis.signal_bias || "").toLowerCase();
+  const analysisSide = String(analysis.final_trade_bias || "").toLowerCase();
+  const directionConflict = ["buy", "sell"].includes(selectedSide) && ["buy", "sell"].includes(analysisSide) && selectedSide !== analysisSide;
   const blocked = timingBlocked || String((view || {}).action || "").toLowerCase() === "blocked";
   return {
-    action: blocked ? (timingBlocked ? "WAIT — timing confirmation" : "WAIT — execution blocked")
+    action: directionConflict ? "WAIT — direction conflict" : blocked ? (timingBlocked ? "WAIT — timing confirmation" : "WAIT — execution blocked")
       : String(analysis.recommended_action || "hold"),
-    execution: blocked ? "blocked" : "not confirmed; remaining execution checks required",
+    execution: blocked ? "blocked" : directionConflict ? "not confirmed; selected signal conflicts with analysis" : "not confirmed; remaining execution checks required",
     timing: timingBlocked ? "blocked" : timing.passed === true ? "passed" : "not confirmed",
   };
 }

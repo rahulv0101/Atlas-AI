@@ -39,3 +39,10 @@ def test_missing_runtime_evidence_is_not_a_pass():
     result=render({})
     assert result['timing']=='not confirmed'
     assert result['execution'].startswith('not confirmed')
+
+
+def test_opposing_analysis_never_displays_as_selected_trade_ready():
+    result=render({'chosen':{'side':'sell'},'timing_discipline':{'passed':True},
+        'decision_analysis':{'final_trade_bias':'buy','recommended_action':'guarded_buy'}})
+    assert result['action']=='WAIT — direction conflict'
+    assert result['execution']=='not confirmed; selected signal conflicts with analysis'

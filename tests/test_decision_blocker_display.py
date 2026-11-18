@@ -39,3 +39,11 @@ def test_passed_timing_does_not_resurrect_old_rejection_and_hard_reasons_remain(
         'timing_discipline':{'hard_block':False,'detail':'Not a current blocker'},
         'decision_analysis':{'hard_blockers':['spread_liquidity_too_poor']}})
     assert result['reasons'] == ['spread liquidity too poor']
+
+
+def test_direction_and_location_conflicts_are_explained_without_picking_a_winner():
+    result=render({'chosen':{'side':'sell'},'decision_analysis':{'final_trade_bias':'buy'},
+        'timing_discipline':{'observed':{'visual_watch_used':True,'location':'pullback','visual_location':'mid_range'}}})
+    assert any('selected strategy SELL; analysis BUY' in r for r in result['reasons'])
+    assert any('candles pullback; visual viewport mid_range' in r for r in result['reasons'])
+    assert any('alignment is unverified' in r for r in result['reasons'])

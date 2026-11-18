@@ -40,6 +40,10 @@ def build_evidence_alignment(status, visual, indicator_momentum=None):
     feature_match=(current_bar==source_bar) if current_bar and source_bar else None
     relation="missing" if "unknown" in (indicator,pixels) else "agree" if indicator==pixels else "different"
     forming=candle["bar_closed_at_evaluation"] is False
+    indicator_location=str(chart.get('location_state') or 'unknown')
+    viewport_location=str(pixels_features.get('visual_location') or 'unknown')
+    location_relation=('missing' if 'unknown' in (indicator_location,viewport_location)
+                       else 'agree' if indicator_location==viewport_location else 'different')
     summary=f"{candle['timeframe'] or 'Candle'} momentum: {indicator}; chart viewport movement: {pixels}."
     if forming:summary+=" The indicator used a forming candle."
     summary+=" These are different measures; screenshot bar alignment is unverified."
@@ -48,4 +52,9 @@ def build_evidence_alignment(status, visual, indicator_momentum=None):
             "captured_at":(visual or {}).get("captured_at"),"feature_bar_utc":source.get("bar_utc")},
         "feature_bar_matches_current":feature_match,"screen_bar_matches_current":None,
         "momentum_relation":relation,"summary":summary,"advisory_only":True,
+        "location_comparison":{"candle_location":indicator_location,"viewport_location":viewport_location,
+            "relation":location_relation,"candle_method":"recent_OHLC_range_position_with_trend",
+            "viewport_method":"screen_vertical_position_heuristic",
+            "same_bar_mapping_verified":False,
+            "note":"A viewport mid-range label is not a verified rejection of a candle pullback or structural retest."},
         "policy_note":"Agreement of labels is not proof of aligned bars; this comparison cannot approve entries or change timing rules."}
