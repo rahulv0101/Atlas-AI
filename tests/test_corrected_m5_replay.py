@@ -1,6 +1,8 @@
 from copy import deepcopy
 import pandas as pd
 from tools.replay_corrected_m5 import corrected_rows
+from tools.replay_corrected_m5 import capital_scenario
+import pytest
 
 
 def fixture():
@@ -25,3 +27,9 @@ def test_future_price_changes_do_not_change_current_corrected_geometry():
     frame,rows=fixture();expected=corrected_rows(rows,frame,.01)
     frame.loc[31:,'high']=9999.
     assert corrected_rows(rows,frame,.01)==expected
+
+
+def test_capital_profile_is_bounded_by_both_verified_balance_and_equity():
+    assert capital_scenario({'state':'matching_configured_demo_capacity_checked','balance':120000,'equity':110000})==100000
+    assert capital_scenario({'state':'matching_configured_demo_capacity_checked','balance':120000,'equity':90000})==10000
+    with pytest.raises(ValueError):capital_scenario({'state':'unavailable','balance':120000,'equity':120000})
