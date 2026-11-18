@@ -1,0 +1,718 @@
+{
+  "source_report_sha256": "891ac893e241111391f69f1f73231bf546f1cda61f491b964e44c1c2c9c65fe0",
+  "checks": [
+    {
+      "at": "2026-05-20T00:20:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1104.2857142857558,
+      "corrected_target_points": 1656.4285714286339,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 187.13026942857846,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-06-03T17:05:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 791.85714285716,
+      "corrected_target_points": 1187.7857142857401,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 134.1866860857172,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-06-05T06:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 905.8571428571408,
+      "corrected_target_points": 1358.7857142857113,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 153.50492088571397,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-06-19T12:50:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 903.7142857142887,
+      "corrected_target_points": 1355.571428571433,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 153.1417961714291,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-06-24T00:10:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1319.0000000000055,
+      "corrected_target_points": 1978.5000000000082,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 223.51536580000095,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-06-30T00:05:00+00:00",
+      "strategy": "gold_micro_impulse",
+      "side": "sell",
+      "original_stop_points": 85,
+      "corrected_stop_points": 454.7321428571455,
+      "corrected_target_points": 691.192857142861,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 77.05809041071474,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-09T02:15:00+00:00",
+      "strategy": "pullback_trend",
+      "side": "sell",
+      "original_stop_points": 110,
+      "corrected_stop_points": 917.871428571421,
+      "corrected_target_points": 1325.8142857142748,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 155.54084011714158,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-09T05:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 748.0000000000148,
+      "corrected_target_points": 1122.0000000000223,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 126.75473360000251,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-10T12:45:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1091.4285714285793,
+      "corrected_target_points": 1637.1428571428687,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 184.95152114285847,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-13T12:50:00+00:00",
+      "strategy": "pullback_trend",
+      "side": "sell",
+      "original_stop_points": 110,
+      "corrected_stop_points": 859.8857142857156,
+      "corrected_target_points": 1242.057142857145,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 145.71468534857166,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-13T18:40:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 843.7142857142849,
+      "corrected_target_points": 1265.5714285714273,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 142.97430417142843,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-28T04:15:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 534.5714285714231,
+      "corrected_target_points": 801.8571428571347,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 90.58751205714194,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-07-28T13:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 968.5714285714312,
+      "corrected_target_points": 1452.8571428571468,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 164.13237085714331,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-05T04:50:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 626.142857142869,
+      "corrected_target_points": 939.2142857143035,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 106.10504151428773,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-05T11:00:00+00:00",
+      "strategy": "gold_micro_impulse",
+      "side": "buy",
+      "original_stop_points": 85,
+      "corrected_stop_points": 449.82142857143765,
+      "corrected_target_points": 683.7285714285852,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 76.2259296071444,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-05T13:00:00+00:00",
+      "strategy": "pullback_trend",
+      "side": "buy",
+      "original_stop_points": 110,
+      "corrected_stop_points": 1212.9428571428707,
+      "corrected_target_points": 1752.028571428591,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 205.54311327428806,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-06T01:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 2107.1428571428182,
+      "corrected_target_points": 3160.714285714227,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 357.07263571427916,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-10T16:45:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 969.2857142857195,
+      "corrected_target_points": 1453.9285714285793,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 164.25341242857232,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-10T17:25:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 863.4285714285656,
+      "corrected_target_points": 1295.1428571428485,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 146.3150515428562,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-11T02:55:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1401.2857142857163,
+      "corrected_target_points": 2101.9285714285743,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 237.45935482857178,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-21T06:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1030.7142857142676,
+      "corrected_target_points": 1546.0714285714014,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 174.6629875714255,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-21T18:40:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 767.0000000000202,
+      "corrected_target_points": 1150.5000000000305,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 129.97443940000343,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-21T18:45:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 754.5714285714504,
+      "corrected_target_points": 1131.8571428571756,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 127.86831605714657,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-08-21T19:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 664.2857142857143,
+      "corrected_target_points": 996.4285714285716,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 112.56866142857145,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-08T02:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "buy",
+      "original_stop_points": 100,
+      "corrected_stop_points": 960.8571428571461,
+      "corrected_target_points": 1441.2857142857192,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 162.82512188571485,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-15T00:45:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 735.1428571428967,
+      "corrected_target_points": 1102.714285714345,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 124.57598531429244,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-15T07:40:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 810.7142857142858,
+      "corrected_target_points": 1216.0714285714287,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 137.3821835714286,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-23T12:05:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 962.1428571428623,
+      "corrected_target_points": 1443.2142857142935,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 163.0429967142866,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-23T12:15:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1003.857142857149,
+      "corrected_target_points": 1505.7857142857235,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 170.11182448571535,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-23T12:20:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1037.7142857142903,
+      "corrected_target_points": 1556.5714285714355,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 175.84919497142934,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-23T13:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 971.4285714285713,
+      "corrected_target_points": 1457.1428571428569,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 164.61653714285714,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-24T05:35:00+00:00",
+      "strategy": "gold_micro_impulse",
+      "side": "sell",
+      "original_stop_points": 85,
+      "corrected_stop_points": 417.49999999999386,
+      "corrected_target_points": 634.5999999999906,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 70.74879849999897,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-24T07:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 852.5714285714587,
+      "corrected_target_points": 1278.8571428571881,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 144.475219657148,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-09-28T09:50:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1063.571428571426,
+      "corrected_target_points": 1595.357142857139,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 180.23089985714245,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-01T01:10:00+00:00",
+      "strategy": "pullback_trend",
+      "side": "sell",
+      "original_stop_points": 110,
+      "corrected_stop_points": 1018.0285714285285,
+      "corrected_target_points": 1470.4857142856522,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 172.51328926284987,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-06T02:55:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1122.9999999999952,
+      "corrected_target_points": 1684.4999999999927,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 190.3015585999992,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-06T03:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1204.428571428564,
+      "corrected_target_points": 1806.642857142846,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 204.1002977428559,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-20T18:45:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 397.5714285714145,
+      "corrected_target_points": 596.3571428571217,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 67.37173865714048,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-21T01:55:00+00:00",
+      "strategy": "pullback_trend",
+      "side": "sell",
+      "original_stop_points": 110,
+      "corrected_stop_points": 894.5999999999991,
+      "corrected_target_points": 1292.1999999999987,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 151.59730571999987,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-21T03:30:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 712.999999999998,
+      "corrected_target_points": 1069.4999999999968,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 120.82369659999966,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-22T06:20:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 1371.714285714292,
+      "corrected_target_points": 2057.571428571438,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 232.4482337714296,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-22T18:10:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 725.000000000013,
+      "corrected_target_points": 1087.5000000000196,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 122.8571950000022,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-22T18:15:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 718.5714285714377,
+      "corrected_target_points": 1077.8571428571565,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 121.7678208571444,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-10-23T18:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 616.57142857142,
+      "corrected_target_points": 924.8571428571299,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 104.48308445714142,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-11-11T12:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 588.5714285714259,
+      "corrected_target_points": 882.857142857139,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 99.73825485714242,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-11-11T18:00:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 675.1428571428538,
+      "corrected_target_points": 1012.7142857142808,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 114.40849331428515,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    },
+    {
+      "at": "2026-11-12T11:35:00+00:00",
+      "strategy": "ema_crossover",
+      "side": "sell",
+      "original_stop_points": 100,
+      "corrected_stop_points": 568.8571428571387,
+      "corrected_target_points": 853.2857142857081,
+      "affordable": false,
+      "reason": "natural_stop_exceeds_minimum_lot_risk_budget",
+      "evidence": {
+        "minimum_lot_stop_risk": 96.39750748571358,
+        "minimum_lot_friction": 1.0167492000000002,
+        "nominal_risk_budget": 50.0
+      }
+    }
+  ],
+  "original_trade_sample": 47,
+  "affordable_corrected_sample": 0,
+  "virtual_balance": 10000.0,
+  "risk_fraction_unchanged": 0.005,
+  "lot_cap_unchanged": 0.01,
+  "orders_sent": 0,
+  "policy_changed": false,
+  "scope": "Affordability at the original 47 entries only. No new candidates or outcomes simulated; cannot establish profitability or frequency."
+}
