@@ -716,6 +716,19 @@ function decisionBlockerDisplay(view) {
     : "No listed analysis blockers; execution checks still required" };
 }
 
+function decisionExecutionDisplay(view) {
+  const analysis = (view || {}).decision_analysis || {};
+  const timing = (view || {}).timing_discipline || {};
+  const timingBlocked = timing.hard_block === true || timing.passed === false;
+  const blocked = timingBlocked || String((view || {}).action || "").toLowerCase() === "blocked";
+  return {
+    action: blocked ? (timingBlocked ? "WAIT — timing confirmation" : "WAIT — execution blocked")
+      : String(analysis.recommended_action || "hold"),
+    execution: blocked ? "blocked" : "not confirmed; remaining execution checks required",
+    timing: timingBlocked ? "blocked" : timing.passed === true ? "passed" : "not confirmed",
+  };
+}
+
 function renderDecisionAnalysis(view) {
   const analysis = ((((view || {}).decision_analysis) || {}));
   const hasAnalysis = analysis && typeof analysis === "object" && Object.keys(analysis).length > 0;
@@ -805,11 +818,14 @@ function renderDecisionAnalysis(view) {
   const setupRadar = ((analysis || {}).setup_radar || {});
   const timingEngine = ((analysis || {}).timing_engine || {});
   const radarWatchlist = Array.isArray(setupRadar.watchlist) ? setupRadar.watchlist.slice(0, 4) : [];
+  const executionDisplay = decisionExecutionDisplay(view);
   const protocolOutcome = [
     `Confluence: ${Number.isFinite(Number(decide.confluence_score)) ? Math.round(Number(decide.confluence_score)) : "-"} / ${Number.isFinite(Number(decide.confluence_threshold)) ? Math.round(Number(decide.confluence_threshold)) : "-"}`,
     `Blockers override: ${Boolean(decide.blockers_override_score) ? "yes" : "no"}`,
-    `Action: ${fmtText(decide.recommended_action, "hold")}`,
-    `Execution request eligible: ${Boolean(act.execution_request_eligible) ? "yes" : "no"}`,
+    `Analysis recommendation: ${fmtText(decide.recommended_action, "hold")}`,
+    `Analysis eligible: ${Boolean(act.analysis_eligible ?? act.execution_request_eligible) ? "yes" : "no"}`,
+    `Timing gate: ${executionDisplay.timing}`,
+    `Execution: ${executionDisplay.execution}`,
     `Top blockers: ${topBlockers.length ? topBlockers.map((b) => `${compactText(b.name)} (${compactText(b.delta_text)})`).join("; ") : "none"}`,
   ];
 
@@ -830,7 +846,7 @@ function renderDecisionAnalysis(view) {
   setText("da-account-tier", accountTier);
   setText("da-risk-profile", riskProfile);
   setText("da-size-tier", sizeTier);
-  setText("da-recommended-action", recommendedAction);
+  setText("da-recommended-action", executionDisplay.action);
   setText("da-entry-quality", entryQuality.toUpperCase());
   setAnalysisPillClass("da-bias", "bias", bias);
   setAnalysisPillClass("da-confidence-level", "confidence", confidenceLevel);
