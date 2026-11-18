@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-11-18T12:09:51.107277+00:00",
+  "state": "matching_configured_demo_capacity_checked",
+  "orders_sent": 0,
+  "account_settings_changed": false,
+  "broker_eligible": false,
+  "profitability_proven": false,
+  "symbol": "XAUUSD",
+  "currency": "ZAR",
+  "risk_fraction": 0.005,
+  "minimum_lot": 0.01,
+  "lot_cap": 0.01,
+  "sample_entries": 47,
+  "passes_before_unmeasured_fees": 47,
+  "quote_age_seconds": 1.113481,
+  "limitations": [
+    "Current broker conversion/margin applied to historical stop distances, not a historical portfolio replay.",
+    "Commission/swap/gap slippage and remaining daily/weekly risk budgets are not verified by this check.",
+    "Capacity is not strategy qualification, permission to trade or proof of profitability."
+  ],
+  "note": "Exact account capacity and per-case headroom are retained only in the local signed report. No account identifier is exported."
+}
