@@ -1,0 +1,34 @@
+{
+  "recorded_publications": 500,
+  "directional_publications": 375,
+  "actions": {
+    "blocked": 375
+  },
+  "gates": {
+    "confluence": {
+      "unrecorded": 196,
+      "failed": 58,
+      "passed": 121
+    },
+    "timing": {
+      "failed": 375
+    }
+  },
+  "confluence_policies": {
+    "unrecorded": 196,
+    "top_down_d1_h4_h1_m15_m5_v1": 66,
+    "top_down_m15_and_h1_or_h4_m5_v2": 113
+  },
+  "timing_missing": {
+    "tradable_location": 312,
+    "strong_or_turning_m1_momentum": 351,
+    "visual_confirmation": 293,
+    "visual_tradable_location": 369,
+    "fresh_entry_or_retest": 14,
+    "new_york_extra_momentum_confirmation": 43
+  },
+  "unique_opportunities": null,
+  "live_trade_rate_estimate": null,
+  "limitations": "Tail sample only. Publications may repeat a candidate. Unrecorded gates are unknown, never passes. Mixed policy versions are separate counts. No profitability or counterfactual survivorship claim.",
+  "generated_at": "2026-11-19T14:10:30.321813+00:00"
+}

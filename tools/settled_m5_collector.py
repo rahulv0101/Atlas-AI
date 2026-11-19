@@ -57,6 +57,8 @@ def initialize(directory):
         'reference_report_sha256':digest(reference/'report.json'),'settle_seconds':60,'max_forecast_lag_seconds':120,
         'entry_schedule':'next_M5_boundary_after_observation; never_prior_next_open',
         'purpose':'fresh_candidate_sets_only; no_trade_outcomes_or_qualification_claims',
+        'confluence_policy':__import__('atlas_ai.data.top_down',fromlist=['POLICY']).POLICY,
+        'terminal_attach_retry_limit':3,
         'broker_eligible':False,'orders_sent':0,'auto_promotion':False})
     save_signed(directory,'checkpoint',{'bars':{},'last_forecast':None,'forecasts':0,'late_windows_skipped':0,'journal_sha256':None})
     (directory/'forecasts.jsonl').write_text('',encoding='utf-8')
@@ -124,17 +126,32 @@ def once(directory):
         'outcomes_evaluated':False,'policy_note':'Candidate forecasts only; not executed trades or completed forward qualification.'}
 
 
+def observation_step(directory, *, failures=0, observe=once):
+    """Retry only terminal attach failures; integrity/policy failures always pause."""
+    try:
+        result=observe(directory)
+        return result,0,False
+    except Exception as exc:
+        transient=isinstance(exc,RuntimeError) and str(exc)=='terminal_attach_failed'
+        failures=failures+1 if transient else 0
+        retry=transient and failures<3
+        result={'state':'waiting_for_terminal' if retry else 'blocked_review_required',
+                'reason':str(exc),'consecutive_attach_failures':failures,
+                'checked_at':datetime.now(timezone.utc).isoformat(),
+                'broker_eligible':False,'orders_sent':0,'outcomes_evaluated':False}
+        return result,failures,not retry
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--directory',type=Path,required=True)
     parser.add_argument('--initialize',action='store_true');parser.add_argument('--watch',action='store_true');args=parser.parse_args()
     if args.initialize:initialize(args.directory)
     with observation_lock(args.directory/'collector.lock'):
+        failures=0
         while True:
-            try:result=once(args.directory)
-            except Exception as exc:
-                result={'state':'blocked_review_required','reason':str(exc),'broker_eligible':False,'orders_sent':0}
-                atomic_json(args.directory/'status.json',result);raise
+            result,failures,blocked=observation_step(args.directory,failures=failures)
             atomic_json(args.directory/'status.json',result)
             print(json.dumps(result),flush=True)
+            if blocked:raise SystemExit(1)
             if not args.watch or result['state']=='deadline_review_required':break
             time.sleep(15)

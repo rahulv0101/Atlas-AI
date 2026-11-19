@@ -1,0 +1,18 @@
+{
+  "collector": {
+    "state": "collecting_settled_candidate_forecasts",
+    "checked_at": "2026-11-19T14:11:23.202237+00:00",
+    "forecasts": 1,
+    "late_windows_skipped": 1,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "outcomes_evaluated": false,
+    "policy_note": "Candidate forecasts only; not executed trades or completed forward qualification."
+  },
+  "policy": "top_down_m15_and_h1_or_h4_m5_v2",
+  "journal_matches_checkpoint": true,
+  "old_collector_preserved": true,
+  "startup_dedup_verified": true,
+  "broker_eligible": false,
+  "trade_outcomes_verified": false
+}
