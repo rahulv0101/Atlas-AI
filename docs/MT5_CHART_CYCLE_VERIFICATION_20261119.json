@@ -1,0 +1,20 @@
+{
+  "native_status": {
+    "state": "resting_on_M5",
+    "symbol": "XAUUSD",
+    "actual_timeframe": "M5",
+    "phase": 4,
+    "checked_at_epoch_utc": 1795102987,
+    "reason": "",
+    "confirmed_sequence": "D1,H4,H1,M15,M5",
+    "display_only": true,
+    "broker_authority": false
+  },
+  "source_sha256": "8ad226182dac6e9ecd5ba0865ba8f3ba6a58352424fc951d955ee7f023745344",
+  "compiler_errors": 0,
+  "compiler_warnings": 0,
+  "observed_current_day_m5": true,
+  "service_trade_permission_disabled": true,
+  "backend_restarted": false,
+  "reboot_verified": false
+}
