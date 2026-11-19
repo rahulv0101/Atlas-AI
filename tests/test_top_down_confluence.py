@@ -38,13 +38,27 @@ def test_top_down_order_all_closed_and_directional_gate():
     assert ctx['evidence']['M15']['last_closed_bar_utc']=='2026-11-13T11:45:00+00:00'
 
 
-@pytest.mark.parametrize('tf',TIMEFRAMES)
-def test_each_required_timeframe_can_block_entry(tf):
-    mixed=collect(Feed(opposite=tf),NOW)
-    assert not mixed['aligned'] and tf in entry_gate(mixed,'buy')['nonconfirming_timeframes']
-    missing=collect(Feed(broken=tf),NOW)
-    assert not entry_gate(missing,'buy')['passed']
-    assert missing['evidence'][tf]['status']=='unavailable'
+@pytest.mark.parametrize('side', ['buy', 'sell'])
+@pytest.mark.parametrize('d1', ['buy', 'sell', 'flat', 'unknown'])
+@pytest.mark.parametrize('h1', ['buy', 'sell', 'flat', 'unknown'])
+@pytest.mark.parametrize('h4', ['buy', 'sell', 'flat', 'unknown'])
+@pytest.mark.parametrize('m15', ['buy', 'sell', 'flat', 'unknown'])
+def test_bounded_confluence_truth_table(side, d1, h1, h4, m15):
+    from atlas_ai.data.top_down import POLICY
+    details = dict(D1=d1, H1=h1, H4=h4, M15=m15)
+    ctx = dict(policy=POLICY, entry_timeframe='M5', closed_candles_only=True,
+               details=details, evidence={tf: {'status': 'unavailable' if bias=='unknown' else 'available'}
+                                         for tf, bias in details.items()})
+    result = entry_gate(ctx, side)
+    assert result['passed'] == (m15 == side and side in (h1, h4))
+
+
+def test_gate_rejects_invalid_context_and_unavailable_claimed_confirmation():
+    ctx = collect(Feed(), NOW)
+    for field, value in [('policy', 'old'), ('closed_candles_only', False), ('entry_timeframe', 'M1')]:
+        assert not entry_gate({**ctx, field: value}, 'buy')['passed']
+    ctx['evidence']['M15']['status'] = 'unavailable'
+    assert not entry_gate(ctx, 'buy')['passed']
 
 
 def test_forming_or_future_candles_cannot_change_bias():

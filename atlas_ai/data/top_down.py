@@ -5,7 +5,7 @@ from atlas_ai.data.timeframe_bias import bias_from_closes
 
 TIMEFRAMES = ("D1", "H4", "H1", "M15")
 MINUTES = {"D1":1440, "H4":240, "H1":60, "M15":15, "M5":5}
-POLICY = "top_down_d1_h4_h1_m15_m5_v1"
+POLICY = "top_down_m15_and_h1_or_h4_m5_v2"
 
 
 def closed_bars(frame, timeframe, now, *, broker_timezone="UTC"):
@@ -71,9 +71,23 @@ def collect(feed, now, *, broker_timezone="UTC"):
 
 
 def entry_gate(context, side):
-    if side not in {"buy","sell"}:return {"passed":False,"reason":"no_directional_entry"}
-    failed=[tf for tf in TIMEFRAMES if context.get("details",{}).get(tf)!=side]
-    passed=(context.get("policy")==POLICY and context.get("entry_timeframe")=="M5"
-            and context.get("closed_candles_only") is True and not failed)
-    return {"passed":passed,"policy":POLICY,"side":side,"nonconfirming_timeframes":failed,
-        "reason":"all_higher_timeframes_confirm" if passed else "higher_timeframe_confluence_required"}
+    if side not in {"buy", "sell"}:
+        return {"passed": False, "reason": "no_directional_entry"}
+    details = context.get("details", {})
+    evidence = context.get("evidence", {})
+    def confirms(tf):
+        return details.get(tf) == side and evidence.get(tf, {}).get("status") == "available"
+    supporters = [tf for tf in ("H1", "H4") if confirms(tf)]
+    missing = []
+    if not confirms("M15"):
+        missing.append("M15")
+    if not supporters:
+        missing.append("H1 or H4")
+    valid = (context.get("policy") == POLICY and context.get("entry_timeframe") == "M5"
+             and context.get("closed_candles_only") is True)
+    passed = valid and not missing
+    return {"passed": passed, "policy": POLICY, "side": side,
+            "nonconfirming_timeframes": missing, "supporting_timeframes": supporters,
+            "context_only_timeframes": ["D1"], "requirement": "M15 plus either H1 or H4",
+            "reason": ("m15_and_h1_or_h4_confirm" if passed else
+                       "higher_timeframe_confluence_required" if valid else "invalid_confluence_context")}
