@@ -212,11 +212,29 @@ def load_research_progress(storage, *, now=None):
             'broker_eligible':False,'trade_outcomes_verified':False,'deadline':protocol.get('deadline')}
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['settled_m5_forecasts']={'state':'unavailable','stale':True,'broker_eligible':False,'trade_outcomes_verified':False}
+    try:
+        pointer=_read(storage/'settled_m5_outcomes_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/'protocol.json',signed=True)
+        report=_read(directory/'report.json',signed=True)
+        if any(x.get('broker_eligible') is not False or x.get('auto_promotion') is not False for x in [protocol,report]):
+            raise ValueError('unexpected_outcome_authority')
+        observed=_read(directory/'status.json');age=_age(report.get('checked_at'),now)
+        result['settled_m5_outcomes']={k:report.get(k) for k in ['resolved_candidates','prospective_resolved_candidates','diagnostic_resolved_candidates','pending_candidates','cost_caveat']}
+        result['settled_m5_outcomes'].update(state=observed.get('state','unknown'),stale=age is None or age>120 or observed.get('state')!='evaluating_paper_candidates',broker_eligible=False,strategy_qualified=False)
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['settled_m5_outcomes']={'state':'unavailable','stale':True,'broker_eligible':False,'strategy_qualified':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'settled' in q and ('outcome' in q or 'evaluation' in q):
+        observed=progress.get('settled_m5_outcomes') or {}
+        if observed.get('stale',True):return 'The settled paper outcome evaluator is unavailable or needs review. No strategy qualification or broker fills are verified.'
+        return (f"Paper candidate outcomes: {observed.get('prospective_resolved_candidates',0)} prospective resolved, "
+                f"{observed.get('diagnostic_resolved_candidates',0)} pre-registration diagnostic resolved, and {observed.get('pending_candidates',0)} pending. "
+                "These may overlap and are not independent trades, full-system qualification or verified broker fills.")
     if 'settled' in q and ('collector' in q or 'forecast' in q):
         observed=progress.get('settled_m5_forecasts') or {}
         if observed.get('stale',True):return 'The settled M5 forecast collector is unavailable or stale. No trade outcomes or broker execution are verified.'

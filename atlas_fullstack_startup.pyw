@@ -75,6 +75,12 @@ def _ensure_acceptance_observation() -> None:
         logging.info("Settled M5 observation: %s", result.get("state", "unknown"))
     except Exception:
         logging.exception("Settled M5 observation could not resume; core startup remains independent.")
+    try:
+        from tools.evaluate_settled_forecasts import resume as resume_outcomes
+        result = resume_outcomes(ROOT / "storage")
+        logging.info("Settled M5 outcomes: %s", result.get("state", "unknown"))
+    except Exception:
+        logging.exception("Paper outcome evaluator could not resume; core startup remains independent.")
     plan = ROOT / "storage/acceptance_plan.json"
     if not plan.exists():
         return
