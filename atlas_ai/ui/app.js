@@ -1463,7 +1463,10 @@ function renderResearchProgress(status) {
   setText("research-cycle", paperStale ? "Current verification unavailable" : paper.natural_cycle_verified === true ? "Verified cycle recorded; profitability still unproven" : "Not yet verified");
   setText("research-activity", `${activity.stale ? "Last known: " : ""}${String(activity.state || "unavailable").replace(/_/g, " ")}; ${count(activity.directional_publications)} directional observations, ${count(activity.analysis_eligible_publications)} analysis-eligible. Ends ${deadline(activity.deadline)}.`);
   setText("research-costs", `${paper.stale ? "Last known: " : ""}${count(costs.measured_fill_observations)} natural fill observations; ${costs.cost_calibration_ready === true ? "calibration evidence available for review" : "calibration incomplete"}`);
-  setText("research-next", "Compare the frozen learner with the baseline on fresh paper data. Observations are not unique setups. No automatic strategy activation or risk changes.");
+  const settledForecasts = progress.settled_m5_forecasts || {};
+  setText("research-next", settledForecasts.stale === false
+    ? `Settled M5 collector: ${String(settledForecasts.state || "unknown").replace(/_/g, " ")}; ${settledForecasts.forecasts ?? 0} fresh candidate sets. Forecasts are not trades or completed validation. No broker authority.`
+    : "Compare the frozen learner with the baseline on fresh paper data. Observations are not unique setups. No automatic strategy activation or risk changes.");
 }
 
 function renderLearningLoop(status) {

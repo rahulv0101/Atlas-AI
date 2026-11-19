@@ -1,0 +1,51 @@
+{
+  "old_history_audit": {
+    "overlapping_bars": 802,
+    "changed_bars": 1,
+    "first_changes": [
+      {
+        "bar_utc": "2026-11-16T17:45:00+00:00",
+        "fields": {
+          "close": {
+            "previous": 3857.91,
+            "current": 3857.99
+          },
+          "tick_volume": {
+            "previous": 1602.0,
+            "current": 1832.0
+          }
+        }
+      }
+    ],
+    "compatible_overlap": false,
+    "derived_columns_excluded": [
+      "atr_price"
+    ],
+    "note": "No overlap is unknown, not proof of unchanged history.",
+    "checked_at": "2026-11-19T06:57:00.374867+00:00",
+    "source_sha256": "c0983067fde9cd7c1ac30424d2bc00d61351763c03ee28c9d84df01607b52a2e",
+    "historical_start_utc": "2026-11-09 07:25:00",
+    "historical_end_utc": "2026-11-16 17:45:00",
+    "original_failure_cause_proven": false,
+    "orders_sent": 0,
+    "old_checkpoint_modified": false,
+    "limitation": "Current overlapping history cannot reconstruct the exact feed at the original failure."
+  },
+  "new_collector_status": {
+    "state": "collecting_settled_candidate_forecasts",
+    "checked_at": "2026-11-19T07:25:40.241850+00:00",
+    "forecasts": 1,
+    "late_windows_skipped": 1,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "outcomes_evaluated": false,
+    "policy_note": "Candidate forecasts only; not executed trades or completed forward qualification."
+  },
+  "protocol_sha256": "87bc0caede6dac6afbdc17c340ed138b88795e6b4cda5fd8caaeb5a1940bf0a6",
+  "checkpoint_sha256": "7d85460bd24a98ffe84f60e76045bcf53dbfdcca930ef8142f1608b0a4c3c0b3",
+  "journal_sha256": "a26dfc72d4093cb96852a9c4400169f34e394345786d2416c32766f7dedc0a56",
+  "journal_matches_checkpoint": true,
+  "old_experiment_rewritten": false,
+  "broker_eligible": false,
+  "live_policy_changed": false
+}

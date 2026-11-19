@@ -198,11 +198,29 @@ def load_research_progress(storage, *, now=None):
         result['m5_calibration']=value
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['m5_calibration']={'state':'unavailable','stale':True,'broker_eligible':False,'live_policy_changed':False}
+    try:
+        pointer=_read(storage/'settled_m5_forward_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/'protocol.json',signed=True)
+        if protocol.get('broker_eligible') is not False or protocol.get('auto_promotion') is not False or protocol.get('orders_sent')!=0:
+            raise ValueError('unexpected_forecast_authority')
+        observed=_read(directory/'status.json');age=_age(observed.get('checked_at'),now)
+        forecasts=observed.get('forecasts',0)
+        if type(forecasts) is not int or forecasts<0:raise ValueError('invalid_forecast_count')
+        result['settled_m5_forecasts']={'state':observed.get('state','unknown'),'forecasts':forecasts,
+            'late_windows_skipped':observed.get('late_windows_skipped',0),'stale':age is None or age>120,
+            'broker_eligible':False,'trade_outcomes_verified':False,'deadline':protocol.get('deadline')}
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['settled_m5_forecasts']={'state':'unavailable','stale':True,'broker_eligible':False,'trade_outcomes_verified':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'settled' in q and ('collector' in q or 'forecast' in q):
+        observed=progress.get('settled_m5_forecasts') or {}
+        if observed.get('stale',True):return 'The settled M5 forecast collector is unavailable or stale. No trade outcomes or broker execution are verified.'
+        return f"Settled M5 collector: {str(observed.get('state','unknown')).replace('_',' ')}; {observed.get('forecasts',0)} fresh candidate sets. These are forecasts, not trades or completed validation."
     if 'm5 calibration' in q or 'm5 proposal' in q:
         value=progress.get('m5_calibration') or {}
         if value.get('stale',True):return 'M5 calibration evidence is unavailable or stale. I cannot confirm progress. Live policy is unchanged.'

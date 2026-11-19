@@ -69,6 +69,12 @@ def _is_core_stack_running() -> bool:
 
 
 def _ensure_acceptance_observation() -> None:
+    try:
+        from tools.resume_settled_forecasts import resume as resume_settled
+        result = resume_settled(ROOT / "storage")
+        logging.info("Settled M5 observation: %s", result.get("state", "unknown"))
+    except Exception:
+        logging.exception("Settled M5 observation could not resume; core startup remains independent.")
     plan = ROOT / "storage/acceptance_plan.json"
     if not plan.exists():
         return
