@@ -1113,7 +1113,7 @@ def test_timing_discipline_allows_clean_retest_with_turning_momentum_to_existing
     assert payload["observed"]["momentum"] == "turning"
 
 
-def test_timing_discipline_uses_continuous_visual_watch_as_execution_quality_evidence():
+def test_unmapped_visual_watch_is_advisory_and_cannot_veto_candle_timing():
     trader = AtlasTrader.__new__(AtlasTrader)
     signal = TradeSignal("momentum_continuation", "buy", 0.72, 100, 160)
     context = {
@@ -1138,13 +1138,12 @@ def test_timing_discipline_uses_continuous_visual_watch_as_execution_quality_evi
 
     payload = trader._timing_discipline_snapshot(signal, context, status)
 
-    assert payload["hard_block"] is True
-    assert payload["reason_code"] == "AWAITING_VISUAL_CONFIRMATION"
-    assert "visual_confirmation" in payload["missing"]
-    assert "visual_tradable_location" in payload["missing"]
-    assert "visual_momentum_confirmation" in payload["missing"]
-    assert "visual_directional_impulse" in payload["missing"]
-    assert payload["observed"]["visual_watch_used"] is True
+    assert payload["hard_block"] is False
+    assert payload["missing"] == []
+    assert payload["score"] == 100
+    assert payload["observed"]["visual_watch_used"] is False
+    assert payload["observed"]["visual_watch_observed"] is True
+    assert payload["observed"]["visual_advisory_only"] is True
 
 
 def test_timing_discipline_block_is_persisted_in_status_event_meta(tmp_path):

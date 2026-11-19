@@ -76,15 +76,15 @@ def test_proof_adapter_does_not_relax_other_locations_or_strategies(location, st
     assert resolution["applied"] is False
 
 
-def test_valid_retest_still_requires_momentum_and_visual_confirmation():
+def test_valid_retest_requires_candle_momentum_and_ignores_advisory_visual_veto():
     strategy = GoldBreakoutRetestStrategy()
     signal = strategy.generate_signal(frame())
     resolved, _ = resolve_retest_timing_context(signal, frame(), context(), [strategy])
     assert timing(signal, {**resolved, "entry_momentum_state": "weak"})["passed"] is False
     visual = {"visual_chart_read": {"visual_watch_used_for_decision": True, "visual_confirmation": "does_not_confirm"}}
     result = timing(signal, resolved, visual)
-    assert result["passed"] is False
-    assert "visual_confirmation" in result["missing"]
+    assert result["passed"] is True
+    assert "visual_confirmation" not in result["missing"]
 
 
 def test_flat_signal_does_not_claim_clean_entry_timing():

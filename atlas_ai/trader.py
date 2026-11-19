@@ -4079,7 +4079,6 @@ class AtlasTrader:
             context.get("entry_location_state")
             or context.get("location_state")
             or context.get("location")
-            or visual_location
             or chart.get("location_state")
             or ""
         ).strip().lower()
@@ -4087,7 +4086,6 @@ class AtlasTrader:
             context.get("entry_momentum_state")
             or context.get("momentum_state")
             or context.get("momentum")
-            or visual_momentum
             or chart.get("momentum_state")
             or ""
         ).strip().lower()
@@ -4144,20 +4142,8 @@ class AtlasTrader:
         if session == "new_york" and not momentum_confirmed:
             missing.append("new_york_extra_momentum_confirmation")
             reasons.append("new_york_recent_performance_requires_stronger_confirmation")
-        if bool(visual.get("visual_watch_used_for_decision", False)):
-            if visual_confirmation == "does_not_confirm":
-                missing.append("visual_confirmation")
-                reasons.append("continuous_visual_watch_does_not_confirm_setup")
-            if visual_location == "mid_range":
-                missing.append("visual_tradable_location")
-                reasons.append("continuous_visual_watch_sees_mid_range")
-            if visual_momentum in {"weak", "unknown"}:
-                missing.append("visual_momentum_confirmation")
-                reasons.append("continuous_visual_watch_lacks_momentum_confirmation")
-            if visual_direction == "sideways":
-                missing.append("visual_directional_impulse")
-                reasons.append("continuous_visual_watch_sees_sideways_action")
-
+        # Viewport heuristics have no verified candle mapping and are advisory.
+        # They cannot veto, approve, or substitute for candle-derived timing.
         unique_missing = list(dict.fromkeys(missing))
         score = 100
         score -= 0 if mid_range_strong_allowed else (35 if mid_range else 0)
@@ -4165,7 +4151,6 @@ class AtlasTrader:
         score -= 15 if not fresh_location and not mid_range else 0
         score -= 15 if continuation_like and not structure_hold else 0
         score -= 10 if top_loss_reason == "stop_hunt" and not stop_hunt_protected else 0
-        score -= 15 if visual_confirmation == "does_not_confirm" else 0
         score = max(0, min(100, score))
         hard_block = bool(str(getattr(signal, "side", "flat")) in {"buy", "sell"} and unique_missing)
         structured_result = self._build_timing_discipline_result(
@@ -4175,7 +4160,7 @@ class AtlasTrader:
             missing=unique_missing,
             reasons=reasons[:8],
             observed={
-                "entry_timeframe": str(self.settings.timeframe).upper(),
+                "entry_timeframe": str(getattr(timing_settings, "timeframe", "M1")).upper(),
                 "location": location or "unknown",
                 "momentum": momentum or "unknown",
                 "trend_state": trend_state or "unknown",
@@ -4183,7 +4168,9 @@ class AtlasTrader:
                 "session": session or "unknown",
                 "setup_hint": setup_hint or "unknown",
                 "top_loss_reason": top_loss_reason or "unknown",
-                "visual_watch_used": bool(visual.get("visual_watch_used_for_decision", False)),
+                "visual_watch_used": False,
+                "visual_watch_observed": bool(visual.get("visual_watch_used_for_decision", False)),
+                "visual_advisory_only": True,
                 "visual_confirmation": visual_confirmation or "unknown",
                 "visual_direction": visual_direction or "unknown",
                 "visual_location": visual_location or "unknown",

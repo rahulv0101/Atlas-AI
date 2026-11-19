@@ -93,3 +93,16 @@ def test_visual_strength_cannot_override_weak_candle_momentum():
         {"entry_momentum_state":"weak","entry_location_state":"pullback","entry_trend_state":"uptrend","trend_strength":.3},s)
     assert result["hard_block"] and "strong_or_turning_m1_momentum" in result["missing"]
     assert result["evidence_alignment"]["momentum_relation"]=="different"
+
+
+def test_visual_support_cannot_fill_missing_candle_timing():
+    trader=AtlasTrader.__new__(AtlasTrader);trader.settings=NS(timeframe="M5",timing_allow_mid_range_strong_momentum=False)
+    visual={"visual_watch_used_for_decision":True,"visual_confirmation":"supports_setup",
+            "visual_features":{"visual_location":"pullback","visual_momentum":"strong","visual_direction":"up"}}
+    result=trader._timing_discipline_snapshot(TradeSignal("ema_crossover","buy",.8,100,150),
+        {},{"visual_chart_read":visual})
+    assert result["hard_block"]
+    assert "tradable_location" in result["missing"]
+    assert "strong_or_turning_m1_momentum" in result["missing"]
+    assert result["observed"]["location"]=="unknown"
+    assert result["observed"]["momentum"]=="unknown"
