@@ -72,7 +72,7 @@
       <span id="cmd-action-status" class="muted">Command deck ready.</span>
     </section>
 
-    <p class="overview-intro">Your trading overview <span id="overview-updated">Connecting to Atlas...</span> <span id="ui-connection" role="timer" aria-live="off">Connecting...</span> <button id="refresh-now" type="button" class="mode-btn">Refresh now</button> <a href="#ask-atlas-card">Ask a question &darr;</a></p>
+    <p class="overview-intro">Your trading overview <span id="overview-updated">Connecting to Atlas...</span> <span id="ui-connection" role="timer" aria-live="off">Connecting...</span> <button id="refresh-now" type="button" class="mode-btn">Refresh now</button> <button id="reload-interface" type="button" class="mode-btn" title="Reload interface files; backend keeps running">Reload interface</button> <a href="#ask-atlas-card">Ask a question &darr;</a></p>
     <section class="command-strip" aria-label="Operator command summary">
       <article id="cmd-readiness-card" class="command-tile command-readiness">
         <span>Trade readiness</span>
@@ -879,6 +879,6 @@
       keepalive: true
     }).catch(() => {});
   </script>
-  <script src="/app.js?v=20261119-02"></script>
+  <script src="/app.js?v=20261119-03"></script>
 </body>
 </html>

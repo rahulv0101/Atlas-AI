@@ -2237,6 +2237,13 @@ function bindCommandDeckActions() {
     if (el) el.addEventListener("click", fn);
   };
   on("refresh-now", () => refresh());
+  on("reload-interface", () => window.location.reload());
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "F5" || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r")) {
+      event.preventDefault();
+      window.location.reload();
+    }
+  });
   on("view-command", () => {
     setDashboardView("command");
     if (window.location.hash) history.replaceState(null, "", window.location.pathname);
