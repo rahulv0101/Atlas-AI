@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-11-19T16:54:12.476416+00:00",
+  "new_boot_confirmed": true,
+  "automatic_startup_verified": true,
+  "manual_launch_performed": false,
+  "receipt": {
+    "schema": "atlas_startup_receipt_v1",
+    "started_at": "2026-11-19T16:44:15.557712+00:00",
+    "finished_at": "2026-11-19T16:52:52.119186+00:00",
+    "exit_code": 0,
+    "boot_time": 1795106572.344665,
+    "startup_folder_invocation": true,
+    "health": {
+      "checked_at": "2026-11-19T16:52:32.790707+00:00",
+      "overall_result": "SUCCESS",
+      "overall_reason": "backend_healthy_desktop_ready"
+    }
+  },
+  "backend_healthy": true,
+  "frontend_healthy": true,
+  "current_decision": {
+    "action": "blocked",
+    "message": "Risk guard active: Volatility protection active: extreme volatility regime; new entries paused. No trade executed.",
+    "timeframe": "M5",
+    "updated_at": "2026-11-19T16:53:58.227293+00:00"
+  },
+  "collector": {
+    "state": "collecting_settled_candidate_forecasts",
+    "checked_at": "2026-11-19T16:53:39.393459+00:00",
+    "forecasts": 29,
+    "late_windows_skipped": 3,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "outcomes_evaluated": false,
+    "policy_note": "Candidate forecasts only; not executed trades or completed forward qualification."
+  },
+  "collector_journal_integrity": true,
+  "collector_source_integrity": true,
+  "evaluator": {
+    "checked_at": "2026-11-19T16:53:58.490586+00:00",
+    "resolved_candidates": 51,
+    "prospective_resolved_candidates": 47,
+    "pending_candidates": 14,
+    "strategy_qualified": false
+  },
+  "evaluator_source_integrity": true,
+  "chart_service": {
+    "state": "resting_on_M5",
+    "symbol": "XAUUSD",
+    "actual_timeframe": "M5",
+    "phase": 4,
+    "checked_at_epoch_utc": 1795107251,
+    "reason": "",
+    "confirmed_sequence": "D1,H4,H1,M15,M5",
+    "display_only": true,
+    "broker_authority": false,
+    "age_seconds": 1.48
+  },
+  "startup_attempts": 2,
+  "first_attempt_succeeded": false,
+  "startup_elapsed_seconds": 516.56,
+  "startup_limitations": "First readiness attempt failed; bounded automatic retry succeeded. Slow cold start remains an operational limitation.",
+  "natural_broker_lifecycle_verified": false,
+  "profitability_proven": false,
+  "scheduled_task_last_result": 0,
+  "scheduled_task_missed_runs": 0
+}
