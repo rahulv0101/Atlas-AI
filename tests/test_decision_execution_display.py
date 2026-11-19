@@ -46,3 +46,15 @@ def test_opposing_analysis_never_displays_as_selected_trade_ready():
         'decision_analysis':{'final_trade_bias':'buy','recommended_action':'guarded_buy'}})
     assert result['action']=='WAIT — direction conflict'
     assert result['execution']=='not confirmed; selected signal conflicts with analysis'
+
+
+def test_legacy_m1_recommendation_is_displayed_with_actual_entry_timeframe():
+    result=render({'timeframe':'M5','decision_analysis':{'recommended_action':'wait_for_m1_confirmation_sell'}})
+    assert result['action']=='Wait for M5 confirmation (SELL)'
+    assert result['analysisRecommendation']==result['action']
+
+
+def test_missing_timeframe_does_not_invent_m1_and_runtime_block_wins():
+    result=render({'action':'blocked','timing_discipline':{'passed':False},'decision_analysis':{'recommended_action':'wait_for_m1_confirmation_sell'}})
+    assert 'ENTRY TIMEFRAME' in result['analysisRecommendation']
+    assert 'timing confirmation' in result['action']

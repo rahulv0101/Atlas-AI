@@ -727,6 +727,11 @@ function decisionBlockerDisplay(view) {
 
 function decisionExecutionDisplay(view) {
   const analysis = (view || {}).decision_analysis || {};
+  const rawRecommendation = String(analysis.recommended_action || "hold");
+  const entryTimeframe = String((view || {}).timeframe || ((view || {}).timing_discipline || {}).observed?.entry_timeframe || "entry timeframe").toUpperCase();
+  const recommendation = rawRecommendation.replace(/^wait_for_m1_confirmation_(buy|sell)$/i,
+    (_, side) => `Wait for ${entryTimeframe} confirmation (${side.toUpperCase()})`);
+
   const timing = (view || {}).timing_discipline || {};
   const timingBlocked = timing.hard_block === true || timing.passed === false;
   const selectedSide = String(((view || {}).chosen || {}).side || analysis.signal_bias || "").toLowerCase();
@@ -735,7 +740,8 @@ function decisionExecutionDisplay(view) {
   const blocked = timingBlocked || String((view || {}).action || "").toLowerCase() === "blocked";
   return {
     action: directionConflict ? "WAIT — direction conflict" : blocked ? (timingBlocked ? "WAIT — timing confirmation" : "WAIT — execution blocked")
-      : String(analysis.recommended_action || "hold"),
+      : recommendation,
+    analysisRecommendation: recommendation,
     execution: blocked ? "blocked" : directionConflict ? "not confirmed; selected signal conflicts with analysis" : "not confirmed; remaining execution checks required",
     timing: timingBlocked ? "blocked" : timing.passed === true ? "passed" : "not confirmed",
   };
@@ -834,7 +840,7 @@ function renderDecisionAnalysis(view) {
   const protocolOutcome = [
     `Confluence: ${Number.isFinite(Number(decide.confluence_score)) ? Math.round(Number(decide.confluence_score)) : "-"} / ${Number.isFinite(Number(decide.confluence_threshold)) ? Math.round(Number(decide.confluence_threshold)) : "-"}`,
     `Blockers override: ${Boolean(decide.blockers_override_score) ? "yes" : "no"}`,
-    `Analysis recommendation: ${fmtText(decide.recommended_action, "hold")}`,
+    `Analysis recommendation: ${executionDisplay.analysisRecommendation}`,
     `Analysis eligible: ${Boolean(act.analysis_eligible ?? act.execution_request_eligible) ? "yes" : "no"}`,
     `Timing gate: ${executionDisplay.timing}`,
     `Execution: ${executionDisplay.execution}`,
