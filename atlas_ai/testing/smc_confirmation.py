@@ -5,7 +5,8 @@ No strategy registration, broker commands, policy mutation, or learned tuning.
 from copy import deepcopy
 import math
 import pandas as pd
-from atlas_ai.data.top_down import closed_bars, entry_gate, TIMEFRAMES
+from atlas_ai.data.top_down import closed_bars, TIMEFRAMES
+from atlas_ai.strategies.smc_research_confluence import entry_gate
 from atlas_ai.strategies.indicators import atr
 
 MODELS = {'smc_event_retest_v5': 'smc_event_retest_confirmed_v6',

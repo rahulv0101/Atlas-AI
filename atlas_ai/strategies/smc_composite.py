@@ -5,7 +5,8 @@ OHLC conventions are hypotheses, not evidence of institutional orders.
 from dataclasses import asdict
 import math
 import pandas as pd
-from atlas_ai.data.top_down import closed_bars,entry_gate,TIMEFRAMES
+from atlas_ai.data.top_down import closed_bars,TIMEFRAMES
+from atlas_ai.strategies.smc_research_confluence import entry_gate
 from atlas_ai.models import TradeSignal
 from atlas_ai.strategies.indicators import atr
 

@@ -69,7 +69,7 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
     boundaries=[start+(end-start)*.6,start+(end-start)*.8,end]
     rows=[];counts=Counter();calendar=DayTradingSessionControl();busy=-1
     day=None;day_count=0;streak=0;day_cash=0.;balance=settings.backtest_initial_balance
-    horizon=12;context_key=None;cached_context=None;seen=set()
+    horizon=12;seen=set()
     for i in range(80,len(f)-horizon):
         now=times.iloc[i]+pd.Timedelta(minutes=5)
         if now<start or now>=end:continue
@@ -91,10 +91,9 @@ def historical(frames,settings,spec,limits,start,end,*,progress=lambda **kw:None
         if context_provider is not None:context=context_provider(now)
         else:
             feed.now=now
-            key=now.floor('15min')
-            if key!=context_key:
-                cached_context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC');context_key=key
-            context={**cached_context,'evaluated_at':now.isoformat()}
+            # Freshness is evaluated at every decision time, even when no HTF
+            # candle has closed since the previous M5 bar.
+            context=collect(feed,now,broker_timezone=settings.mt5_server_timezone or 'UTC')
         quote={'bid':float(f.open.iloc[entry]),'ask':float(f.open.iloc[entry])+float(execution.spread.iloc[entry])*spec.point,
             'point':spec.point,'at':now.isoformat()}
         result=evaluator(f.iloc[max(0,i-79):i+1],context,quote,now)

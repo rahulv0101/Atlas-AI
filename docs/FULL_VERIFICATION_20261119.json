@@ -1,0 +1,94 @@
+{
+  "checked_at": "2026-11-19T16:19:10.451734+00:00",
+  "backend_healthy": true,
+  "frontend_healthy": true,
+  "current_decision": {
+    "action": "blocked",
+    "message": "Risk guard active: Volatility protection active: extreme volatility regime; new entries paused. No trade executed.",
+    "timeframe": "M5",
+    "updated_at": "2026-11-19T16:19:02.669641+00:00"
+  },
+  "freshness_runtime": {
+    "aging_threshold_ms": 1200000.0,
+    "backend_cycle_age_ms": 13099.96,
+    "clock_error": false,
+    "is_stale": false,
+    "is_status_stale": false,
+    "market_data_age_ms": 550101.64,
+    "market_data_reasons": [],
+    "max_freshness_age_ms": 2400000.0,
+    "primary_age_ms": 550101.64,
+    "source": "status_freshness_contract",
+    "stale_threshold_ms": 2400000.0,
+    "state": "fresh",
+    "status_age_ms": 7431.99,
+    "timestamp_basis": "UTC"
+  },
+  "collector": {
+    "state": "collecting_settled_candidate_forecasts",
+    "checked_at": "2026-11-19T16:18:57.951113+00:00",
+    "forecasts": 26,
+    "late_windows_skipped": 1,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "outcomes_evaluated": false,
+    "policy_note": "Candidate forecasts only; not executed trades or completed forward qualification."
+  },
+  "collector_journal_matches_checkpoint": true,
+  "collector_frozen_source_hashes_match": true,
+  "paper_outcomes": {
+    "checked_at": "2026-11-19T16:19:02.991992+00:00",
+    "resolved_candidates": 35,
+    "prospective_resolved_candidates": 31,
+    "diagnostic_resolved_candidates": 4,
+    "pending_candidates": 23,
+    "strategy_qualified": false,
+    "broker_eligible": false
+  },
+  "resume_checks": {
+    "collector": "existing_settled_collector_running",
+    "evaluator": "existing_evaluator_running"
+  },
+  "chart_cycle": {
+    "state": "resting_on_M5",
+    "symbol": "XAUUSD",
+    "actual_timeframe": "M5",
+    "phase": 4,
+    "checked_at_epoch_utc": 1795105150,
+    "reason": "",
+    "confirmed_sequence": "D1,H4,H1,M15,M5",
+    "display_only": true,
+    "broker_authority": false,
+    "age_seconds": 0.45
+  },
+  "current_boot_startup_verified": false,
+  "startup_state": "startup_health_review_required",
+  "broker_readback": {
+    "checked_at": "2026-11-19T16:20:31.500005+00:00",
+    "matching_demo": true,
+    "positions": 0,
+    "pending_orders": 0,
+    "deals_last_two_days": 0
+  },
+  "tests": {
+    "remaining_suite": {
+      "passed": 2780,
+      "failed_initially": 16,
+      "total": 2796
+    },
+    "backtest_file_cases_passed_across_runs": 12,
+    "targeted_repair_suite_passed": 596,
+    "initial_failures_verified_fixed": 16,
+    "unique_cases_covered_including_new_regression": 2809,
+    "single_clean_full_run": false
+  },
+  "audit_limitations": [
+    "The first full run was interrupted after a prolonged test delay; its delayed test ultimately passed in 442 seconds.",
+    "CPU pressure and temporary stale-data observations occurred under audit load; no historical native crash cause is universally proven.",
+    "No Windows reboot, natural broker trade or independent strategy qualification was performed."
+  ],
+  "profitability_proven": false,
+  "natural_lifecycle_verified": false,
+  "risk_limits_changed": false,
+  "live_confluence_rule_changed_by_this_audit": false
+}

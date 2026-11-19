@@ -7,7 +7,8 @@ import math
 from contextlib import contextmanager
 from unittest.mock import patch
 import pandas as pd
-from atlas_ai.data.top_down import closed_bars, entry_gate
+from atlas_ai.data.top_down import closed_bars
+from atlas_ai.strategies.smc_research_confluence import entry_gate
 from atlas_ai.strategies.indicators import atr
 from atlas_ai.strategies.smc_composite import structure
 

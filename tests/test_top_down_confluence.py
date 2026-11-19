@@ -162,3 +162,13 @@ def test_daily_feed_mapping_and_unsupported_timeframe_fail_without_terminal_acce
     feed=MarketDataFeed(Settings(0,'',''))
     monkeypatch.setattr(feed,'_ensure_initialized',lambda:pytest.fail('must validate before terminal access'))
     with pytest.raises(ValueError,match='Unsupported'):feed.get_rates_for_timeframe('BAD')
+
+
+def test_live_confluence_changes_do_not_rewrite_frozen_smc_research_hypothesis():
+    from atlas_ai.strategies.smc_research_confluence import entry_gate as research_gate
+    ctx=collect(Feed(opposite='D1'),NOW)
+    assert entry_gate(ctx,'buy')['passed']
+    assert not research_gate(ctx,'buy')['passed']
+    ctx=collect(Feed(opposite='H1'),NOW)
+    assert entry_gate(ctx,'buy')['passed']
+    assert not research_gate(ctx,'buy')['passed']

@@ -86,7 +86,8 @@ def test_m5_portfolio_uses_five_minute_execution_intervals_and_sixty_minute_hori
     row={'index':250,'available_at':at.isoformat(),
          'regime':{'name':'trend','trend_strength':.3,'volatility_pct':.05},'higher_tf_bias':'buy',
          'higher_context':{'policy':POLICY,'entry_timeframe':'M5','closed_candles_only':True,
-                           'details':{tf:'buy' for tf in TIMEFRAMES},'bias':'buy'},
+                           'details':{tf:'buy' for tf in TIMEFRAMES},'bias':'buy',
+                           'evidence':{tf:{'status':'available','bias':'buy'} for tf in TIMEFRAMES}},
          'signals':[{'strategy':'ema_crossover','side':'buy','confidence':.99,'stop_loss_points':100,'take_profit_points':1000}]}
     monkeypatch.setattr(AtlasTrader,'_timing_discipline_snapshot',lambda *a,**kw:{'passed':True})
     monkeypatch.setattr(decisions,'build_structured_decision_analysis',lambda **kw:{'confidence_score':99})
