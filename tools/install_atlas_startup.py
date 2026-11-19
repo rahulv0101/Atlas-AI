@@ -32,6 +32,29 @@ def shortcut_script(root=ROOT):
     )
 
 
+
+def logon_task_script(root=ROOT):
+    """Interactive user logon trigger; never elevate or store a password."""
+    root=Path(root).resolve()
+    def literal(value):return "'"+str(value).replace("'", "''")+"'"
+    arguments=subprocess.list2cmdline([str(root/'atlas_fullstack_startup.pyw'),'--at-logon'])
+    return (
+        "$ErrorActionPreference='Stop'; "
+        "$atlasSid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; "
+        "$atlasAction=New-ScheduledTaskAction -Execute "+literal(root/'.venv/Scripts/pythonw.exe')+
+        " -Argument "+literal(arguments)+" -WorkingDirectory "+literal(root)+"; "
+        "$atlasTrigger=New-ScheduledTaskTrigger -AtLogOn -User $atlasSid; $atlasTrigger.Delay='PT30S'; "
+        "$atlasPrincipal=New-ScheduledTaskPrincipal -UserId $atlasSid -LogonType Interactive -RunLevel Limited; "
+        "$atlasSettings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries "
+        "-StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10) "
+        "-RestartCount 2 -RestartInterval (New-TimeSpan -Minutes 1); "
+        "Register-ScheduledTask -TaskName 'Atlas AI - Start at sign-in' -Action $atlasAction "
+        "-Trigger $atlasTrigger -Principal $atlasPrincipal -Settings $atlasSettings "
+        "-Description 'Start Atlas locally at user sign-in through its existing guarded launcher' -Force | Out-Null; "
+        "ConvertTo-Json -InputObject @{task='Atlas AI - Start at sign-in';state='installed';elevated=$false} -Compress"
+    )
+
+
 def main():
     argparse.ArgumentParser(description=__doc__).parse_args()
     script = shortcut_script()
@@ -41,7 +64,10 @@ def main():
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     from atlas_ai.startup_verification import baseline
     baseline(ROOT / "storage")
-    print(json.dumps({"state": "installed", "shortcuts": json.loads(result.stdout),
+    task_script=base64.b64encode(logon_task_script().encode("utf-16le")).decode("ascii")
+    task=subprocess.run(["powershell.exe","-NoProfile","-NonInteractive","-EncodedCommand",task_script],
+        capture_output=True,text=True,check=True,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
+    print(json.dumps({"state": "installed", "logon_task":json.loads(task.stdout), "shortcuts": json.loads(result.stdout),
                       "launcher": str(ROOT / "atlas_fullstack_startup.pyw"), "orders_sent": 0}, indent=2))
 
 

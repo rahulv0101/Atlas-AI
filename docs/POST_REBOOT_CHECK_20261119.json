@@ -1,0 +1,44 @@
+{
+  "checked_at": "2026-11-19T16:40:56.344951+00:00",
+  "new_boot_confirmed": true,
+  "automatic_startup_verified": false,
+  "manual_recovery_performed": true,
+  "backend_healthy": true,
+  "frontend_healthy": true,
+  "collector": {
+    "state": "collecting_settled_candidate_forecasts",
+    "checked_at": "2026-11-19T16:40:49.312119+00:00",
+    "forecasts": 28,
+    "late_windows_skipped": 2,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "outcomes_evaluated": false,
+    "policy_note": "Candidate forecasts only; not executed trades or completed forward qualification."
+  },
+  "collector_journal_integrity": true,
+  "collector_source_integrity": true,
+  "evaluator_state": {
+    "checked_at": "2026-11-19T16:40:50.652027+00:00",
+    "resolved_candidates": 40,
+    "prospective_resolved_candidates": 36,
+    "pending_candidates": 23,
+    "strategy_qualified": false
+  },
+  "chart_service": {
+    "state": "resting_on_M5",
+    "symbol": "XAUUSD",
+    "actual_timeframe": "M5",
+    "phase": 4,
+    "checked_at_epoch_utc": 1795106455,
+    "reason": "",
+    "confirmed_sequence": "D1,H4,H1,M15,M5",
+    "display_only": true,
+    "broker_authority": false,
+    "age_seconds": 1.34
+  },
+  "logon_task_installed": true,
+  "logon_task_trigger_verified": false,
+  "focused_startup_tests_passed": 20,
+  "startup_observation": "No processes at initial check; delayed startup attempt later blocked by manual recovery lock. Initial cause not established.",
+  "risk_or_strategy_policy_changed": false
+}
