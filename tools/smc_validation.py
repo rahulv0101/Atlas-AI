@@ -229,7 +229,7 @@ def main():
     p.add_argument('--no-activate',action='store_true');p.add_argument('--reuse-costs',action='store_true');a=p.parse_args()
     if a.mode=='init':initialize(a.run_dir,a.model,a.reuse_inputs,activate=not a.no_activate,reuse_costs=a.reuse_costs);return
     if a.mode=='history':run_history(a.run_dir);return
-    with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny):
+    with observation_lock(a.run_dir/'watch.lock'),patch.object(mt5,'order_send',deny),patch.object(mt5,'login',deny):
         while True:
             try:result=once(a.run_dir,datetime.now(timezone.utc))
             except Exception as exc:

@@ -116,6 +116,25 @@ def load_research_progress(storage, *, now=None):
     smc.update(stale=age is None or age>180,age_seconds=age)
     result["smc_validation"]=smc
     try:
+        pointer=_read(storage/'smc_review_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        protocol=_read(directory/'protocol.json',signed=True)
+        if protocol.get('broker_eligible') is not False or protocol.get('auto_promotion') is not False:
+            raise ValueError('unexpected_smc_review_authority')
+        progress=_read(directory/'progress.json');age=_age(progress.get('checked_at'),now)
+        review={'phase':progress.get('phase','unknown'),'model':progress.get('model'),
+                'bar':progress.get('bar'),'bars':progress.get('total'),
+                'stale':age is None or age>180,'broker_eligible':False,'history_reused_not_blind':True}
+        if (directory/'report.json').exists():
+            report=_read(directory/'report.json',signed=True)
+            if report.get('protocol_sha256')!=hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest():
+                raise ValueError('smc_review_protocol_changed')
+            review.update(phase='completed',models=report.get('models',{}),
+                          historically_qualified=report.get('historically_qualified',[]),stale=False)
+        smc['historical_review']=review
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        smc['historical_review']={'phase':'unavailable','stale':True,'broker_eligible':False}
+    try:
         pointer=_read(storage/"smc_entry_comparison_active.json")
         directory=Path(pointer["run_dir"]).resolve();directory.relative_to(storage.resolve())
         protocol=_read(directory/"protocol.json",signed=True)
@@ -278,8 +297,15 @@ def research_answer(progress, query, *, voice=False):
     if "smc" in q:
         smc=progress.get("smc_validation") or {}
         if smc.get("stale",True):return "The SMC validation report is unavailable or stale. I cannot confirm its progress; it has no broker authority."
+        review=smc.get('historical_review') or {}
+        historical=""
+        if not review.get('stale',True):
+            if review.get('phase')=='completed':
+                historical=(f" Historical screening: {len(review.get('historically_qualified',[]))}/{len(review.get('models',{}))} passed." if voice else f" Historical SMC review: {len(review.get('historically_qualified',[]))} of {len(review.get('models',{}))} models passed screening on reused data.")
+            else:
+                historical=(" Historical screening is running." if voice else f" Historical SMC review is running for {review.get('model','pending model')} at bar {review.get('bar','unknown')} of {review.get('bars','unknown')}.")
         return (f"SMC forward paper validation: {smc.get('first_stage_trades',0)}/30 first-stage cases and {smc.get('validation_stage_trades',0)}/30 validation cases. "
-                f"Pending simulated position: {bool(smc.get('pending'))}. It has no broker authority."
+                f"Pending simulated position: {bool(smc.get('pending'))}. It has no broker authority." + historical
                 + ("" if voice else " These are simulated quote outcomes; profitability and a natural broker lifecycle remain unproven."))
     if "penalty" in q or "haircut" in q:
         shadow=progress.get("penalty_shadow") or {}
