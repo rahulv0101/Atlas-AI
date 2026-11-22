@@ -54,6 +54,7 @@ class KnowledgeStore:
         self.rule_snapshot_dir = self.base / "rule_snapshots"
         self.rule_snapshot_dir.mkdir(parents=True, exist_ok=True)
         self._lock = Lock()
+        self._event_maintenance_lock = Lock()
         self._state_lock_file = self.base / "learning_state.lock"
         self._runtime_lock_file = self.base / "runtime_flags.lock"
         self._status_lock_file = self.base / "status.lock"
@@ -642,7 +643,12 @@ class KnowledgeStore:
     def maintain_events(self, max_lines: int = 20000) -> dict[str, int]:
         if not self.events_file.exists():
             return {"kept": 0, "dropped_malformed": 0, "dropped_duplicates": 0, "archived": 0}
-        with self._lock:
+        # Parsing a large journal must not hold the trading/state lock.
+        # Commit only if no writer changed the source during the scan.
+        with self._event_maintenance_lock:
+            with self._lock:
+                original_stat = self.events_file.stat()
+                original_key = (original_stat.st_ino, original_stat.st_size, original_stat.st_mtime_ns)
             dropped_malformed = 0
             dropped_duplicates = 0
             seen: dict[bytes, list[tuple[int, int]]] = {}
@@ -689,40 +695,47 @@ class KnowledgeStore:
                         seen.setdefault(digest, []).append((offset, len(row)))
                         retained_offsets.append(offset)
                         unique_count += 1
-                archived = unique_count - len(retained_offsets)
-                retained_start = retained_offsets[0] if retained_offsets else 0
-                spool.seek(0)
-                if archived:
-                    with archive_file.open("wb") as af:
-                        remaining = retained_start
-                        while remaining:
-                            block = spool.read(min(64 * 1024, remaining))
-                            if not block:
-                                raise OSError("Event maintenance spool ended before archive boundary")
-                            af.write(block)
-                            remaining -= len(block)
+                with self._lock:
+                    current_stat = self.events_file.stat()
+                    current_key = (current_stat.st_ino, current_stat.st_size, current_stat.st_mtime_ns)
+                    if current_key != original_key:
+                        return {"kept": unique_count, "dropped_malformed": 0,
+                                "dropped_duplicates": 0, "archived": 0,
+                                "deferred_concurrent_write": 1}
+                    archived = unique_count - len(retained_offsets)
+                    retained_start = retained_offsets[0] if retained_offsets else 0
+                    spool.seek(0)
+                    if archived:
+                        with archive_file.open("wb") as af:
+                            remaining = retained_start
+                            while remaining:
+                                block = spool.read(min(64 * 1024, remaining))
+                                if not block:
+                                    raise OSError("Event maintenance spool ended before archive boundary")
+                                af.write(block)
+                                remaining -= len(block)
 
-                tmp_fd, tmp_name = tempfile.mkstemp(
-                    prefix=f"{self.events_file.stem}.",
-                    suffix=".tmp",
-                    dir=str(self.events_file.parent),
-                )
-                tmp = Path(tmp_name)
-                try:
-                    with os.fdopen(tmp_fd, "wb") as fh:
-                        shutil.copyfileobj(spool, fh, length=64 * 1024)
-                        fh.flush()
-                        os.fsync(fh.fileno())
-                    replace_with_retry(tmp, self.events_file)
-                finally:
-                    with contextlib.suppress(Exception):
-                        tmp.unlink(missing_ok=True)
-            self._events_cache_key = None
-            self._events_cache_offset = 0
-            self._events_cache = []
-            return {
-                "kept": len(retained_offsets),
-                "dropped_malformed": dropped_malformed,
-                "dropped_duplicates": dropped_duplicates,
-                "archived": archived,
-            }
+                    tmp_fd, tmp_name = tempfile.mkstemp(
+                        prefix=f"{self.events_file.stem}.",
+                        suffix=".tmp",
+                        dir=str(self.events_file.parent),
+                    )
+                    tmp = Path(tmp_name)
+                    try:
+                        with os.fdopen(tmp_fd, "wb") as fh:
+                            shutil.copyfileobj(spool, fh, length=64 * 1024)
+                            fh.flush()
+                            os.fsync(fh.fileno())
+                        replace_with_retry(tmp, self.events_file)
+                    finally:
+                        with contextlib.suppress(Exception):
+                            tmp.unlink(missing_ok=True)
+                    self._events_cache_key = None
+                    self._events_cache_offset = 0
+                    self._events_cache = []
+                    return {
+                        "kept": len(retained_offsets),
+                        "dropped_malformed": dropped_malformed,
+                        "dropped_duplicates": dropped_duplicates,
+                        "archived": archived,
+                    }

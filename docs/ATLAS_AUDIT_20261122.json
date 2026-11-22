@@ -1,0 +1,847 @@
+{
+  "schema": "atlas_operational_and_strategy_audit_20261122_v1",
+  "checked_at": "2026-11-22T10:40:10.483893+00:00",
+  "environment": {
+    "file_present": true,
+    "key_count": 78,
+    "malformed_line_numbers": [],
+    "duplicate_keys": [],
+    "process_override_keys": [
+      "GEMINI_API_KEY"
+    ],
+    "invalid_positive_numeric_keys": [],
+    "old_account_path_keys": [],
+    "terminal_path_exists": true,
+    "dotenv_api_key_configured": {
+      "GEMINI_API_KEY": false,
+      "OPENAI_API_KEY": true
+    },
+    "api_key_configured": {
+      "GEMINI_API_KEY": true,
+      "OPENAI_API_KEY": true
+    },
+    "api_authentication": "not_tested",
+    "note": "Presence is not API validity. No secret values are included; no API requests were made.",
+    "interpretation": "Gemini comes from the Windows user environment; its dotenv value is blank. Explicit environment variables take precedence. File unchanged; authentication not tested.",
+    "venv_old_account_reference_found": false
+  },
+  "live_configuration": {
+    "timeframe": "M5",
+    "gemini_influence_enabled": false,
+    "top_down_policy": "top_down_m15_and_h1_or_h4_m5_v2",
+    "primary_blocker": "Session cutoff: Atlas exposure is broker-confirmed flat.",
+    "last_status_at": "2026-11-22T10:40:04.825015+00:00"
+  },
+  "rejected_publications": {
+    "checked_at": "2026-11-22T10:19:07.719304+00:00",
+    "window_start": "2026-11-15T10:19:07.719304+00:00",
+    "timeframe": "M5",
+    "first_captured": "2026-11-15T10:19:47.873995+00:00",
+    "last_captured": "2026-11-22T10:12:16.495627+00:00",
+    "counts": {
+      "sampled_publications": 3345,
+      "without_chosen_direction": 1490,
+      "primary:session_cutoff": 1484,
+      "chosen_timing_failed": 1827,
+      "primary:higher_timeframe": 470,
+      "primary:volatility_guard": 1217,
+      "primary:other": 6,
+      "primary:timing_discipline": 166,
+      "primary:no_confident_signal": 2,
+      "chosen_timing_passed": 28
+    },
+    "chosen_directional_publications": 1855,
+    "primary_messages": [
+      [
+        "Session cutoff: Atlas exposure is broker-confirmed flat.",
+        1484
+      ],
+      [
+        "Risk guard active: Volatility protection active: extreme volatility regime; new entries paused. No trade executed.",
+        1217
+      ],
+      [
+        "Higher-timeframe confluence required: M5 buy; nonconfirming=D1, H4, H1",
+        268
+      ],
+      [
+        "Higher-timeframe confluence required: M5 buy; nonconfirming=D1, H4, H1, M15",
+        124
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=new_york).",
+        58
+      ],
+      [
+        "Higher-timeframe confluence required: M5 sell; nonconfirming=M15",
+        57
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=new_york).",
+        26
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: fresh entry or retest, and visual tradable location missing (location=breakout, momentum=strong, session=new_york).",
+        23
+      ],
+      [
+        "Higher-timeframe confluence required: M5 sell; nonconfirming=D1, H4, M15",
+        21
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=asia).",
+        9
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: strong/turning M5 momentum, New York momentum confirmation, and visual tradable location missing (location=pullback, momentum=mixed, session=new_york).",
+        8
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: visual tradable location missing (location=pullback, momentum=strong, session=new_york).",
+        7
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, visual confirmation, and visual tradable location missing (location=mid_range, momentum=strong, session=new_york).",
+        7
+      ],
+      [
+        "Broker connected. Live loop started. Historical training disabled in live runtime.",
+        6
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=london).",
+        5
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, visual confirmation, and visual tradable location missing (location=mid_range, momentum=strong, session=late_us).",
+        5
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, and visual tradable location missing (location=consolidation, momentum=weak, session=new_york).",
+        4
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=late_us).",
+        4
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: fresh entry or retest, and visual tradable location missing (location=breakout, momentum=strong, session=late_us).",
+        4
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: strong/turning M5 momentum, New York momentum confirmation, and visual tradable location missing (location=pullback, momentum=weak, session=new_york).",
+        3
+      ]
+    ],
+    "directional_primary_messages": [
+      [
+        "Risk guard active: Volatility protection active: extreme volatility regime; new entries paused. No trade executed.",
+        1217
+      ],
+      [
+        "Higher-timeframe confluence required: M5 buy; nonconfirming=D1, H4, H1",
+        268
+      ],
+      [
+        "Higher-timeframe confluence required: M5 buy; nonconfirming=D1, H4, H1, M15",
+        124
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=new_york).",
+        58
+      ],
+      [
+        "Higher-timeframe confluence required: M5 sell; nonconfirming=M15",
+        57
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=new_york).",
+        26
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: fresh entry or retest, and visual tradable location missing (location=breakout, momentum=strong, session=new_york).",
+        23
+      ],
+      [
+        "Higher-timeframe confluence required: M5 sell; nonconfirming=D1, H4, M15",
+        21
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=mixed, session=asia).",
+        9
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: strong/turning M5 momentum, New York momentum confirmation, and visual tradable location missing (location=pullback, momentum=mixed, session=new_york).",
+        8
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: visual tradable location missing (location=pullback, momentum=strong, session=new_york).",
+        7
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, visual confirmation, and visual tradable location missing (location=mid_range, momentum=strong, session=new_york).",
+        7
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, visual confirmation, and visual tradable location missing (location=mid_range, momentum=weak, session=london).",
+        5
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, visual confirmation, and visual tradable location missing (location=mid_range, momentum=strong, session=late_us).",
+        5
+      ],
+      [
+        "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, New York momentum confirmation, and visual tradable location missing (location=consolidation, momentum=weak, session=new_york).",
+        4
+      ]
+    ],
+    "timing_missing": {
+      "tradable_location": 1491,
+      "strong_or_turning_m1_momentum": 1597,
+      "visual_confirmation": 807,
+      "visual_tradable_location": 975,
+      "visual_momentum_confirmation": 142,
+      "visual_directional_impulse": 3,
+      "fresh_entry_or_retest": 114,
+      "new_york_extra_momentum_confirmation": 552
+    },
+    "generation_suppression_reasons": {
+      "momentum_regime_requirements_not_met": 107
+    },
+    "suppressed_strategy_samples": {
+      "momentum_continuation": 107
+    },
+    "publications_per_day": {
+      "2026-11-15": 690,
+      "2026-11-16": 1164,
+      "2026-11-17": 72,
+      "2026-11-19": 311,
+      "2026-11-20": 860,
+      "2026-11-21": 241,
+      "2026-11-22": 7
+    },
+    "per_day": {
+      "2026-11-15": {
+        "primary:session_cutoff": 690
+      },
+      "2026-11-16": {
+        "primary:session_cutoff": 227,
+        "primary:higher_timeframe": 407,
+        "chosen_directional": 936,
+        "timing_failed_or_unknown": 936,
+        "primary:volatility_guard": 373,
+        "primary:other": 1,
+        "primary:timing_discipline": 154,
+        "primary:no_confident_signal": 2
+      },
+      "2026-11-17": {
+        "primary:timing_discipline": 9,
+        "chosen_directional": 72,
+        "timing_failed_or_unknown": 72,
+        "primary:higher_timeframe": 63
+      },
+      "2026-11-19": {
+        "primary:other": 3,
+        "primary:volatility_guard": 160,
+        "chosen_directional": 163,
+        "timing_failed_or_unknown": 160,
+        "timing_passed": 3,
+        "primary:timing_discipline": 3,
+        "primary:session_cutoff": 145
+      },
+      "2026-11-20": {
+        "primary:volatility_guard": 684,
+        "chosen_directional": 684,
+        "timing_failed_or_unknown": 659,
+        "timing_passed": 25,
+        "primary:session_cutoff": 176
+      },
+      "2026-11-21": {
+        "primary:session_cutoff": 241
+      },
+      "2026-11-22": {
+        "primary:other": 2,
+        "primary:session_cutoff": 5
+      }
+    },
+    "recorded_htf_policy_samples": {
+      "unrecorded": 1490,
+      "top_down_d1_h4_h1_m15_m5_v1": 1008,
+      "top_down_m15_and_h1_or_h4_m5_v2": 847
+    },
+    "limitations": [
+      "Sampled post-decision publications, not unique setups or complete atomic gate inputs.",
+      "Primary blockers can coexist with additional failed gates; counts do not predict counterfactual fills.",
+      "M5 only; no pooling older M1 decisions or manual orders."
+    ],
+    "orders_sent": 0,
+    "live_policy_changed": false
+  },
+  "data_coverage": {
+    "frames": {
+      "D1": {
+        "bars": 213,
+        "start": "2026-01-20T22:00:00+00:00",
+        "end": "2026-11-15T22:00:00+00:00",
+        "duplicates": 0,
+        "monotonic": true,
+        "invalid_ohlc": 0,
+        "gap_lengths": {
+          "4320.0": 40,
+          "4260.0": 1,
+          "5760.0": 1,
+          "4380.0": 1
+        },
+        "gap_resume_weekdays": {
+          "Sunday": 43
+        },
+        "gap_examples": [
+          {
+            "after": "2026-01-22T22:00:00+00:00",
+            "before": "2026-01-25T22:00:00+00:00",
+            "minutes": 4320.0
+          },
+          {
+            "after": "2026-01-29T22:00:00+00:00",
+            "before": "2026-02-01T22:00:00+00:00",
+            "minutes": 4320.0
+          },
+          {
+            "after": "2026-02-05T22:00:00+00:00",
+            "before": "2026-02-08T22:00:00+00:00",
+            "minutes": 4320.0
+          },
+          {
+            "after": "2026-02-12T22:00:00+00:00",
+            "before": "2026-02-15T22:00:00+00:00",
+            "minutes": 4320.0
+          },
+          {
+            "after": "2026-02-19T22:00:00+00:00",
+            "before": "2026-02-22T22:00:00+00:00",
+            "minutes": 4320.0
+          }
+        ]
+      },
+      "H4": {
+        "bars": 899,
+        "start": "2026-04-20T13:00:00+00:00",
+        "end": "2026-11-16T06:00:00+00:00",
+        "duplicates": 0,
+        "monotonic": true,
+        "invalid_ohlc": 0,
+        "gap_lengths": {
+          "3120.0": 29,
+          "3180.0": 1
+        },
+        "gap_resume_weekdays": {
+          "Sunday": 30
+        },
+        "gap_examples": [
+          {
+            "after": "2026-04-24T17:00:00+00:00",
+            "before": "2026-04-26T21:00:00+00:00",
+            "minutes": 3120.0
+          },
+          {
+            "after": "2026-05-01T17:00:00+00:00",
+            "before": "2026-05-03T21:00:00+00:00",
+            "minutes": 3120.0
+          },
+          {
+            "after": "2026-05-08T17:00:00+00:00",
+            "before": "2026-05-10T21:00:00+00:00",
+            "minutes": 3120.0
+          },
+          {
+            "after": "2026-05-15T17:00:00+00:00",
+            "before": "2026-05-17T21:00:00+00:00",
+            "minutes": 3120.0
+          },
+          {
+            "after": "2026-05-22T17:00:00+00:00",
+            "before": "2026-05-24T21:00:00+00:00",
+            "minutes": 3120.0
+          }
+        ]
+      },
+      "H1": {
+        "bars": 3439,
+        "start": "2026-04-20T10:00:00+00:00",
+        "end": "2026-11-16T09:00:00+00:00",
+        "duplicates": 0,
+        "monotonic": true,
+        "invalid_ohlc": 0,
+        "gap_lengths": {
+          "120.0": 118,
+          "3000.0": 27,
+          "240.0": 2,
+          "3180.0": 2,
+          "3060.0": 1
+        },
+        "gap_resume_weekdays": {
+          "Monday": 30,
+          "Tuesday": 30,
+          "Wednesday": 30,
+          "Thursday": 30,
+          "Sunday": 30
+        },
+        "gap_examples": [
+          {
+            "after": "2026-04-20T20:00:00+00:00",
+            "before": "2026-04-20T22:00:00+00:00",
+            "minutes": 120.0
+          },
+          {
+            "after": "2026-04-21T20:00:00+00:00",
+            "before": "2026-04-21T22:00:00+00:00",
+            "minutes": 120.0
+          },
+          {
+            "after": "2026-04-22T20:00:00+00:00",
+            "before": "2026-04-22T22:00:00+00:00",
+            "minutes": 120.0
+          },
+          {
+            "after": "2026-04-23T20:00:00+00:00",
+            "before": "2026-04-23T22:00:00+00:00",
+            "minutes": 120.0
+          },
+          {
+            "after": "2026-04-24T20:00:00+00:00",
+            "before": "2026-04-26T22:00:00+00:00",
+            "minutes": 3000.0
+          }
+        ]
+      },
+      "M15": {
+        "bars": 13742,
+        "start": "2026-04-20T10:00:00+00:00",
+        "end": "2026-11-16T09:45:00+00:00",
+        "duplicates": 0,
+        "monotonic": true,
+        "invalid_ohlc": 0,
+        "gap_lengths": {
+          "75.0": 118,
+          "2955.0": 27,
+          "210.0": 2,
+          "3180.0": 2,
+          "105.0": 1,
+          "3015.0": 1
+        },
+        "gap_resume_weekdays": {
+          "Monday": 30,
+          "Tuesday": 30,
+          "Wednesday": 31,
+          "Thursday": 30,
+          "Sunday": 30
+        },
+        "gap_examples": [
+          {
+            "after": "2026-04-20T20:45:00+00:00",
+            "before": "2026-04-20T22:00:00+00:00",
+            "minutes": 75.0
+          },
+          {
+            "after": "2026-04-21T20:45:00+00:00",
+            "before": "2026-04-21T22:00:00+00:00",
+            "minutes": 75.0
+          },
+          {
+            "after": "2026-04-22T20:45:00+00:00",
+            "before": "2026-04-22T22:00:00+00:00",
+            "minutes": 75.0
+          },
+          {
+            "after": "2026-04-23T20:45:00+00:00",
+            "before": "2026-04-23T22:00:00+00:00",
+            "minutes": 75.0
+          },
+          {
+            "after": "2026-04-24T20:45:00+00:00",
+            "before": "2026-04-26T22:00:00+00:00",
+            "minutes": 2955.0
+          }
+        ]
+      },
+      "M5": {
+        "bars": 35699,
+        "start": "2026-05-18T09:50:00+00:00",
+        "end": "2026-11-16T09:50:00+00:00",
+        "duplicates": 0,
+        "monotonic": true,
+        "invalid_ohlc": 0,
+        "gap_lengths": {
+          "65.0": 102,
+          "2945.0": 23,
+          "210.0": 2,
+          "3180.0": 2,
+          "95.0": 1,
+          "3005.0": 1
+        },
+        "gap_resume_weekdays": {
+          "Monday": 26,
+          "Tuesday": 26,
+          "Wednesday": 27,
+          "Thursday": 26,
+          "Sunday": 26
+        },
+        "gap_examples": [
+          {
+            "after": "2026-05-18T20:55:00+00:00",
+            "before": "2026-05-18T22:00:00+00:00",
+            "minutes": 65.0
+          },
+          {
+            "after": "2026-05-19T20:55:00+00:00",
+            "before": "2026-05-19T22:00:00+00:00",
+            "minutes": 65.0
+          },
+          {
+            "after": "2026-05-20T20:55:00+00:00",
+            "before": "2026-05-20T22:00:00+00:00",
+            "minutes": 65.0
+          },
+          {
+            "after": "2026-05-21T20:55:00+00:00",
+            "before": "2026-05-21T22:00:00+00:00",
+            "minutes": 65.0
+          },
+          {
+            "after": "2026-05-22T20:55:00+00:00",
+            "before": "2026-05-24T22:00:00+00:00",
+            "minutes": 2945.0
+          }
+        ]
+      }
+    },
+    "boundary_note": "The historical harness rejects windows unless previous 80 plus next 12 M5 bars are contiguous. This deliberately removes session-break windows; gaps are not all missing feed data.",
+    "broker_eligible": false,
+    "orders_sent": 0
+  },
+  "smc_diagnosis": {
+    "finding": "No OHLC/timestamp corruption found in verified native frames. Restrictive research context/structure/retest/target conditions and conservative 80+12 contiguous-window exclusions reduce activity.",
+    "limitations": "Session patterns explain most gaps; exceptional longer gaps are not all independently explained. Older research confluence rules differ from current live policy."
+  },
+  "bounded_experiment": {
+    "hypothesis": "Two consecutive directional closed M5 bodies and progressing closes reduce weak sweep follow-through.",
+    "rule": "two_latest_closed_M5_directional_bodies_and_progressing_closes",
+    "protocol_sha256": "9b667f4c1a418eef26fc64ea9771dbe23d6f7d992cc190fd01e841809eda628d",
+    "report_sha256": "56e85def0d7b7abe2b0a91e73981a7e84f9d287f5fa363af825022af7613a7f3",
+    "complete_baseline_cases_counts_outcomes_reproduction_verified": true,
+    "separate_window": {
+      "start": "2026-11-20T12:45:00+00:00",
+      "end": "2026-11-22T10:12:31.500145+00:00",
+      "captured_after_declaration": true,
+      "not_prospective": true,
+      "broker_eligible": false,
+      "orders_sent": 0
+    },
+    "results": {
+      "reused_development": {
+        "baseline": {
+          "stages": {
+            "development": {
+              "trades": 40,
+              "days": 32,
+              "wins": 19,
+              "losses": 21,
+              "mean_r": 0.01517523644596327,
+              "profit_factor": 1.0362833498139148,
+              "max_drawdown_r": 5.087860316177479,
+              "net_cash": 66.68976775895939,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 16,
+              "days": 10,
+              "wins": 8,
+              "losses": 8,
+              "mean_r": -0.08042747253275571,
+              "profit_factor": 0.840049466025153,
+              "max_drawdown_r": 3.9749967818146748,
+              "net_cash": 43.63404714756942,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 10,
+              "days": 9,
+              "wins": 6,
+              "losses": 4,
+              "mean_r": 0.785194704540136,
+              "profit_factor": 4.082462277921201,
+              "max_drawdown_r": 1.0463454355553004,
+              "net_cash": 296.7617228494639,
+              "review_passed": false
+            }
+          },
+          "counts": {
+            "stage:sweep_reclaim": 7700,
+            "stage:setup_location": 2642,
+            "stage:candidate_ready": 67,
+            "open_paper_position": 792,
+            "session_or_close_buffer": 9638,
+            "input_or_outcome_gap": 7304,
+            "stage:liquidity_target": 37,
+            "stage:higher_timeframe_confluence": 6594,
+            "daily_trade_or_streak_limit": 356,
+            "stage:pullback_context": 5,
+            "minimum_volume_risk_or_margin": 1,
+            "split_boundary_purge": 1
+          },
+          "historical_screen_passed": false
+        },
+        "two_closed_candles": {
+          "stages": {
+            "development": {
+              "trades": 23,
+              "days": 18,
+              "wins": 12,
+              "losses": 11,
+              "mean_r": 0.11917472496926887,
+              "profit_factor": 1.305072761158087,
+              "max_drawdown_r": 4.340011854010205,
+              "net_cash": 270.2421693986844,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 7,
+              "days": 6,
+              "wins": 5,
+              "losses": 2,
+              "mean_r": -0.12933134262228296,
+              "profit_factor": 0.5505158193215335,
+              "max_drawdown_r": 1.0078223837778488,
+              "net_cash": -50.78902795748019,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 3,
+              "days": 3,
+              "wins": 3,
+              "losses": 0,
+              "mean_r": 0.6504559728057638,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 142.4689192784704,
+              "review_passed": false
+            }
+          },
+          "counts": {
+            "stage:sweep_reclaim": 8169,
+            "stage:setup_location": 2672,
+            "stage:research_followthrough": 36,
+            "session_or_close_buffer": 9886,
+            "input_or_outcome_gap": 7304,
+            "stage:liquidity_target": 39,
+            "stage:higher_timeframe_confluence": 6594,
+            "stage:candidate_ready": 34,
+            "open_paper_position": 396,
+            "stage:pullback_context": 5,
+            "minimum_volume_risk_or_margin": 1,
+            "split_boundary_purge": 1
+          },
+          "historical_screen_passed": false
+        }
+      },
+      "separate_later": {
+        "baseline": {
+          "stages": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "counts": {
+            "stage:sweep_reclaim": 37,
+            "stage:setup_location": 34,
+            "stage:liquidity_target": 1,
+            "session_or_close_buffer": 28
+          },
+          "historical_screen_passed": false
+        },
+        "two_closed_candles": {
+          "stages": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "counts": {
+            "stage:sweep_reclaim": 37,
+            "stage:setup_location": 34,
+            "stage:liquidity_target": 1,
+            "session_or_close_buffer": 28
+          },
+          "historical_screen_passed": false
+        }
+      }
+    },
+    "outcome": "Not qualified: insufficient stage samples and negative validation expectancy. Later separate window has zero trades. No activation or parameter tuning.",
+    "limitations": [
+      "Historical development data previously inspected. Later test is separate but retrospective and short.",
+      "Costs are frozen approximations; no natural fills or full historical live-gate parity.",
+      "A failed or undersampled result cannot qualify; no tuning or automatic promotion."
+    ]
+  },
+  "operational_repairs": [
+    "Bounded evaluator PermissionError retries; integrity failures still stop evaluation.",
+    "Stopped evaluator preserved; linked new evaluator reproduces all previously resolved outcomes. Earlier observations remain diagnostic for this new registration.",
+    "Settled collector/evaluator added to acceptance supervision with operator-sleep, deadline, review-pause and restart-budget controls.",
+    "Large journal parsing moved outside shared state lock; concurrent writes defer replacement without discarding appended events."
+  ],
+  "deployment": {
+    "backend_relaunch": {
+      "checked_at": "2026-11-22T10:27:11.209781+00:00",
+      "overall_result": "SUCCESS",
+      "overall_reason": "backend_only_ready"
+    },
+    "matching_demo_flat_verified_before_restart": true,
+    "backend_restarted": true,
+    "observation_supervisor_reloaded_between_completed_ticks": true,
+    "settled_supervision": {
+      "collector": {
+        "state": "existing_settled_collector_running"
+      },
+      "evaluator": {
+        "state": "existing_evaluator_running"
+      }
+    },
+    "live_strategy_risk_execution_policy_changed": false
+  },
+  "forward_evidence": {
+    "framework_smc": {
+      "state": "collecting_paper",
+      "checked_at": "2026-11-22T10:39:58.568095+00:00",
+      "paper_trades": 0,
+      "first_stage": {
+        "trades": 0,
+        "days": 0,
+        "wins": 0,
+        "losses": 0,
+        "mean_r": null,
+        "profit_factor": null,
+        "max_drawdown_r": 0.0,
+        "net_cash": 0,
+        "review_passed": false
+      },
+      "validation_stage": {
+        "trades": 0,
+        "days": 0,
+        "wins": 0,
+        "losses": 0,
+        "mean_r": null,
+        "profit_factor": null,
+        "max_drawdown_r": 0.0,
+        "net_cash": 0,
+        "review_passed": false
+      },
+      "prospective_screen_passed": false
+    },
+    "separate_existing_acceptance_paper": {
+      "first_stage_cases": 26,
+      "validation_stage_cases": 0,
+      "required_per_stage": 30
+    },
+    "natural_demo_lifecycle": {
+      "state": "awaiting_autonomous_broker_cycle",
+      "verified_end_to_end_cycles": [],
+      "requires": [
+        "fresh guarded autonomous decision",
+        "matching broker entry fill",
+        "observed broker protection",
+        "balanced exit fills",
+        "broker-flat position"
+      ],
+      "manual_and_forced_tests_count_as_acceptance": false,
+      "checked_at": "2026-11-22T10:40:09.321803+00:00",
+      "observer_pid": 30196,
+      "observer_state": "running",
+      "window_ends_at": "2026-11-29T09:49:00.596464+00:00",
+      "broker_ok": true,
+      "history_ok": true,
+      "orders_sent": 0
+    },
+    "costs": {
+      "checked_at": "2026-11-22T10:39:11.145479+00:00",
+      "state": "diagnostic_only",
+      "measured_fill_observations": 0,
+      "diagnostic_measured_fill_observations": 2,
+      "invalid_journal_rows": 0,
+      "cost_calibration_ready": false
+    }
+  },
+  "checks": {
+    "smc_confluence_cases_passed": 592,
+    "audit_test_passed": 1,
+    "supervision_startup_outcomes_and_new_model_run_passed": 35,
+    "journal_concurrency_retention_cache_run_passed": 32,
+    "note": "Separate targeted runs include overlap; this is not a full-system test count. The audit fixture failure was corrected and its test passed."
+  },
+  "orders_sent_by_audit_and_research": 0,
+  "new_model_broker_eligible": false,
+  "pending": [
+    "Natural autonomous entry, broker protection and exit remain unverified.",
+    "Measured natural fill costs remain unavailable.",
+    "No tested new SMC strategy has qualified.",
+    "Sustained latency needs observation; the shared-lock scan repair does not diagnose every long cycle."
+  ]
+}

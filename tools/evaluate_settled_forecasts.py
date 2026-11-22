@@ -111,6 +111,17 @@ def resume(storage, *, start=None):
     return {'state':'evaluator_started','pid':child.pid}
 
 
+def observation_step(directory, *, failures=0, observe=once):
+    """Bounded retry of Windows file-sharing errors; never hide integrity errors."""
+    try:
+        return observe(directory),0,False
+    except PermissionError as exc:
+        failures+=1
+        return {'state':'waiting_for_source_file_access' if failures<3 else 'blocked_review_required',
+                'reason':str(exc),'consecutive_file_access_failures':failures,
+                'checked_at':datetime.now(timezone.utc).isoformat(),'broker_eligible':False},failures,failures>=3
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--directory',type=Path,required=True)
     parser.add_argument('--source',type=Path);parser.add_argument('--initialize',action='store_true');parser.add_argument('--watch',action='store_true');a=parser.parse_args()
@@ -118,10 +129,12 @@ if __name__=='__main__':
         if a.source is None:parser.error('--source required')
         initialize(a.directory,a.source)
     with observation_lock(a.directory/'evaluator.lock'):
+        failures=0
         while True:
-            try:status=once(a.directory)
+            try:status,failures,blocked=observation_step(a.directory,failures=failures)
             except Exception as exc:
                 atomic_json(a.directory/'status.json',{'state':'blocked_review_required','reason':str(exc),'broker_eligible':False});raise
             atomic_json(a.directory/'status.json',status);print(json.dumps(status),flush=True)
+            if blocked:raise SystemExit(1)
             if not a.watch:break
             time.sleep(20)

@@ -73,3 +73,17 @@ def test_shared_answer_never_turns_candidate_outcomes_into_trade_proof():
     text=research_answer(progress,'settled outcomes')
     assert '3 prospective resolved' in text and '2 pre-registration' in text
     assert 'not independent trades' in text
+
+
+def test_file_access_retry_is_bounded_and_integrity_failures_are_not_retried(tmp_path):
+    from tools.evaluate_settled_forecasts import observation_step
+    def locked(_):raise PermissionError('sharing violation')
+    failures=0
+    for attempt in range(1,4):
+        result,failures,blocked=observation_step(tmp_path,failures=failures,observe=locked)
+        assert failures==attempt and blocked==(attempt==3)
+    result,failures,blocked=observation_step(tmp_path,failures=2,observe=lambda _: {'state':'ok'})
+    assert failures==0 and not blocked
+    def changed(_):raise ValueError('frozen_source_changed')
+    with pytest.raises(ValueError,match='frozen_source_changed'):
+        observation_step(tmp_path,observe=changed)
