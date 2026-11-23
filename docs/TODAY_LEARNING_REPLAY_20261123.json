@@ -1,0 +1,184 @@
+{
+  "schema": "atlas_today_learning_replay_v1",
+  "checked_at": "2026-11-23T16:40:23.744765+00:00",
+  "day_timezone": "Africa/Johannesburg",
+  "window": {
+    "start_utc": "2026-11-22T22:00:00+00:00",
+    "end_utc": "2026-11-23T16:25:00+00:00",
+    "captured_at": "2026-11-23T16:28:30.053710+00:00"
+  },
+  "conclusion": "Losses were recorded, but no learned prevention of the two recorded M5 setups was demonstrated.",
+  "actual_broker_result": {
+    "entries": 2,
+    "exits": 2,
+    "net_zar": -35.05,
+    "source": "Matching configured demo broker snapshot; no manual or diagnostic fills pooled."
+  },
+  "closed_M5_replay": {
+    "before_today": {
+      "trades": 0,
+      "wins": 0,
+      "net_cash": 0.0,
+      "rejections": {
+        "outside_active_session": 22,
+        "near_session_open_no_new_trades": 2,
+        "higher_timeframe_confluence": 100,
+        "timing_discipline": 78,
+        "near_session_close_no_new_trades": 4,
+        "volatility_protection": 1,
+        "pilot_setup_family": 1
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false
+    },
+    "after_losses_hindsight": {
+      "trades": 0,
+      "wins": 0,
+      "net_cash": 0.0,
+      "rejections": {
+        "outside_active_session": 22,
+        "near_session_open_no_new_trades": 2,
+        "higher_timeframe_confluence": 100,
+        "timing_discipline": 78,
+        "near_session_close_no_new_trades": 4,
+        "volatility_protection": 1,
+        "pilot_setup_family": 1
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false
+    }
+  },
+  "signal_candidates_identical_before_vs_after_memory": true,
+  "recorded_entry_learning_probes": [
+    {
+      "execution_log_time_sa": "2026-11-23T10:01:43.005030+02:00",
+      "strategy": "ema_crossover",
+      "comparisons": {
+        "causally_available_before_entry": {
+          "learning_would_block": false,
+          "post_conviction_confidence": 0.95,
+          "minimum_confidence": 0.44,
+          "stop_points": 100.0,
+          "target_points": 150.0,
+          "lesson_recognition_reason": "no_matching_pattern_lesson",
+          "lesson_recognition_only_on_M5": true,
+          "hour_samples": 0,
+          "hour_minimum_samples": 4,
+          "side_samples": 0,
+          "side_minimum_samples": 6,
+          "online_adjustment_reason": "context_mismatch",
+          "m5_loss_pattern_hard_block": false
+        },
+        "current_after_losses_hindsight": {
+          "learning_would_block": false,
+          "post_conviction_confidence": 0.95,
+          "minimum_confidence": 0.44,
+          "stop_points": 100.0,
+          "target_points": 150.0,
+          "lesson_recognition_reason": "corrective_confirmation_present",
+          "lesson_recognition_only_on_M5": true,
+          "hour_samples": 2,
+          "hour_minimum_samples": 4,
+          "side_samples": 2,
+          "side_minimum_samples": 6,
+          "online_adjustment_reason": "context_mismatch",
+          "m5_loss_pattern_hard_block": false
+        }
+      },
+      "sampled_pre_entry_memory": {
+        "record_id": "3902a2bcea96d60e2736536b0d281289575f244c14c1b19b2ea8dc54bb6318f1",
+        "observed_at": "2026-11-23T08:00:29.628976+00:00",
+        "decision_at": "2026-11-23T08:00:27.178687+00:00"
+      }
+    },
+    {
+      "execution_log_time_sa": "2026-11-23T10:04:14.021548+02:00",
+      "strategy": "ema_crossover",
+      "comparisons": {
+        "causally_available_before_entry": {
+          "learning_would_block": false,
+          "post_conviction_confidence": 0.95,
+          "minimum_confidence": 0.44,
+          "stop_points": 100.0,
+          "target_points": 150.0,
+          "lesson_recognition_reason": "no_matching_pattern_lesson",
+          "lesson_recognition_only_on_M5": true,
+          "hour_samples": 0,
+          "hour_minimum_samples": 4,
+          "side_samples": 0,
+          "side_minimum_samples": 6,
+          "online_adjustment_reason": "context_mismatch",
+          "m5_loss_pattern_hard_block": false
+        },
+        "current_after_losses_hindsight": {
+          "learning_would_block": false,
+          "post_conviction_confidence": 0.95,
+          "minimum_confidence": 0.44,
+          "stop_points": 100.0,
+          "target_points": 150.0,
+          "lesson_recognition_reason": "corrective_confirmation_present",
+          "lesson_recognition_only_on_M5": true,
+          "hour_samples": 2,
+          "hour_minimum_samples": 4,
+          "side_samples": 2,
+          "side_minimum_samples": 6,
+          "online_adjustment_reason": "context_mismatch",
+          "m5_loss_pattern_hard_block": false
+        }
+      },
+      "sampled_pre_entry_memory": {
+        "record_id": "27ca660eb396a4bd822864eea854cac20253b10b961a0683f553c736f2e46522",
+        "observed_at": "2026-11-23T08:02:39.373989+00:00",
+        "decision_at": "2026-11-23T08:01:44.806506+00:00"
+      }
+    }
+  ],
+  "observed_learning": {
+    "today_recorded_outcomes": 2,
+    "classifications": [
+      "false_continuation",
+      "false_continuation"
+    ],
+    "ema_allocator_loss_count_change": 2,
+    "ema_allocator_win_count_change": 0,
+    "ema_allocator_pnl_change": -35.05,
+    "note": "Existing allocator totals contain older evidence. Only the captured change is reported; no claim these totals are all live trades."
+  },
+  "learning_path_findings": [
+    "Entry-timing loss-lesson adjustment immediately returns for non-M1 timeframes.",
+    "Loss-pattern hard block immediately returns unblocked for non-M1 timeframes.",
+    "M5 critic can recognize a false-continuation lesson without applying an entry veto.",
+    "Two fresh losses are below four hourly samples and six same-side samples required by existing penalties.",
+    "The recorded strong momentum/trend context satisfies false-continuation corrective confirmation without requiring a newer candle.",
+    "Current online-learning adjustment did not match the recorded setup context."
+  ],
+  "replay_repair": "Match live directional-only HTF opposition rule, including .85 pre-conviction haircut. Mixed/flat/unknown no longer rejected as opposing. Live logic unchanged.",
+  "additional_live_parity_gap": "Live send-time guard code resets consecutive_losses to zero after a successful fill; the replay counts closed losses. No live risk counter change was made.",
+  "evidence": {
+    "protocol_sha256": "70b9d49987218ade17dba19ac8c232351c85b5ce2cb1929a1505c6effa80c385",
+    "report_sha256": "abd6a9bfbdb0a8b2b7c01006a8d02766eb298be79ee1dbf1a410bc78c5123d7f",
+    "predecessor_report_sha256": "8f8b2e9509956d7b9cce71292a1bc1824f3e615a0ff6424291024bf7e34454cc",
+    "candidate_sha256": "e7bb22bc82ab7eb68cd2bc01a63ae9f96cf7ef5353482a3af0e4ea46b109ad5b"
+  },
+  "tests": {
+    "new_targeted_cases_passed": 8,
+    "existing_replay_cases_passed": 22
+  },
+  "limitations": [
+    "Closed-M5 next-open replay is not the live intrabar path and cannot reproduce both entries within one candle.",
+    "Applying after-loss memory to earlier candles is hindsight, not evidence of prospective learning or improved profitability.",
+    "Archived memory is sampled after publication, not an atomic pre-decision checkpoint.",
+    "Full macro, visual, approval, actual fill and exact adaptive state parity are unavailable.",
+    "Current conversion/margin and previous closed-bar spread plus three adverse points per side are modeled costs.",
+    "The M5 lesson probe explains matching only: the entry-timing lesson adjustment and loss-pattern hard block are M1-only in current code.",
+    "The generic portfolio allocator starts from its fixed research prior, not stored live allocator weights; inspect stored weight deltas separately.",
+    "Generic closed-bar portfolio replay does not implement the full live online/hour/side learning path; recorded-entry probes test those components separately.",
+    "No replay result is independent validation or permission to change parameters.",
+    "The pre-second-entry archived sample did not yet contain the first loss; sampling does not establish exact memory at order submission.",
+    "Zero simulated trades in both lanes is not proof of learning. This bar replay did not reproduce the two actual intrabar entries."
+  ],
+  "orders_sent_by_test": 0,
+  "live_policy_changed": false,
+  "real_learning_memory_changed_by_test": false,
+  "broker_eligible": false
+}

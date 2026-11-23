@@ -139,8 +139,12 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
             from atlas_ai.data.top_down import entry_gate
             if not entry_gate(item.get('higher_context') or {},chosen.side)['passed']:
                 reject('higher_timeframe_confluence');continue
-        if settings.require_higher_tf_alignment and chosen.side!=bias:
-            reject("higher_timeframe_alignment");continue
+        # Match the live path: mixed/flat/unavailable context is not an
+        # opposing directional bias. Top-down confirmation was checked above.
+        if chosen.side in {"buy","sell"} and bias in {"buy","sell"} and chosen.side!=bias:
+            chosen.confidence=max(0.,chosen.confidence*.85)
+            if settings.require_higher_tf_alignment:
+                reject("higher_timeframe_alignment");continue
         support=trader._same_side_support_count(signals,chosen.side)
         if support<settings.min_same_side_signals:reject("same_side_support");continue
         if trader._strategy_to_setup_family(chosen.strategy)!=limits["setup_family"]:
