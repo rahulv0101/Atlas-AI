@@ -1,0 +1,99 @@
+{
+  "date_sa": "2026-11-23",
+  "window_utc": {
+    "start": "2026-11-22T22:00:00+00:00",
+    "end_exclusive": "2026-11-23T22:00:00+00:00"
+  },
+  "repair_revision": "11ca958",
+  "actual_broker_results": {
+    "trades": 2,
+    "net_zar": -35.05,
+    "individual_net_zar": [
+      -17.78,
+      -17.27
+    ]
+  },
+  "closed_M5_replay": {
+    "trades": 0,
+    "wins": 0,
+    "net_cash": 0.0,
+    "return_fraction": 0.0,
+    "profit_factor": null,
+    "max_drawdown": 0.0,
+    "max_drawdown_r": 0.0,
+    "mean_net_r": null,
+    "rejections": {
+      "outside_active_session": 33,
+      "near_session_open_no_new_trades": 2,
+      "higher_timeframe_confluence": 116,
+      "timing_discipline": 113,
+      "near_session_close_no_new_trades": 9,
+      "volatility_protection": 1,
+      "pilot_setup_family": 1
+    },
+    "trade_list": [],
+    "full_live_policy_parity": false,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "strict_evidence_mode": false
+  },
+  "counter_only_replay": {
+    "scope": "Counter-only causal replay, holding the recorded signals/fills fixed; not a complete strategy or tick-path replay.",
+    "decisions": [
+      {
+        "broker_entry_utc": "2026-11-23T08:01:40.184000+00:00",
+        "execution_log_utc": "2026-11-23T08:01:43.005030+00:00",
+        "strategy": "ema_crossover",
+        "loss_streak_before_entry": 0,
+        "effective_loss_streak_limit": 2,
+        "counter_would_admit": true,
+        "recorded_net_if_same_fills": -17.78,
+        "stop_points": 100.0
+      },
+      {
+        "broker_entry_utc": "2026-11-23T08:04:10.833000+00:00",
+        "execution_log_utc": "2026-11-23T08:04:14.021548+00:00",
+        "strategy": "ema_crossover",
+        "loss_streak_before_entry": 1,
+        "effective_loss_streak_limit": 2,
+        "counter_would_admit": true,
+        "recorded_net_if_same_fills": -17.27,
+        "stop_points": 100.0
+      }
+    ],
+    "end_loss_streak": 2,
+    "counter_would_block_further_entry": true,
+    "recorded_net_for_admitted_positions": -35.05,
+    "actual_first_two_losses_prevented_by_counter": 0,
+    "orders_sent": 0,
+    "live_state_changed": false
+  },
+  "additional_live_safety_check": {
+    "method": "Frozen-clock test of AtlasTrader._evaluate_safety_layer followed by _guard_block_reason; isolate repaired streak=1, normal volatility, no retrospective loss-memory input.",
+    "first_loss_close_utc": "2026-11-23T08:01:50.311+00:00",
+    "assumed_reconciliation_and_safety_evaluation_utc": "2026-11-23T08:01:51+00:00",
+    "second_entry_utc": "2026-11-23T08:04:10.833+00:00",
+    "cooldown_minutes": 12,
+    "cooldown_until_under_assumption": "2026-11-23T08:13:51+00:00",
+    "second_entry_blocked_by_shared_guard_function": true,
+    "limitation": "This assumes timely broker-close reconciliation and no already-consumed cooldown marker. It does not reconstruct all runtime flags or asynchronous event timing."
+  },
+  "conclusions": [
+    "Counter repair alone does not prevent the first recorded loss; the entry and stop logic are unchanged.",
+    "The hard streak limit alone permits both recorded entries. Its conditional -35.05 result is not a full-system replay prediction.",
+    "The same repaired streak also feeds existing adaptive safety: one loss arms a 12-minute cooldown. With prompt reconciliation this blocks the rapid second attempt.",
+    "Closed-M5 replay produced zero trades, but cannot reproduce the two intrabar actual entries. Do not interpret zero trades as proof the live losses are avoided.",
+    "No profitability or complete live-policy parity is established. No strategy, risk thresholds or stop sizes were changed."
+  ],
+  "tests": {
+    "command": "pytest tests/test_recorded_counter_replay.py tests/test_today_learning_replay.py -q --tb=short",
+    "passed": 5
+  },
+  "evidence_sha256": {
+    "protocol.json": "ef8aace6cc771a843729bf93c432494fe946423c828d8ad7068cce4d0397344b",
+    "report.json": "da4250355d9514970708ec4a66aa4ba32f45510920c990ad00d7441bc3672bfd",
+    "recorded_counter_replay.json": "1854ffa2a44e988f545606bbabf7f0b2a74889cd69fd1618f3f6fd7f55f2f947"
+  },
+  "orders_sent": 0,
+  "live_state_changed": false
+}

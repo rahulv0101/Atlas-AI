@@ -43,19 +43,23 @@ def archived_before(storage,before):
     raise ValueError('no_causal_archived_memory_available')
 
 
-def capture(directory):
+def capture(directory,day=None):
     cfg=load_settings();storage=Path(cfg.storage_dir).resolve();directory=directory.resolve();directory.relative_to(storage)
     directory.mkdir(parents=True,exist_ok=False)
     now=datetime.now(timezone.utc);local=now.astimezone(ZoneInfo('Africa/Johannesburg'))
-    start=local.replace(hour=0,minute=0,second=0,microsecond=0).astimezone(timezone.utc)
-    end=now.replace(second=0,microsecond=0);end=end.replace(minute=end.minute//5*5)
+    selected=local.date() if day is None else datetime.fromisoformat(day).date()
+    if not 0<=(local.date()-selected).days<=2:raise ValueError('short_native_capture_requires_current_or_previous_two_days')
+    start=datetime.combine(selected,datetime.min.time(),tzinfo=ZoneInfo('Africa/Johannesburg')).astimezone(timezone.utc)
+    end=min(now,start+timedelta(days=1)).replace(second=0,microsecond=0);end=end.replace(minute=end.minute//5*5)
     entries=[]
     for line in (storage/'events.jsonl').open(encoding='utf-8'):
         try:r=json.loads(line)
         except ValueError:continue
-        if start.isoformat()<=r.get('time','')<=now.isoformat() and r.get('type')=='execution' and str(r.get('message','')).startswith('Executed '):
+        if start.isoformat()<=r.get('time','')<end.isoformat() and r.get('type')=='execution' and str(r.get('message','')).startswith('Executed '):
             entries.append({'at':r['time'],'status':r['meta']})
     current=json.loads((storage/'learning_state.json').read_text());current=current.get('state',current)
+    after_receipt={'source':'current_captured_memory'}
+    if selected!=local.date():current,after_receipt=archived_before(storage,pd.Timestamp(end)-pd.Timedelta(microseconds=1))
     before,receipt=archived_before(storage,pd.Timestamp(start))
     save_signed(directory,'before_memory',before);save_signed(directory,'after_memory',current)
     for index,entry in enumerate(entries):
@@ -69,9 +73,10 @@ def capture(directory):
         if not account or account.login!=cfg.hfm_login or account.server!=cfg.hfm_server or account.trade_mode!=mt5.ACCOUNT_TRADE_MODE_DEMO:
             raise ValueError('matching_demo_required')
         info=mt5.symbol_info(cfg.symbol);tick=mt5.symbol_info_tick(cfg.symbol)
-        deals=mt5.history_deals_get(utc_query_time(start,cfg),utc_query_time(now,cfg))
+        deals=mt5.history_deals_get(utc_query_time(start,cfg),utc_query_time(end,cfg))
         if deals is None:raise ValueError('broker_deals_unavailable')
-        ours=[d for d in deals if d.symbol==cfg.symbol and d.magic==cfg.magic_number]
+        ours=[d for d in deals if d.symbol==cfg.symbol and d.magic==cfg.magic_number
+              and start<=broker_time_to_utc(d.time,cfg)<end]
         gross=sum(d.profit+d.commission+d.swap+d.fee for d in ours)
         entry_volume=sum(d.volume for d in ours if d.entry==mt5.DEAL_ENTRY_IN)
         fee=sum(abs(d.commission)+abs(d.fee) for d in ours)/entry_volume if entry_volume else 0.
@@ -85,15 +90,16 @@ def capture(directory):
             f=normalize_rates(raw,cfg)
             if tf=='M5':f=f[pd.to_datetime(f.time,utc=True)+pd.Timedelta(minutes=5)<=pd.Timestamp(end)]
             f.to_csv(directory/(tf+'.csv'),index=False);hashes[tf]=digest(directory/(tf+'.csv'))
-        actual=[{k:getattr(d,k) for k in ['ticket','position_id','entry','type','volume','price','profit','commission','swap','fee']}|
-                {'time_utc':broker_time_to_utc(d.time,cfg).isoformat()} for d in ours]
+        actual=[{k:getattr(d,k) for k in ['ticket','order','position_id','entry','type','volume','price','profit','commission','swap','fee','comment']}|
+                {'time_utc':(broker_time_to_utc(d.time,cfg)+timedelta(milliseconds=int(getattr(d,'time_msc',0))%1000)).isoformat()} for d in ours]
     automation=json.loads((storage/'automation_state.json').read_text());automation=automation.get('payload',automation)
     session=automation['session_control'];pilot=automation['tiny_live_pilot']
     limits={'day_trades':min(session['daily_trade_limit'],pilot['max_trades_per_day']),
         'loss_streak':min(session['consecutive_loss_limit'],pilot['max_consecutive_losses']),
         'daily_loss_percent':pilot['daily_loss_cap'],'lot_cap':pilot['size_cap'],'setup_family':pilot['allowed_setup_family']}
     # Nominal start of day reconstructed only when no current exposure exists.
-    settings=safe_settings(replace(cfg,backtest_initial_balance=account.balance-gross))
+    initial=(entries[0]['status'].get('risk') or {}).get('balance',account.balance-gross) if entries else account.balance-gross
+    settings=safe_settings(replace(cfg,backtest_initial_balance=initial))
     source_hashes={}
     for folder in ('atlas_ai','tools'):
         for source in (ROOT/folder).rglob('*.py'):
@@ -103,6 +109,8 @@ def capture(directory):
     save_signed(directory,'protocol',{'captured_at':now.isoformat(),'start_utc':start.isoformat(),'end_utc':end.isoformat(),
         'settings':settings,'spec':asdict(spec),'limits':limits,'source_hashes':source_hashes,'account_scope':account_scope(cfg),
         'before_memory_receipt':receipt,'before_memory_sha256':digest(directory/'before_memory.json'),
+        'after_memory_receipt':after_receipt,'selected_sa_date':selected.isoformat(),
+        'capital_basis':'Recorded balance before first Atlas entry when available; otherwise captured balance less selected-day realized PnL. Not a full cash-flow reconstruction.',
         'after_memory_sha256':digest(directory/'after_memory.json'),'recorded_entries_sha256':digest(directory/'recorded_entries.json'),
         'actual_deals':actual,'actual_net_cash':gross,'broker_eligible':False,'orders_sent':0,
         'limitations':['Closed-M5 next-open replay is not the live intrabar path and cannot reproduce both entries within one candle.',
@@ -141,7 +149,7 @@ def learning_probe(trader,status,at):
         'scope':'Learning components for fixed recorded candidate; not a complete execution approval.'}
 
 
-def run(directory,*,cached=False):
+def run(directory,*,cached=False,fixed_day=False):
     p=signed(directory,'protocol')
     for name,h in p['source_hashes'].items():
         if digest(ROOT/name)!=h:raise ValueError('frozen_source_changed:'+name)
@@ -154,12 +162,17 @@ def run(directory,*,cached=False):
         frames[tf]=pd.read_csv(path);frames[tf]['time']=pd.to_datetime(frames[tf].time,utc=True)
     frame=prepare_frame(frames['M5']);start=pd.Timestamp(p['start_utc']);end=pd.Timestamp(p['end_utc'])
     entries=signed(directory,'recorded_entries')['entries'];results={};probes=[]
+    from tools.replay_recorded_loss_counter import replay_counter
+    counter_replay=replay_counter(p,entries)
+    save_signed(directory,'recorded_counter_replay',counter_replay)
+    print(json.dumps({'recorded_counter_replay':counter_replay}),flush=True)
     before=signed(directory,'before_memory');after=signed(directory,'after_memory')
     # Hold the same captured subset of archived state fields in both replay lanes.
     common=set(before)&set(after)
     with patch.object(mt5,'initialize',deny),patch.object(mt5,'login',deny),patch.object(mt5,'order_send',deny),tempfile.TemporaryDirectory() as temporary:
         cfg=settings_for(p,temporary);spec=BrokerSpec(**p['spec'])
-        for lane,state in [('before_today',before),('after_losses_hindsight',after)]:
+        lanes=[('repaired_counter_closed_M5',before)] if fixed_day else [('before_today',before),('after_losses_hindsight',after)]
+        for lane,state in lanes:
             store=KnowledgeStore(str(Path(temporary)/lane));store.update_learning_state(lambda _,state=state:{k:state[k] for k in common})
             trader=policy_trader(cfg,store);feed=HistoricalFeed({tf:frames[tf] for tf in TIMEFRAMES});rows=[]
             strategies=[s for s in base_inventory('M5',top_down=True) if trader._strategy_enabled(s.name)]
@@ -191,7 +204,7 @@ def run(directory,*,cached=False):
                 'causal_memory_receipt':entry['causal_memory_receipt']})
         fresh=[r for r in after.get('loss_memory',{}).get('recent_outcomes',[]) if start<=pd.Timestamp(r.get('time','1970-01-01T00:00Z'))<end]
     report={'state':'completed_diagnostic_only','protocol_sha256':digest(directory/'protocol.json'),'results':results,
-        'recorded_entry_probes':probes,'today_learning_outcomes':fresh,'actual_net_cash':p['actual_net_cash'],
+        'recorded_entry_probes':probes,'recorded_counter_replay':counter_replay,'today_learning_outcomes':fresh,'actual_net_cash':p['actual_net_cash'],
         'common_archived_state_fields':sorted(common),'limitations':p['limitations']+[
             'The M5 lesson probe explains matching only: the entry-timing lesson adjustment and loss-pattern hard block are M1-only in current code.',
             'The generic portfolio allocator starts from its fixed research prior, not stored live allocator weights; inspect stored weight deltas separately.',
@@ -205,7 +218,8 @@ def run(directory,*,cached=False):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('mode',choices=['capture','run','run_cached']);parser.add_argument('--directory',type=Path,required=True)
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('mode',choices=['capture','run','run_cached','run_fixed_day']);parser.add_argument('--directory',type=Path,required=True)
+    parser.add_argument('--date',help='South African date for a bounded native snapshot (current or previous two days)')
     args=parser.parse_args()
-    if args.mode=='capture':capture(args.directory.resolve())
-    else:run(args.directory.resolve(),cached=args.mode=='run_cached')
+    if args.mode=='capture':capture(args.directory.resolve(),args.date)
+    else:run(args.directory.resolve(),cached=args.mode=='run_cached',fixed_day=args.mode=='run_fixed_day')
