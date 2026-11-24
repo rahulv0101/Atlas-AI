@@ -333,6 +333,32 @@
       "live_policy_changed": false,
       "summary": "docs/SWEEP_BOS_RETEST_RESULTS_20261116.json",
       "interpretation": "Require a reclaimed sweep, preconfirmed swing break and first fresh broken-level retest before shared gates. Negative or empty outcomes are retained; no automatic activation."
+    },
+    {
+      "id": "m5_ema_stop_only_20261124",
+      "model": "ema_crossover_two_ATR_stop_only",
+      "evidence_type": "retrospective_reused_disjoint_history_partial_policy_replay",
+      "hypothesis": "Minimum two closed-M5 ATR stop with unchanged signals and targets, sized under unchanged risk limits.",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "discovery_baseline": 32,
+        "discovery_stop_only": 39,
+        "separate_baseline": 25,
+        "separate_stop_only": 23
+      },
+      "net_zar": {
+        "discovery_baseline": -269.382059,
+        "discovery_stop_only": -222.878097,
+        "separate_baseline": -150.7579524,
+        "separate_stop_only": 327.8015994
+      },
+      "result": "not_qualified_development_negative_separate_sample_below_30",
+      "interpretation": "Higher win rate did not establish an edge. Both periods were previously inspected; missing live policies and intrabar evidence prevent live parity claims. Factual research memory only, no execution or parameter authority.",
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "live_activated": false,
+      "report": "docs/M5_EMA_STOP_ONLY_20261124.json",
+      "report_sha256": "b1792178f27c0484c388019749881419b5407fdde8f15ca469550d91fd23d300"
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
