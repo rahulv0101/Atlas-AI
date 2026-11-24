@@ -1,0 +1,219 @@
+{
+  "state": "completed_research_only",
+  "results": {
+    "discovery": {
+      "baseline": {
+        "trades": 30,
+        "wins": 8,
+        "net_cash": -175.69779360012035,
+        "return_fraction": -0.0014553955312759381,
+        "profit_factor": 0.5380985787596153,
+        "max_drawdown": 0.0014553955312759097,
+        "max_drawdown_r": 9.935039339355763,
+        "mean_net_r": -0.33116797797852543,
+        "rejections": {
+          "pilot_setup_family": 166,
+          "timing_discipline": 2434,
+          "higher_timeframe_confluence": 1805,
+          "near_session_close_no_new_trades": 164,
+          "outside_active_session": 558,
+          "near_session_open_no_new_trades": 32,
+          "max_consecutive_losses_reached": 603,
+          "volatility_protection": 4
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1",
+            "drawdown_above_6R"
+          ]
+        }
+      },
+      "structural_retest": {
+        "trades": 37,
+        "wins": 10,
+        "net_cash": -236.34162940017995,
+        "return_fraction": -0.001957739731589081,
+        "profit_factor": 0.5189693336950912,
+        "max_drawdown": 0.0019577397315890563,
+        "max_drawdown_r": 13.178212267099324,
+        "mean_net_r": -0.3561678991107926,
+        "rejections": {
+          "pilot_setup_family": 140,
+          "timing_discipline": 2130,
+          "higher_timeframe_confluence": 1543,
+          "near_session_close_no_new_trades": 137,
+          "outside_active_session": 434,
+          "max_consecutive_losses_reached": 1334,
+          "near_session_open_no_new_trades": 32,
+          "volatility_protection": 9
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1",
+            "drawdown_above_6R"
+          ]
+        }
+      }
+    },
+    "separate_validation": {
+      "baseline": {
+        "trades": 25,
+        "wins": 6,
+        "net_cash": -220.3017982999154,
+        "return_fraction": -0.0018248735297580199,
+        "profit_factor": 0.3151637008012896,
+        "max_drawdown": 0.001824873529757997,
+        "max_drawdown_r": 13.736207742968492,
+        "mean_net_r": -0.5494483097187398,
+        "rejections": {
+          "near_session_open_no_new_trades": 19,
+          "timing_discipline": 1857,
+          "volatility_protection": 15,
+          "higher_timeframe_confluence": 1933,
+          "pilot_setup_family": 121,
+          "near_session_close_no_new_trades": 141,
+          "outside_active_session": 526,
+          "max_consecutive_losses_reached": 1117,
+          "open_position": 3
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1",
+            "drawdown_above_6R"
+          ]
+        }
+      },
+      "structural_retest": {
+        "trades": 27,
+        "wins": 8,
+        "net_cash": -164.78016729990486,
+        "return_fraction": -0.0013649591962264784,
+        "profit_factor": 0.48775978759201777,
+        "max_drawdown": 0.001626077359095662,
+        "max_drawdown_r": 11.944734195491936,
+        "mean_net_r": -0.3989835044569284,
+        "rejections": {
+          "near_session_open_no_new_trades": 19,
+          "timing_discipline": 1824,
+          "volatility_protection": 17,
+          "higher_timeframe_confluence": 1932,
+          "pilot_setup_family": 119,
+          "near_session_close_no_new_trades": 141,
+          "outside_active_session": 526,
+          "max_consecutive_losses_reached": 1149,
+          "open_position": 3
+        },
+        "full_live_policy_parity": false,
+        "broker_eligible": false,
+        "orders_sent": 0,
+        "strict_evidence_mode": false,
+        "review": {
+          "passed": false,
+          "reasons": [
+            "fewer_than_30_trades",
+            "no_positive_mean_net_R",
+            "profit_factor_below_1_1",
+            "drawdown_above_6R"
+          ]
+        }
+      }
+    }
+  },
+  "structural_evidence_audit": {
+    "discovery": {
+      "evidence_checks": 2176,
+      "passed": 17,
+      "reasons": {
+        "no_first_retest_touch": 128,
+        "directional_turn_not_confirmed": 49,
+        "prior_retest_consumed": 176,
+        "no_fresh_directional_break": 1717,
+        "level_breached": 61,
+        "first_closed_structural_retest_and_directional_turn": 17,
+        "M5_gap": 28
+      }
+    },
+    "separate_validation": {
+      "evidence_checks": 1868,
+      "passed": 5,
+      "reasons": {
+        "no_fresh_directional_break": 1478,
+        "no_first_retest_touch": 143,
+        "level_breached": 45,
+        "prior_retest_consumed": 152,
+        "directional_turn_not_confirmed": 45,
+        "first_closed_structural_retest_and_directional_turn": 5
+      }
+    }
+  },
+  "historical_review_passed": false,
+  "live_activated": false,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "protocol_sha256": "5b476a511a4064637da5e0759080ebdbb4854f3441484c7d4d2f7640d07dddff",
+  "prediction_receipt_sha256": "000bf00b806589ff57ab4d072089567326489b42554709b93ea02899a1f58915",
+  "periods": {
+    "discovery": [
+      "2026-10-15T08:10Z",
+      "2026-11-14T08:10Z"
+    ],
+    "separate_validation": [
+      "2026-04-01T00:00Z",
+      "2026-05-01T00:00Z"
+    ]
+  },
+  "rules": {
+    "authority": "research_only",
+    "direction": "fresh H1 must match candidate",
+    "level_lookback": 5,
+    "maximum_break_age_bars": 3,
+    "break_body_fraction": 0.55,
+    "break_minimum_range_ATR": 0.75,
+    "retest_touch_buffer_ATR": 0.1,
+    "maximum_level_breach_ATR": 0.25,
+    "confirmation_body_fraction": 0.4,
+    "confirmation_close_outer_fraction": 0.35,
+    "confirmation_clearance_ATR": 0.05,
+    "prior_retest": "reject",
+    "targets_stops_confidence_thresholds_risk_and_execution_changes": false
+  },
+  "limitations": [
+    "Previously inspected retrospective periods, disjoint but not blind or forward validation.",
+    "Archived enabled built-in signal streams held fixed; native HTF contexts rebuilt with current H1 policy.",
+    "Partial policy replay, not complete live parity: missing screenshots, macro/news, adaptive state, cooldown timing and broker execution evidence.",
+    "Unchanged built-in stop/target geometry; one modelled position at a time; stop-first M5 OHLC execution has uncertain intrabar ordering.",
+    "No live activation, no learning state writes, no change to existing SMC research models."
+  ],
+  "tests": {
+    "passed": 14,
+    "command": "pytest tests/test_h1_m5_retest_timing.py tests/test_structural_timing.py -q --tb=short"
+  },
+  "evidence_report_sha256": "c2af0e0c25f2c924c74cca6cad858b4e7110298b09c72ffe1f1ab9ec1ba28a22",
+  "interpretation": [
+    "A closed structural-retest detector and directional turning evidence were implemented as an isolated research adapter, not imported by the live trader.",
+    "The structural variant increased development entries from 30 to 37 and worsened net cash and mean net R. April improved versus baseline but remained negative, with only 27 trades.",
+    "Both periods failed the declared profitability/drawdown requirements. The variant was rejected for activation.",
+    "The observed mid-range/weak readings cannot be converted into approved entries merely because Atlas has been waiting. This study does not establish which recorded rejections were broker-executable missed winners.",
+    "Existing live H1 direction / M5 entry timing, stops, targets, confidence thresholds and risk/execution gates remain unchanged."
+  ]
+}

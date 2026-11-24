@@ -359,6 +359,36 @@
       "live_activated": false,
       "report": "docs/M5_EMA_STOP_ONLY_20261124.json",
       "report_sha256": "b1792178f27c0484c388019749881419b5407fdde8f15ca469550d91fd23d300"
+    },
+    {
+      "id": "h1_m5_retest_timing_20261124",
+      "model": "h1_m5_first_structural_retest_turning_v1",
+      "evidence_type": "retrospective_reused_disjoint_history_partial_policy_replay",
+      "hypothesis": "Supplement range-based M5 timing only on independently verified first retest and directional turn aligned with H1. Stops, targets and risk limits fixed.",
+      "historical_review_passed": false,
+      "stage_trades": {
+        "discovery_baseline": 30,
+        "discovery_variant": 37,
+        "separate_baseline": 25,
+        "separate_variant": 27
+      },
+      "net_zar": {
+        "discovery_baseline": -175.6977936,
+        "discovery_variant": -236.3416294,
+        "separate_baseline": -220.3017983,
+        "separate_variant": -164.7801673
+      },
+      "structural_evidence_observations": {
+        "discovery": 17,
+        "separate": 5
+      },
+      "result": "rejected_development_worse_both_periods_negative",
+      "interpretation": "Improved pattern recognition did not establish a profitable entry policy. Factual research evidence only; no live activation or learned parameter drift. Historical bar replay has incomplete live-policy parity.",
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "live_activated": false,
+      "report": "docs/H1_M5_RETEST_TIMING_20261124.json",
+      "evidence_report_sha256": "c2af0e0c25f2c924c74cca6cad858b4e7110298b09c72ffe1f1ab9ec1ba28a22"
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."
