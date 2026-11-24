@@ -1,0 +1,81 @@
+{
+  "state": "completed_one_off_diagnostic",
+  "results": {
+    "normal": {
+      "trades": 30,
+      "wins": 8,
+      "net_cash": -175.69779360012035,
+      "return_fraction": -0.0014553955312759381,
+      "profit_factor": 0.5380985787596153,
+      "max_drawdown": 0.0014553955312759097,
+      "max_drawdown_r": 9.935039339355763,
+      "mean_net_r": -0.33116797797852543,
+      "rejections": {
+        "pilot_setup_family": 166,
+        "timing_discipline": 2434,
+        "higher_timeframe_confluence": 1805,
+        "near_session_close_no_new_trades": 164,
+        "outside_active_session": 558,
+        "near_session_open_no_new_trades": 32,
+        "max_consecutive_losses_reached": 603,
+        "volatility_protection": 4
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false,
+      "orders_sent": 0,
+      "strict_evidence_mode": false,
+      "win_rate": 0.26666666666666666,
+      "ambiguous_stop_first": 8
+    },
+    "inverted": {
+      "trades": 26,
+      "wins": 2,
+      "net_cash": -380.2421148001158,
+      "return_fraction": -0.0031497417431576302,
+      "profit_factor": 0.12566613642070337,
+      "max_drawdown": 0.0031497417431576155,
+      "max_drawdown_r": 21.72821744635188,
+      "mean_net_r": -0.8357006710135338,
+      "rejections": {
+        "pilot_setup_family": 161,
+        "timing_discipline": 2241,
+        "higher_timeframe_confluence": 1902,
+        "near_session_close_no_new_trades": 155,
+        "outside_active_session": 492,
+        "near_session_open_no_new_trades": 32,
+        "max_consecutive_losses_reached": 783,
+        "volatility_protection": 4
+      },
+      "full_live_policy_parity": false,
+      "broker_eligible": false,
+      "orders_sent": 0,
+      "strict_evidence_mode": false,
+      "win_rate": 0.07692307692307693,
+      "ambiguous_stop_first": 3
+    }
+  },
+  "period_utc": [
+    "2026-10-15T08:10Z",
+    "2026-11-14T08:10Z"
+  ],
+  "protocol_sha256": "127256f0db78d8c3cbda2d85666add351308a220889d9b499bf6ec0f37decf78",
+  "rule": "BUY -> executed SELL; SELL -> executed BUY; same SL/TP point distances, not swapped",
+  "direction_gate_exception": "Diagnostic inverted orders intentionally oppose the detected side and its H1 confirmation. All gates evaluate the original candidate; only simulated submission is reversed.",
+  "portfolio": "Each lane evolves its own balances, holds, allocator and loss counters from its own simulated outcomes; trade identities/counts may diverge.",
+  "limitations": [
+    "Previously inspected historical data; one diagnostic run, not strategy qualification.",
+    "Archived signal stream with current H1 confirmation; partial live-policy replay, missing intrabar/visual/macro/adaptive/execution evidence.",
+    "Stop-first M5 OHLC handling can make both original and reversed directions lose when both barriers are touched. Outcomes are not simple sign inverses.",
+    "Current funded account balance is not used to inflate the historic virtual capital. No deposit is simulated as earnings.",
+    "No structural-retest overlay, live configuration change, learning write or automatic activation."
+  ],
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "broker_eligible": false,
+  "tests": {
+    "passed": 4,
+    "command": "pytest tests/test_inverted_orders_once.py -q --tb=short"
+  },
+  "evidence_report_sha256": "939b74b68bd16f529be0e7ca91cc0cddd28ff1f752dd8f79e29ebfde5e8a5c7b",
+  "conclusion": "Inversion worsened this one diagnostic replay. Normal 30 trades/8 wins/-175.70 ZAR; reversed 26 trades/2 wins/-380.24 ZAR. No live changes or strategy qualification."
+}
