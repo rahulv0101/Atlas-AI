@@ -20,6 +20,7 @@ def test_cutoff_preserves_fresh_broker_risk_and_ai_evidence(monkeypatch,connecte
         trader.feed.get_rates = unavailable
     trader._intraday_exit_status={"entries_blocked":True,"flat_verified":True,"session":"asia"}
     trader._risk_snapshot=lambda flags:RiskSnapshot(9995,9995,.0005,0,30,.0005)
+    trader._account_pnl={'verified':True,'day':{'pnl_including_floating':-5.,'net_funding':0.}}
     monkeypatch.setattr(mt5,"terminal_info",lambda:NS(connected=connected))
     monkeypatch.setattr(mt5,"account_info",lambda:NS(login=login,server="Demo",trade_mode=mt5.ACCOUNT_TRADE_MODE_DEMO))
     monkeypatch.setattr(mt5,"symbol_info",lambda symbol:NS(visible=visible))

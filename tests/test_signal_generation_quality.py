@@ -62,10 +62,12 @@ def test_execution_reject_does_not_count_as_trade_outcome() -> None:
     assert AtlasTrader._execution_result_counts_as_trade(ambiguous) is False
 
 
-def test_risk_snapshot_uses_daily_anchor_for_realized_drawdown(monkeypatch) -> None:
+def test_risk_snapshot_uses_verified_cashflow_adjusted_drawdown(monkeypatch) -> None:
     trader = AtlasTrader.__new__(AtlasTrader)
     trader.settings = SimpleNamespace(symbol="XAUUSD")
     trader._load_guard_state = AtlasTrader._load_guard_state.__get__(trader, AtlasTrader)
+    trader._account_pnl = {'verified': True, 'day': {'loss_fraction': .1}, 'week': {'loss_fraction': .25}}
+    trader._account_performance = lambda account: trader._account_pnl
 
     monkeypatch.setattr(
         "atlas_ai.trader.mt5.account_info",

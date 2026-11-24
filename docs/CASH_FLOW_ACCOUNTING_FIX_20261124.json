@@ -1,0 +1,35 @@
+{
+  "issue": "Account funding was counted as daily trading profit through equity minus tracked starting balance.",
+  "correction": "Typed broker history separates funding/credit/bonus/correction from realized trading P/L and trading charges. Current floating P/L excludes account credit.",
+  "day_and_week": "UTC realized non-funding P/L plus current floating P/L. Positive calendar opening balances reconstructed from balance-affecting deals; first-funded periods use funded capital as denominator. This is not a time-weighted return.",
+  "scope": "Account-wide, including manual trades; not proof of Atlas-only earnings.",
+  "failure_behavior": "Unknown, duplicate or canceled deal evidence is unverified. Profit is unknown and RiskManager refuses entries until accounting is available.",
+  "cache": "15 seconds; invalidated immediately by account, balance, equity, credit or UTC-day change.",
+  "source_reference": "https://www.mql5.com/en/docs/constants/tradingconstants/dealproperties",
+  "verified_live": {
+    "checked_at": "2026-11-24T19:26:19.331094+00:00",
+    "funding_present_and_excluded": true,
+    "daily_trading_profit_zero": true,
+    "daily_target_reached": false,
+    "profit_protection_active": false,
+    "weekly_trading_loss_preserved": true
+  },
+  "tests": {
+    "passed": 103,
+    "modules": [
+      "test_account_performance",
+      "test_cutoff_status_reporting",
+      "test_signal_generation_quality",
+      "test_pipeline_diagnostic_20260923",
+      "test_risk_manager",
+      "test_safety_risk_layer",
+      "test_closed_outcome_counter"
+    ]
+  },
+  "strategy_changed": false,
+  "risk_thresholds_changed": false,
+  "target_amount_changed": false,
+  "diagnostic_orders_sent": 0,
+  "deployment": "Graceful backend restart after matching demo account, zero positions and zero pending orders confirmed. API returned corrected verified accounting.",
+  "private_evidence": "Exact account amounts remain in ignored local storage; not included in this portable report."
+}

@@ -63,6 +63,8 @@ def test_injected_valid_candidate_reaches_real_gate_and_simulated_broker(tmp_pat
     trader.settings.daily_profit_target_zar = daily_target
     snapshot = default_replay_scenarios()[2].risk_snapshot
     trader._risk_snapshot = lambda *args, **kwargs: replace(snapshot, equity=10000.0 + daily_progress, balance=10000.0 + daily_progress)
+    # A simulated trading outcome, explicitly distinct from a balance deposit.
+    trader._account_pnl = {'verified': True, 'day': {'pnl_including_floating': daily_progress, 'net_funding': 0.}}
     with patch("atlas_ai.trader.mt5.account_info", return_value=SimpleNamespace(login=123456)), \
          patch("atlas_ai.trader.mt5.symbol_info", return_value=SimpleNamespace(trade_tick_value=1.0)), \
          patch("atlas_ai.trader.mt5.order_send", side_effect=AssertionError("Real broker submission forbidden")), \

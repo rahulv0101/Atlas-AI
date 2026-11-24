@@ -2128,12 +2128,17 @@ class AtlasTrader:
 
     def _daily_profit_objective(self, equity, starting_balance):
         target = float(self.settings.daily_profit_target_zar)
-        progress = float(equity) - float(starting_balance)
+        accounting = dict(getattr(self, '_account_pnl', {}) or {})
+        verified = accounting.get('verified') is True
+        progress = accounting['day']['pnl_including_floating'] if verified else None
         return {"enabled": target > 0, "target_zar": target,
-            "equity_change_zar": round(progress, 2),
-            "remaining_zar": round(max(0.0, target - progress), 2) if target > 0 else None,
-            "reached": target > 0 and progress >= target, "day_timezone": "UTC",
-            "accounting_basis": "equity minus tracked daily starting balance; includes unrealised P/L and account cash flows",
+            "equity_change_zar": round(progress, 2) if verified else None,
+            "trading_pnl_zar": round(progress, 2) if verified else None,
+            "accounting_verified": verified,
+            "net_funding_zar": accounting['day']['net_funding'] if verified else None,
+            "remaining_zar": round(max(0.0, target - progress), 2) if target > 0 and verified else None,
+            "reached": target > 0 and verified and progress >= target, "day_timezone": "UTC",
+            "accounting_basis": "UTC realized trading P/L plus current floating P/L; excludes funding and account credit",
             "on_target_reached": "existing_defensive_sizing; no forced pause", "force_trades": False, "guaranteed": False}
 
     def _session_cutoff_status(self, runtime_flags, *, execute_trades, gemini_influence_enabled):
@@ -2142,7 +2147,7 @@ class AtlasTrader:
         guard = dict(runtime_flags.get("risk_guard_state", {}) or {})
         risk["trades_today"] = int(guard.get("trades_today", 0))
         if float(guard.get("start_balance", 0) or 0) > 0:
-            risk["daily_profit_zar"] = risk["equity"] - float(guard["start_balance"])
+            risk["daily_profit_zar"] = self._daily_profit_objective(risk['equity'], guard['start_balance'])['trading_pnl_zar']
         # Chart observation stays available while strategy selection is paused.
         # No signals, sizing or order submission are invoked here.
         market = {"recent_close": [], "recent_time": []}
@@ -2178,14 +2183,12 @@ class AtlasTrader:
         daily_loss_pct = 0.0
         weekly_loss_pct = 0.0
         if account and account.balance > 0:
-            equity = float(account.equity)
-            start_balance = float(guard_state.get("start_balance", 0.0) or 0.0)
-            if start_balance <= 0:
-                start_balance = float(account.balance)
-            daily_loss_pct = max(0.0, (start_balance - equity) / start_balance) if start_balance > 0 else 0.0
-            week_start_balance = float(guard_state.get("week_start_balance", 0.0) or 0.0)
-            if week_start_balance > 0:
-                weekly_loss_pct = max(0.0, (week_start_balance - equity) / week_start_balance)
+            accounting = self._account_performance(account)
+            if accounting.get('verified'):
+                daily_loss_pct = accounting['day']['loss_fraction']
+                weekly_loss_pct = accounting['week']['loss_fraction']
+        else:
+            self._account_pnl = {'verified': False, 'reason': 'account_unavailable'}
         return RiskSnapshot(
             equity=account.equity if account else 0,
             balance=account.balance if account else 0,
@@ -2194,7 +2197,28 @@ class AtlasTrader:
             spread_points=spread_points,
             weekly_loss_pct=weekly_loss_pct,
             consecutive_losses=int(guard_state.get("consecutive_losses", 0)),
+            accounting_verified=bool(getattr(self, '_account_pnl', {}).get('verified', False)),
         )
+
+    def _account_performance(self, account):
+        from atlas_ai.risk.account_performance import calculate
+        now = datetime.now(timezone.utc)
+        key = (getattr(account, 'login', None), getattr(account, 'server', None),
+               account.balance, account.equity, getattr(account, 'credit', 0), now.date())
+        cached = getattr(self, '_account_pnl_cache', None)
+        if cached and cached[0] == key and (now-cached[1]).total_seconds() < 15:
+            self._account_pnl = cached[2]
+            return self._account_pnl
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)-timedelta(days=now.weekday())
+        try:
+            deals = mt5.history_deals_get(utc_query_time(start, self.settings), utc_query_time(now, self.settings))
+            result = calculate(account, deals, now,
+                lambda d: broker_time_to_utc(d.time, self.settings)+timedelta(milliseconds=int(getattr(d,'time_msc',0))%1000))
+        except Exception as exc:
+            result = {'verified': False, 'reason': str(exc), 'checked_at': now.isoformat()}
+        self._account_pnl = result
+        if result['verified']: self._account_pnl_cache = (key, now, result)
+        return result
 
     def _load_guard_state(self, flags: dict[str, Any] | None = None) -> dict[str, Any]:
         flags = flags if isinstance(flags, dict) else self.store.load_runtime_flags()
@@ -4852,6 +4876,8 @@ class AtlasTrader:
                 "consecutive_losses": risk.get("consecutive_losses"),
                 "daily_profit_zar": risk.get("daily_profit_zar"),
             },
+            "account_performance": dict(getattr(self, '_account_pnl', {}) or {}),
+            "daily_profit_objective": dict(status.get('daily_profit_objective', {}) or {}),
             "signal_summary": dict(status.get("signal_summary", {}) or {}),
             "atlas_conviction": dict(status.get("atlas_conviction", {}) or {}),
             "confidence_diagnostics": dict(status.get("confidence_diagnostics", {}) or {}),
@@ -5173,6 +5199,14 @@ class AtlasTrader:
         self.store.log_event(event_type, str(status.get("message", "")), self._compact_runtime_event_meta(status, event_type))
 
     def _publish_status(self, payload: dict[str, Any]) -> None:
+        accounting = dict(getattr(self, '_account_pnl', {}) or {})
+        if accounting:
+            payload['account_performance'] = accounting
+            risk = payload.setdefault('risk', {})
+            objective = self._daily_profit_objective(risk.get('equity', 0), risk.get('balance', 0))
+            risk['daily_profit_zar'] = objective['trading_pnl_zar']
+            risk['accounting_verified'] = objective['accounting_verified']
+            payload['daily_profit_objective'] = objective
         self._augment_status_layers(payload)
         self._attach_regime_label(payload)
         timing = dict(getattr(self, "_current_cycle_timing", {}) or {})
@@ -5538,9 +5572,14 @@ class AtlasTrader:
             self._save_guard_state(guard_state, runtime_flags)
         status["risk"]["trades_today"] = guard_state["trades_today"]
         status["risk"]["consecutive_losses"] = guard_state["consecutive_losses"]
-        status["risk"]["daily_profit_zar"] = round(float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance)), 2)
+        status["risk"]["daily_profit_zar"] = self._daily_profit_objective(snapshot.equity, snapshot.balance)['trading_pnl_zar']
         status["daily_profit_objective"] = self._daily_profit_objective(
             snapshot.equity, guard_state.get("start_balance", snapshot.balance))
+        if status['daily_profit_objective']['accounting_verified']:
+            corrected_protection = bool(status['daily_profit_objective']['reached'])
+            if bool(guard_state.get('protect_gains_mode')) != corrected_protection:
+                guard_state['protect_gains_mode'] = corrected_protection
+                self._save_guard_state(guard_state, runtime_flags)
         status["risk"]["weekly_loss_pct"] = round(float(snapshot.weekly_loss_pct), 4)
         account_profile = self._account_tier_profile(snapshot.balance)
         size_tier_profile = self._size_tier_profile(snapshot.balance)
@@ -5627,8 +5666,8 @@ class AtlasTrader:
             return status
 
         if self.settings.daily_profit_target_zar > 0:
-            daily_profit = float(snapshot.equity) - float(guard_state.get("start_balance", snapshot.balance))
-            if daily_profit >= float(self.settings.daily_profit_target_zar):
+            daily_profit = self._daily_profit_objective(snapshot.equity, snapshot.balance)['trading_pnl_zar']
+            if daily_profit is not None and daily_profit >= float(self.settings.daily_profit_target_zar):
                 guard_state["protect_gains_mode"] = True
                 status["profit_protection_mode"] = {
                     "active": True,

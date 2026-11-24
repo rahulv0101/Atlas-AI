@@ -16,6 +16,7 @@ class RiskSnapshot:
     spread_points: float = 0.0
     weekly_loss_pct: float = 0.0
     consecutive_losses: int = 0
+    accounting_verified: bool = True
 
 
 class RiskManager:
@@ -27,6 +28,8 @@ class RiskManager:
         return allowed
 
     def evaluate(self, snapshot: RiskSnapshot) -> tuple[bool, str]:
+        if not snapshot.accounting_verified:
+            return False, 'Account cash-flow accounting unavailable'
         for field in ("equity", "balance", "daily_loss_pct", "weekly_loss_pct", "open_positions", "spread_points"):
             try:
                 valid = math.isfinite(float(getattr(snapshot, field)))
