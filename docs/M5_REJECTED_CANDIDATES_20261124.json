@@ -1,0 +1,588 @@
+{
+  "state": "completed_read_only_audit",
+  "current_policy": "top_down_h1_direction_m5_entry_v3",
+  "by_recorded_policy": {
+    "top_down_d1_h4_h1_m15_m5_v1": {
+      "first_record_utc": "2026-11-17T14:17:30.594711+00:00",
+      "last_record_utc": "2026-11-19T11:35:29.347049+00:00",
+      "directional_rejection_publications": 1617,
+      "primary_blockers": {
+        "higher_timeframe": 397,
+        "volatility": 592,
+        "timing_discipline": 628
+      },
+      "timing_missing_checks": {
+        "tradable_location": 492,
+        "strong_or_turning_m1_momentum": 525,
+        "new_york_extra_momentum_confirmation": 19,
+        "visual_confirmation": 487,
+        "visual_tradable_location": 611,
+        "visual_directional_impulse": 86,
+        "fresh_entry_or_retest": 51,
+        "visual_momentum_confirmation": 35
+      },
+      "timing_location_momentum": {
+        "mid_range/weak": 177,
+        "mid_range/mixed": 281,
+        "breakout/strong": 51,
+        "mid_range/strong": 29,
+        "pullback/mixed": 39,
+        "pullback/weak": 27,
+        "pullback/strong": 19,
+        "consolidation/strong": 4,
+        "consolidation/mixed": 1
+      },
+      "timing_with_htf_gate_passed": 628,
+      "deduplicated_M5_timing_probes": 170,
+      "probe_statuses": {
+        "modeled": 170
+      },
+      "all_overlapping_probes": {
+        "probes": 170,
+        "positive": 32,
+        "negative": 138,
+        "mean_net_R": -0.5529399094040885,
+        "ambiguous_stop_first": 74,
+        "exit_reasons": {
+          "take_profit": 32,
+          "stop_loss": 138
+        },
+        "unambiguous_subset": {
+          "probes": 96,
+          "positive": 32,
+          "negative": 64,
+          "mean_net_R": -0.1851342474269293,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "greedy_nonoverlapping_probes": {
+        "probes": 159,
+        "positive": 31,
+        "negative": 128,
+        "mean_net_R": -0.535986288714826,
+        "ambiguous_stop_first": 70,
+        "exit_reasons": {
+          "take_profit": 31,
+          "stop_loss": 128
+        },
+        "unambiguous_subset": {
+          "probes": 89,
+          "positive": 31,
+          "negative": 58,
+          "mean_net_R": -0.14722678572487255,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "by_location_momentum": {
+        "mid_range/weak": {
+          "probes": 46,
+          "positive": 12,
+          "negative": 34,
+          "mean_net_R": -0.3547186618651265,
+          "ambiguous_stop_first": 21,
+          "exit_reasons": {
+            "take_profit": 12,
+            "stop_loss": 34
+          },
+          "unambiguous_subset": {
+            "probes": 25,
+            "positive": 12,
+            "negative": 13,
+            "mean_net_R": 0.21262780709588355,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "mid_range/mixed": {
+          "probes": 76,
+          "positive": 12,
+          "negative": 64,
+          "mean_net_R": -0.6345442338532635,
+          "ambiguous_stop_first": 33,
+          "exit_reasons": {
+            "stop_loss": 64,
+            "take_profit": 12
+          },
+          "unambiguous_subset": {
+            "probes": 43,
+            "positive": 12,
+            "negative": 31,
+            "mean_net_R": -0.3312369269720427,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "breakout/strong": {
+          "probes": 15,
+          "positive": 2,
+          "negative": 13,
+          "mean_net_R": -0.6969829272208422,
+          "ambiguous_stop_first": 8,
+          "exit_reasons": {
+            "take_profit": 2,
+            "stop_loss": 13
+          },
+          "unambiguous_subset": {
+            "probes": 7,
+            "positive": 2,
+            "negative": 5,
+            "mean_net_R": -0.3161946905917503,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "mid_range/strong": {
+          "probes": 9,
+          "positive": 0,
+          "negative": 9,
+          "mean_net_R": -1.0295652173915102,
+          "ambiguous_stop_first": 3,
+          "exit_reasons": {
+            "stop_loss": 9
+          },
+          "unambiguous_subset": {
+            "probes": 6,
+            "positive": 0,
+            "negative": 6,
+            "mean_net_R": -1.0293478260871654,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "pullback/mixed": {
+          "probes": 10,
+          "positive": 2,
+          "negative": 8,
+          "mean_net_R": -0.5301981759974074,
+          "ambiguous_stop_first": 4,
+          "exit_reasons": {
+            "stop_loss": 8,
+            "take_profit": 2
+          },
+          "unambiguous_subset": {
+            "probes": 6,
+            "positive": 2,
+            "negative": 4,
+            "mean_net_R": -0.19699695999554553,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "pullback/weak": {
+          "probes": 7,
+          "positive": 3,
+          "negative": 4,
+          "mean_net_R": 0.04100390857721292,
+          "ambiguous_stop_first": 1,
+          "exit_reasons": {
+            "stop_loss": 4,
+            "take_profit": 3
+          },
+          "unambiguous_subset": {
+            "probes": 6,
+            "positive": 3,
+            "negative": 3,
+            "mean_net_R": 0.21950456000678176,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "pullback/strong": {
+          "probes": 5,
+          "positive": 1,
+          "negative": 4,
+          "mean_net_R": -0.5323158230562022,
+          "ambiguous_stop_first": 2,
+          "exit_reasons": {
+            "stop_loss": 4,
+            "take_profit": 1
+          },
+          "unambiguous_subset": {
+            "probes": 3,
+            "positive": 1,
+            "negative": 2,
+            "mean_net_R": -0.19699695999554553,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "consolidation/strong": {
+          "probes": 1,
+          "positive": 0,
+          "negative": 1,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 1,
+          "exit_reasons": {
+            "stop_loss": 1
+          },
+          "unambiguous_subset": {
+            "probes": 0,
+            "positive": 0,
+            "negative": 0,
+            "mean_net_R": null,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "consolidation/mixed": {
+          "probes": 1,
+          "positive": 0,
+          "negative": 1,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 1,
+          "exit_reasons": {
+            "stop_loss": 1
+          },
+          "unambiguous_subset": {
+            "probes": 0,
+            "positive": 0,
+            "negative": 0,
+            "mean_net_R": null,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        }
+      }
+    },
+    "top_down_m15_and_h1_or_h4_m5_v2": {
+      "first_record_utc": "2026-11-19T11:37:01.704347+00:00",
+      "last_record_utc": "2026-11-24T14:05:46.026037+00:00",
+      "directional_rejection_publications": 1859,
+      "primary_blockers": {
+        "timing_discipline": 229,
+        "higher_timeframe": 124,
+        "volatility": 1499,
+        "session": 1,
+        "confidence": 6
+      },
+      "timing_missing_checks": {
+        "tradable_location": 196,
+        "strong_or_turning_m1_momentum": 202,
+        "visual_tradable_location": 103,
+        "visual_confirmation": 91,
+        "fresh_entry_or_retest": 20,
+        "new_york_extra_momentum_confirmation": 100
+      },
+      "timing_location_momentum": {
+        "consolidation/mixed": 7,
+        "mid_range/strong": 7,
+        "breakout/strong": 20,
+        "mid_range/mixed": 113,
+        "mid_range/weak": 61,
+        "consolidation/weak": 8,
+        "pullback/weak": 10,
+        "pullback/mixed": 3
+      },
+      "timing_with_htf_gate_passed": 229,
+      "deduplicated_M5_timing_probes": 74,
+      "probe_statuses": {
+        "modeled": 74
+      },
+      "all_overlapping_probes": {
+        "probes": 74,
+        "positive": 14,
+        "negative": 60,
+        "mean_net_R": -0.5565545385971395,
+        "ambiguous_stop_first": 36,
+        "exit_reasons": {
+          "stop_loss": 60,
+          "take_profit": 14
+        },
+        "unambiguous_subset": {
+          "probes": 38,
+          "positive": 14,
+          "negative": 24,
+          "mean_net_R": -0.10808238731160755,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "greedy_nonoverlapping_probes": {
+        "probes": 67,
+        "positive": 14,
+        "negative": 53,
+        "mean_net_R": -0.5073060038708794,
+        "ambiguous_stop_first": 33,
+        "exit_reasons": {
+          "stop_loss": 53,
+          "take_profit": 14
+        },
+        "unambiguous_subset": {
+          "probes": 34,
+          "positive": 14,
+          "negative": 20,
+          "mean_net_R": 0.00014832927068521867,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "by_location_momentum": {
+        "consolidation/mixed": {
+          "probes": 2,
+          "positive": 0,
+          "negative": 2,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 2,
+          "exit_reasons": {
+            "stop_loss": 2
+          },
+          "unambiguous_subset": {
+            "probes": 0,
+            "positive": 0,
+            "negative": 0,
+            "mean_net_R": null,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "mid_range/strong": {
+          "probes": 2,
+          "positive": 0,
+          "negative": 2,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 1,
+          "exit_reasons": {
+            "stop_loss": 2
+          },
+          "unambiguous_subset": {
+            "probes": 1,
+            "positive": 0,
+            "negative": 1,
+            "mean_net_R": -1.0300000000002,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "breakout/strong": {
+          "probes": 6,
+          "positive": 2,
+          "negative": 4,
+          "mean_net_R": -0.19699695999554553,
+          "ambiguous_stop_first": 3,
+          "exit_reasons": {
+            "stop_loss": 4,
+            "take_profit": 2
+          },
+          "unambiguous_subset": {
+            "probes": 3,
+            "positive": 2,
+            "negative": 1,
+            "mean_net_R": 0.6360060800091091,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "mid_range/mixed": {
+          "probes": 35,
+          "positive": 6,
+          "negative": 29,
+          "mean_net_R": -0.600408642633761,
+          "ambiguous_stop_first": 15,
+          "exit_reasons": {
+            "stop_loss": 29,
+            "take_profit": 6
+          },
+          "unambiguous_subset": {
+            "probes": 20,
+            "positive": 6,
+            "negative": 14,
+            "mean_net_R": -0.2783514882453003,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "mid_range/weak": {
+          "probes": 21,
+          "positive": 5,
+          "negative": 16,
+          "mean_net_R": -0.4346264125447097,
+          "ambiguous_stop_first": 10,
+          "exit_reasons": {
+            "stop_loss": 16,
+            "take_profit": 5
+          },
+          "unambiguous_subset": {
+            "probes": 11,
+            "positive": 5,
+            "negative": 6,
+            "mean_net_R": 0.10662469882040262,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "consolidation/weak": {
+          "probes": 3,
+          "positive": 0,
+          "negative": 3,
+          "mean_net_R": -1.0290909090910756,
+          "ambiguous_stop_first": 3,
+          "exit_reasons": {
+            "stop_loss": 3
+          },
+          "unambiguous_subset": {
+            "probes": 0,
+            "positive": 0,
+            "negative": 0,
+            "mean_net_R": null,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "pullback/weak": {
+          "probes": 4,
+          "positive": 1,
+          "negative": 3,
+          "mean_net_R": -0.40608105333007327,
+          "ambiguous_stop_first": 2,
+          "exit_reasons": {
+            "take_profit": 1,
+            "stop_loss": 3
+          },
+          "unambiguous_subset": {
+            "probes": 2,
+            "positive": 1,
+            "negative": 1,
+            "mean_net_R": 0.21950456000678176,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        },
+        "pullback/mixed": {
+          "probes": 1,
+          "positive": 0,
+          "negative": 1,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 0,
+          "exit_reasons": {
+            "stop_loss": 1
+          },
+          "unambiguous_subset": {
+            "probes": 1,
+            "positive": 0,
+            "negative": 1,
+            "mean_net_R": -1.0300000000002,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        }
+      }
+    },
+    "top_down_h1_direction_m5_entry_v3": {
+      "first_record_utc": "2026-11-24T14:08:31.950698+00:00",
+      "last_record_utc": "2026-11-24T14:16:11.943658+00:00",
+      "directional_rejection_publications": 6,
+      "primary_blockers": {
+        "timing_discipline": 6
+      },
+      "timing_missing_checks": {
+        "tradable_location": 6,
+        "strong_or_turning_m1_momentum": 6,
+        "new_york_extra_momentum_confirmation": 6
+      },
+      "timing_location_momentum": {
+        "mid_range/weak": 5,
+        "mid_range/mixed": 1
+      },
+      "timing_with_htf_gate_passed": 6,
+      "deduplicated_M5_timing_probes": 3,
+      "probe_statuses": {
+        "modeled": 1,
+        "entry_bar_not_yet_closed_or_missing": 2
+      },
+      "all_overlapping_probes": {
+        "probes": 1,
+        "positive": 0,
+        "negative": 1,
+        "mean_net_R": -1.0300000000002,
+        "ambiguous_stop_first": 1,
+        "exit_reasons": {
+          "stop_loss": 1
+        },
+        "unambiguous_subset": {
+          "probes": 0,
+          "positive": 0,
+          "negative": 0,
+          "mean_net_R": null,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "greedy_nonoverlapping_probes": {
+        "probes": 1,
+        "positive": 0,
+        "negative": 1,
+        "mean_net_R": -1.0300000000002,
+        "ambiguous_stop_first": 1,
+        "exit_reasons": {
+          "stop_loss": 1
+        },
+        "unambiguous_subset": {
+          "probes": 0,
+          "positive": 0,
+          "negative": 0,
+          "mean_net_R": null,
+          "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+        }
+      },
+      "by_location_momentum": {
+        "mid_range/weak": {
+          "probes": 1,
+          "positive": 0,
+          "negative": 1,
+          "mean_net_R": -1.0300000000002,
+          "ambiguous_stop_first": 1,
+          "exit_reasons": {
+            "stop_loss": 1
+          },
+          "unambiguous_subset": {
+            "probes": 0,
+            "positive": 0,
+            "negative": 0,
+            "mean_net_R": null,
+            "caution": "Removing ambiguous cases changes the sample; not an unbiased performance estimate."
+          }
+        }
+      }
+    }
+  },
+  "data_first_utc": "2026-11-13 08:40:00",
+  "last_closed_M5_open_utc": "2026-11-24 14:10:00",
+  "protocol_sha256": "5e2cb4df83d7727087cffb91c157a421afbdd349522c02192c5071471142cb10",
+  "candles_sha256": "e1857b7d8b8151b4cc155f9da720f19840ccb4bc0d93919f7da574af17d8dfad",
+  "recorded_rejections_sha256": "e4e4c1cf96a09e646e76b9c77a188427e4f5ab77345a728aaccb51b5aa29c8a5",
+  "limitations": [
+    "Journal publications are not a complete atomic audit of every gate. No-direction scans excluded.",
+    "Current H1 policy is new: older-policy cohorts are separate and cannot establish its performance.",
+    "Probes begin after rejection at a later M5 opening quote. They do not reconstruct same-instant intrabar fills.",
+    "Positive hypothetical outcomes are not broker-executable missed trades; other session, risk, confidence and execution gates are not proven to pass.",
+    "Fixed-minimum-lot probes ignore portfolio sizing, session close limits and simultaneous accepted trades; net R is descriptive only.",
+    "All overlapping probes are correlated. Greedy nonoverlap is a sensitivity, not an independent sample or strategy.",
+    "Stop-first ambiguous candles cannot adjudicate actual missed winners; the unambiguous subset is selection-biased.",
+    "Fresh incomplete outcomes are pending; they are not counted as losses or zero returns.",
+    "Do not lower filters from this observational audit. No strategy, risk, execution or learning state changed."
+  ],
+  "orders_sent": 0,
+  "live_policy_changed": false,
+  "broker_eligible": false,
+  "window_start_utc": "2026-11-17T14:17:20.905583+00:00",
+  "capture_cutoff_utc": "2026-11-24T14:17:20.905583+00:00",
+  "source_rule_findings": [
+    {
+      "file": "atlas_ai/trader.py",
+      "function": "_derive_runtime_chart_features",
+      "finding": "Strong momentum requires at least six of eight close changes in one direction plus latest candle body/range >= 0.55; weak is body/range < 0.30; otherwise mixed. The local classifier does not emit turning, although the timing gate accepts that label from context."
+    },
+    {
+      "file": "atlas_ai/trader.py",
+      "function": "_derive_runtime_chart_features",
+      "finding": "Location is a rolling 20-bar price-range heuristic, not explicit order-block/FVG/retest geometry. In a downtrend, close position >= 0.58 is pullback; in an uptrend <= 0.42 is pullback. Breakout and mid-range have separate branches. This audit does not establish how many structural setups it mislabels."
+    },
+    {
+      "file": "atlas_ai/trader.py",
+      "function": "_timing_discipline_snapshot",
+      "finding": "New York extra momentum confirmation fails on the same not-momentum-confirmed condition as the general momentum check. These are overlapping reasons, not independent failed signals or proof of newly learned session performance."
+    },
+    {
+      "file": "atlas_ai/trader.py",
+      "function": "step / _attach_candidate_evidence_review",
+      "finding": "Top-down signal df is filtered through closed_bars(M5). Indicator provenance still refers to market_data_clock latest raw bar and can report forming; this metadata alone does not prove the main signal used a forming candle. Exact feature-input provenance needs separate inspection."
+    },
+    {
+      "file": "atlas_ai/trader.py",
+      "function": "_timing_discipline_snapshot",
+      "finding": "Legacy missing-check IDs containing m1 remain in records, but observed.entry_timeframe is M5 and active signal timeframe is M5. Do not count these labels as evidence of M1 entries."
+    }
+  ],
+  "conclusions": [
+    "Six directional rejection publications under new H1/M5 policy: all passed recorded H1 gate, all mid-range/weak M5 timing failures; three deduplicated M5 intervals.",
+    "Only one new-policy forward proxy resolved; its stop-first result is ambiguous because the candle touched both barriers. Two are not yet observable. No new-policy filter-quality conclusion is possible.",
+    "Previous v2 policy: 229 timing rejection publications reduce to 74 probes, 14 positive and 60 negative under stop-first. 36 ambiguous candles prevent exact missed-winner attribution. Nonoverlap sensitivity: 67 probes, 14 positive, 53 negative; 33 ambiguous.",
+    "Older-policy results do not establish performance of the new policy. No evidence here justifies blanket loosening; structural-location and momentum quality remain hypotheses for the next bounded experiment.",
+    "Audit covers recorded directional rejected candidates only. It does not establish a causal benefit of the timing gate or quantify broker-executable missed opportunities."
+  ],
+  "tests": {
+    "passed": 4,
+    "command": "pytest tests/test_m5_timing_rejection_audit.py -q --tb=short"
+  },
+  "evidence_report_sha256": "a8cc0aa1e8a55aeb26a874f889ee193fc274678875dc646a176f16cbeb8445b0"
+}
