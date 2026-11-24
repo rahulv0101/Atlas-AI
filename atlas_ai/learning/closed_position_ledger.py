@@ -6,7 +6,8 @@ come from completed positions, never reward ticks, backtests or initial priors.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 import hashlib
 import json
 import math
@@ -78,7 +79,7 @@ def rebuild_positions(fills, open_ids, invalid_ids=()):
         groups[row["position_id"]].append(row)
     positions = {}
     for position_id, rows in groups.items():
-        rows = sorted(rows, key=lambda row: (row["time_utc"], row["ticket"]))
+        rows = sorted(rows, key=lambda row: (row["time_utc"], int(row["ticket"])))
         entries = [row for row in rows if row["entry_type"] == mt5.DEAL_ENTRY_IN]
         exits = [row for row in rows if row["entry_type"] in {mt5.DEAL_ENTRY_OUT, mt5.DEAL_ENTRY_OUT_BY}]
         state = "incomplete"
@@ -110,12 +111,16 @@ def rebuild_positions(fills, open_ids, invalid_ids=()):
         manual = any(row["manual_test"] for row in rows)
         linked = bool(entries) and all(row["attribution"] == "decision_linked" for row in entries)
         strict = state == "closed" and not manual and strategy != "unknown" and linked
-        net = sum(row["profit"] + row["commission"] + row["swap"] + row["fee"] for row in rows)
+        # Broker money fields are decimal amounts. Floating-point residue must
+        # not turn a net-zero position into a win that clears a loss streak.
+        net = float(sum((Decimal(str(row[key])) for row in rows
+                         for key in ('profit','commission','swap','fee')),Decimal(0)))
         positions[position_id] = {
             "position_id": position_id, "state": state, "strategy": strategy,
             "fill_tickets": [row["ticket"] for row in rows], "fill_count": len(rows),
             "opened_at": entries[0]["time_utc"] if entries else None,
             "closed_at": exits[-1]["time_utc"] if state == "closed" else None,
+            "closed_fill_ticket": exits[-1]["ticket"] if state == "closed" else None,
             "net_profit": net, "outcome": ("win" if net > 0 else "loss" if net < 0 else "draw") if state == "closed" else None,
             "manual_test": manual, "decision_linked": linked,
             "strict_strategy_evidence": strict,
@@ -202,7 +207,8 @@ class ClosedPositionLedger:
                     candidate = {
                         "ticket": int(ticket), "order_id": str(deal.order), "position_id": str(deal.position_id),
                         "source": "mt5_history_deals", "symbol": deal.symbol,
-                        "time_utc": broker_time_to_utc(deal.time, self.settings).isoformat(),
+                        "time_utc": (broker_time_to_utc(deal.time, self.settings)
+                            + timedelta(milliseconds=int(getattr(deal,'time_msc',0))%1000)).isoformat(),
                         "entry_type": int(deal.entry), "deal_type": int(deal.type), "volume": volume, "price": price,
                         "profit": _number(deal.profit), "commission": _number(deal.commission),
                         "swap": _number(deal.swap), "fee": _number(getattr(deal, "fee", 0)),
@@ -230,3 +236,17 @@ class ClosedPositionLedger:
     def snapshot(self):
         with self._storage._locked():
             return summarize(self._load())
+
+    def risk_outcome_counter(self, now):
+        """Risk accounting needs ownership/complete fills, not strategy qualification."""
+        from atlas_ai.risk.outcome_counter import daily_loss_streak
+        with self._storage._locked():
+            document=self._load()
+            if document.get('quarantine'):
+                raise ValueError('quarantined_broker_outcome_requires_review')
+            for row in document['positions'].values():
+                if row['manual_test'] or row['state'] in {'closed','broker_reports_open'}:continue
+                # Flat at the broker but missing either leg is unknown, even
+                # when the missing exit occurred during a history outage.
+                raise ValueError('incomplete_closed_position_outcome')
+            return daily_loss_streak(document['positions'].values(),now)

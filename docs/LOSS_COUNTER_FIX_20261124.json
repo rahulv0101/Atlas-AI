@@ -1,0 +1,88 @@
+{
+  "schema": "atlas_closed_outcome_counter_fix_v1",
+  "checked_at": "2026-11-24T00:34:21.596321+00:00",
+  "problem": "Successful order acknowledgement reset live consecutive losses; replay counted closed losing trades.",
+  "changes": [
+    "Recompute the UTC-day streak from balanced, broker-flat Atlas-owned positions, including all profit, fees, commission and swap.",
+    "Count one completed position regardless of partial entries/exits or repeated history reads. Exclude manual diagnostics and foreign positions.",
+    "Successful entries increment only the entry count; preserve the loss streak and existing cooldown.",
+    "Net wins reset the streak, net losses increment it, and net-zero closes preserve it. Decimal monetary sums prevent round-off from falsely clearing the streak.",
+    "Synchronize runtime, trader, session and pilot counts; caller zero cannot erase verified gateway evidence.",
+    "Preserve last known count and hold new entries if broker outcome accounting is unavailable; retain the last successful history cursor for recovery.",
+    "Rebuild missing durable evidence with a bounded 14-day deal query instead of trusting an incremental cursor.",
+    "Restore gateway counters after restart and make replay draw classification match closed-position accounting."
+  ],
+  "risk_thresholds_changed": false,
+  "strategies_changed": false,
+  "m5_learning_policy_changed": false,
+  "utc_day_verification": {
+    "2026-11-23": {
+      "verified": true,
+      "day_utc": "2026-11-23",
+      "consecutive_losses": 2,
+      "closed_positions_today": 2,
+      "source": "balanced_broker_flat_Atlas_owned_positions",
+      "draw_resets_streak": false
+    },
+    "2026-11-24": {
+      "verified": true,
+      "day_utc": "2026-11-24",
+      "consecutive_losses": 0,
+      "closed_positions_today": 0,
+      "source": "balanced_broker_flat_Atlas_owned_positions",
+      "draw_resets_streak": false
+    }
+  },
+  "live_verification": {
+    "status_at": "2026-11-24T00:33:22.967734+00:00",
+    "counter_values": {
+      "trader_risk": 0,
+      "runtime": 0,
+      "session": 0,
+      "pilot": 0
+    },
+    "accounting_verified": true,
+    "backend_relaunch": {
+      "checked_at": "2026-11-24T00:31:37.963091+00:00",
+      "overall_result": "SUCCESS",
+      "overall_reason": "backend_only_ready"
+    },
+    "matching_demo_flat_verified_before_restart": true,
+    "orders_sent_by_diagnostic": 0
+  },
+  "regression_checks": {
+    "targeted_run": {
+      "passed": 151,
+      "failed": 0
+    },
+    "final_counter_and_recovery_run": {
+      "passed": 33,
+      "failed": 0
+    },
+    "note": "Runs overlap; do not add their counts.",
+    "baseline_session_failures": {
+      "count": 4,
+      "reproduced_with_original_HEAD_execution_and_session_modules": true,
+      "tests": [
+        "test_non_dry_execution_without_executor_does_not_report_success",
+        "test_execution_blocked_near_session_close",
+        "test_forced_flat_required_before_session_end",
+        "test_early_close_blocks_new_trades"
+      ],
+      "observation": "Existing clock-relative overnight test sessions report outside_active_session after midnight; not repaired in this counter change."
+    }
+  },
+  "reviewed_source_hashes": {
+    "atlas_ai/risk/outcome_counter.py": "5896f5f97147dbb4539208fe0f7c94a017ecd7b96f0d96292efde486fdecb7e2",
+    "atlas_ai/learning/closed_position_ledger.py": "a65f0664a572f861f9c85ffbea0e2a0f4c5810fa08b7f67761eadc16a3379bbf",
+    "atlas_ai/trader.py": "f0d6dab3135023f864757af060d3d8cf25e79bcb8602e53999f4d6c2be2a894a",
+    "atlas_ai/execution/execution_gate.py": "e5f7c22191c2db2c9cad1bb9c2fc1585b5a729b6b73c14d00d5a828cf735a31e",
+    "atlas_ai/execution/session_control.py": "33d899d8b453926d141e726d1cdf3923007f9e100fdf17e47d8d2f63255b7284",
+    "atlas_ai/testing/policy_replay.py": "05c5408a6a7c2405a347c51519fce7d72022eee59da4defd43a6447c5f431011"
+  },
+  "limitations": [
+    "Incomplete/quarantined broker position evidence pauses new entries for review; it is not silently treated as zero losses.",
+    "This fixes accounting and risk-limit enforcement; it does not establish profitability or repair the separate M5 learning/stop-sizing issues.",
+    "The four pre-existing overnight-session test failures remain a separate issue."
+  ]
+}

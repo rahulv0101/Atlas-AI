@@ -245,6 +245,12 @@ class AtlasTrader:
         except Exception:
             return False
 
+    @staticmethod
+    def _record_entry_guard_count(state, result):
+        counted=AtlasTrader._execution_result_counts_as_trade(result)
+        if counted:state['trades_today']=int(state.get('trades_today',0))+1
+        return counted
+
     def _guarded_demo_auto_approval_decision(
         self,
         *,
@@ -2200,6 +2206,7 @@ class AtlasTrader:
             "date": str(raw.get("date", today)),
             "trades_today": int(raw.get("trades_today", 0)),
             "consecutive_losses": int(raw.get("consecutive_losses", 0)),
+            "closed_outcome_accounting": dict(raw.get("closed_outcome_accounting", {}) or {}),
             "cooldown_until": str(raw.get("cooldown_until", "")),
             "start_balance": float(raw.get("start_balance", 0.0) or 0.0),
             "week_key": str(raw.get("week_key", week_key)),
@@ -2232,6 +2239,24 @@ class AtlasTrader:
         flags = dict(flags) if isinstance(flags, dict) else self.store.load_runtime_flags()
         flags["risk_guard_state"] = state
         self.store.update_runtime_flags(lambda current: {**current, "risk_guard_state": state})
+
+    def _sync_guard_outcome_counter(self, flags, *, counter=None, error=None):
+        state=self._load_guard_state(flags)
+        if error is None:
+            state['consecutive_losses']=int(counter['consecutive_losses'])
+            accounting=dict(counter)
+        else:
+            accounting={'verified':False,'day_utc':datetime.now(timezone.utc).date().isoformat(),
+                        'reason':type(error).__name__,'source':'closed_position_ledger'}
+        state['closed_outcome_accounting']=accounting
+        # Pass the same authoritative value to the trader, gateway and UI.
+        flags.update(risk_guard_state=state,consecutive_losses=state['consecutive_losses'],
+                     closed_outcome_accounting_verified=accounting['verified'])
+        self._last_runtime_flags={**dict(getattr(self,'_last_runtime_flags',{}) or {}),**flags}
+        self.store.update_runtime_flags(lambda current:{**current,**{
+            key:flags[key] for key in ('risk_guard_state','consecutive_losses','closed_outcome_accounting_verified')}})
+        gate=getattr(self,'execution_gate',None)
+        if gate is not None:gate.sync_closed_outcome_counter(accounting)
 
     def _load_loss_memory(self) -> dict[str, Any]:
         raw = self.store.load_learning_state().get("state", {})
@@ -2390,6 +2415,11 @@ class AtlasTrader:
                 self._closed_learning_synced_until = None
         if self._closed_learning_synced_until is not None:
             start = max(start, self._closed_learning_synced_until - timedelta(minutes=5))
+        ledger=getattr(self,'closed_position_ledger',None)
+        if ledger is not None and not ledger.path.exists():
+            # Rebuild missing durable risk evidence instead of trusting an
+            # incremental learning cursor that may point past today's entries.
+            start=end-timedelta(days=14)
         broker_deals = mt5.history_deals_get(utc_query_time(start, self.settings), utc_query_time(end, self.settings))
         if getattr(self, "closed_position_ledger", None) is not None:
             try:
@@ -2401,9 +2431,14 @@ class AtlasTrader:
                     window_start=start.isoformat(), window_end=end.isoformat(),
                 )
                 self._closed_position_evidence["available"] = True
+                self._sync_guard_outcome_counter(flags,counter=self.closed_position_ledger.risk_outcome_counter(datetime.now(timezone.utc)))
             except Exception as exc:
                 self._closed_position_evidence = {"mode": "shadow_only", "available": False, "reason": type(exc).__name__, "live_policy_changed": False}
                 logger.warning("Closed-position evidence unavailable: %s", type(exc).__name__)
+                self._sync_guard_outcome_counter(flags,error=exc)
+                # Do not advance the history cursor past an unavailable or
+                # incomplete broker snapshot; recovery must see missed exits.
+                return memory
         deals = broker_deals or []
         decision_strategy_map, decision_id_aliases, decision_meta_by_execution_ref = self._decision_sample_maps(limit=5000)
         owned_positions: set[str] = set()
@@ -3553,6 +3588,8 @@ class AtlasTrader:
         return sum(1 for s in signals if str(getattr(s, "side", "")) == target and float(getattr(s, "confidence", 0.0) or 0.0) > 0.0)
 
     def _guard_block_reason(self, state: dict[str, Any]) -> str:
+        if dict(state.get('closed_outcome_accounting',{}) or {}).get('verified') is False:
+            return 'Closed-trade outcome accounting unavailable; new entries paused'
         if bool(state.get("safety_lock_active", False)):
             reason = str(state.get("safety_lock_reason", "") or "safety_lock_active")
             return f"Safety lock active: {reason}"
@@ -4994,6 +5031,8 @@ class AtlasTrader:
             names = [row["strategy"] for row in (generation or {}).get("candidates", []) if row.get("strategy")]
             status["strategy_evidence"] = self._strategy_evidence_comparison(names)
         runtime_flags = dict(self._last_runtime_flags or {})
+        if dict(runtime_flags.get('risk_guard_state',{}) or {}).get('closed_outcome_accounting'):
+            status['closed_outcome_accounting']=dict(runtime_flags['risk_guard_state']['closed_outcome_accounting'])
         rollout = dict(runtime_flags.get("paper_rollout", {}) or {})
         if rollout and not status.get("lane"):
             status["lane"] = str(rollout.get("lane", "") or "default")
@@ -6438,13 +6477,10 @@ class AtlasTrader:
         else:
             self.voice.speak(f"Trade execution failed. Reason: {result.comment}.")
 
-        counts_as_trade = self._execution_result_counts_as_trade(result)
-        if counts_as_trade:
-            guard_state["trades_today"] = int(guard_state.get("trades_today", 0)) + 1
-            # Outcome PnL is unknown at send time; use broker retcode as a stability proxy.
-            guard_state["consecutive_losses"] = 0
-            guard_state["cooldown_until"] = ""
-        else:
+        counts_as_trade = self._record_entry_guard_count(guard_state,result)
+        # An entry is not a winning closed position; preserve the verified
+        # streak and cooldown regardless of successful order acknowledgement.
+        if not counts_as_trade:
             # Preflight/gate/broker rejects are not filled trades. They must not advance
             # trade/loss counters or trigger loss-streak cooldowns.
             self.store.log_event(

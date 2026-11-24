@@ -275,7 +275,7 @@ class DayTradingSessionControl:
         # Runtime overrides (authoritative when available).
         daily_loss = float(runtime_flags.get("daily_loss_pct", 0.0) or 0.0)
         trades_today = int(runtime_flags.get("day_trade_count", self.daily_trade_count) or self.daily_trade_count)
-        consecutive_losses = int(runtime_flags.get("consecutive_losses", self.consecutive_losses) or self.consecutive_losses)
+        consecutive_losses = int(runtime_flags['consecutive_losses']) if runtime_flags.get('consecutive_losses') is not None else self.consecutive_losses
         open_positions = int(runtime_flags.get("open_positions", 0) or 0)
 
         if self.cooldown_minutes_after_loss_cluster > 0 and self.session_pause and self.last_pause_at > 0:
@@ -346,7 +346,7 @@ class DayTradingSessionControl:
             "session_source": self.session_source,
             "daily_trade_count": int(flags.get("day_trade_count", self.daily_trade_count) or self.daily_trade_count),
             "daily_trade_limit": self.max_trades_per_day,
-            "consecutive_losses": int(flags.get("consecutive_losses", self.consecutive_losses) or self.consecutive_losses),
+            "consecutive_losses": int(flags['consecutive_losses']) if flags.get('consecutive_losses') is not None else self.consecutive_losses,
             "consecutive_loss_limit": self.max_consecutive_losses,
             "daily_stop_triggered": self.daily_stop_triggered,
             "session_pause": self.session_pause,

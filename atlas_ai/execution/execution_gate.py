@@ -176,6 +176,7 @@ class ExecutionGate:
         self._tiny_live_pilot_attempts_today = 0
         self._tiny_live_pilot_trade_count = 0
         self._tiny_live_pilot_consecutive_losses = 0
+        self._closed_outcome_counter = {}
         self._tiny_live_pilot_daily_loss_used = 0.0
         self._tiny_live_pilot_last_block_reason = ""
         self._tiny_live_pilot_last_attempt: dict[str, Any] | None = None
@@ -328,6 +329,7 @@ class ExecutionGate:
             "tiny_live_pilot_attempts_today": self._tiny_live_pilot_attempts_today,
             "tiny_live_pilot_trade_count": self._tiny_live_pilot_trade_count,
             "tiny_live_pilot_consecutive_losses": self._tiny_live_pilot_consecutive_losses,
+            "closed_outcome_counter": dict(self._closed_outcome_counter),
             "tiny_live_pilot_daily_loss_used": self._tiny_live_pilot_daily_loss_used,
             "tiny_live_pilot_last_block_reason": self._tiny_live_pilot_last_block_reason,
             "tiny_live_pilot_last_attempt": dict(self._tiny_live_pilot_last_attempt or {}),
@@ -603,6 +605,10 @@ class ExecutionGate:
         self._tiny_live_pilot_trade_count = int(payload.get("tiny_live_pilot_trade_count", 0) or 0)
         self._tiny_live_pilot_attempts_today = int(payload.get("tiny_live_pilot_attempts_today", 0) or 0)
         self._tiny_live_pilot_consecutive_losses = int(payload.get("tiny_live_pilot_consecutive_losses", 0) or 0)
+        self._closed_outcome_counter = dict(payload.get('closed_outcome_counter',{}) or {})
+        if (self._closed_outcome_counter.get('verified') is True and
+                self._closed_outcome_counter.get('day_utc')==datetime.now(timezone.utc).date().isoformat()):
+            self._session_control.consecutive_losses=int(self._closed_outcome_counter['consecutive_losses'])
         self._tiny_live_pilot_daily_loss_used = float(payload.get("tiny_live_pilot_daily_loss_used", 0.0) or 0.0)
         self._tiny_live_pilot_last_block_reason = str(payload.get("tiny_live_pilot_last_block_reason", "") or "")
         self._tiny_live_pilot_last_attempt = dict(payload.get("tiny_live_pilot_last_attempt", {}) or {})
@@ -2226,6 +2232,20 @@ class ExecutionGate:
             ),
         }
 
+    def sync_closed_outcome_counter(self, counter) -> None:
+        counter=dict(counter)
+        previous_counts=(self._session_control.consecutive_losses,self._tiny_live_pilot_consecutive_losses)
+        if counter.get('verified') is True:
+            if counter.get('day_utc')!=datetime.now(timezone.utc).date().isoformat():raise ValueError('stale_closed_outcome_counter')
+            losses=int(counter['consecutive_losses'])
+            if losses<0:raise ValueError('invalid_closed_loss_streak')
+            self._session_control.maybe_reset_new_day()
+            self._session_control.consecutive_losses=losses
+            self._tiny_live_pilot_consecutive_losses=losses
+        if counter!=self._closed_outcome_counter or previous_counts!=(self._session_control.consecutive_losses,self._tiny_live_pilot_consecutive_losses):
+            self._closed_outcome_counter=counter
+            self._persist_state(event='closed_outcome_counter_sync')
+
     def _reset_daily_pilot_counters(self) -> None:
         self._tiny_live_pilot_attempts_today = 0
         self._tiny_live_pilot_trade_count = 0
@@ -2257,6 +2277,13 @@ class ExecutionGate:
     def _preflight_gate(self, req: dict[str, Any], *, runtime_flags: dict[str, Any] | None, risk_policy: dict[str, Any] | None) -> dict[str, Any]:
         self._current_gate_request_id = str(req.get("id", "") or "")
         flags = dict(runtime_flags or {})
+        counter=dict(getattr(self,'_closed_outcome_counter',{}) or {})
+        if self._is_live_like_environment(str(req.get('environment','paper'))):
+            if flags.get('closed_outcome_accounting_verified') is False or (counter and
+                    (counter.get('verified') is not True or counter.get('day_utc')!=datetime.now(timezone.utc).date().isoformat())):
+                return self._gate_block('closed_outcome_accounting_unavailable',gate='closed_outcome_accounting')
+            if counter:
+                flags['consecutive_losses']=int(counter['consecutive_losses'])
         strict_runtime = bool(req.get("auto_generated", False) or req.get("strict_runtime_checks", False))
         runtime_check = self._validate_required_runtime_flags(flags, auto_execution=strict_runtime)
         if not runtime_check["ok"]:
@@ -2438,7 +2465,7 @@ class ExecutionGate:
             self.pause_tiny_live_pilot("daily_loss_cap_reached")
             self._tiny_live_pilot_last_block_reason = "tiny_live_pilot_daily_loss_cap_hit"
             return {"ok": False, "reason": "tiny_live_pilot_daily_loss_cap_hit"}
-        con_losses = int(runtime_flags.get("consecutive_losses", self._tiny_live_pilot_consecutive_losses) or self._tiny_live_pilot_consecutive_losses)
+        con_losses = int(runtime_flags['consecutive_losses']) if runtime_flags.get('consecutive_losses') is not None else self._tiny_live_pilot_consecutive_losses
         if con_losses >= cfg.max_consecutive_losses:
             self.pause_tiny_live_pilot("max_consecutive_losses_reached")
             self._tiny_live_pilot_last_block_reason = "tiny_live_pilot_consecutive_loss_cap_hit"
@@ -3141,7 +3168,7 @@ class ExecutionGate:
         daily_loss = float(runtime_flags.get("daily_loss_pct", 0.0) or 0.0)
         if daily_loss >= float(cfg.daily_loss_cap):
             return "tiny_live_pilot_daily_loss_cap_hit"
-        con_losses = int(runtime_flags.get("consecutive_losses", self._tiny_live_pilot_consecutive_losses) or self._tiny_live_pilot_consecutive_losses)
+        con_losses = int(runtime_flags['consecutive_losses']) if runtime_flags.get('consecutive_losses') is not None else self._tiny_live_pilot_consecutive_losses
         if con_losses >= int(cfg.max_consecutive_losses):
             return "tiny_live_pilot_consecutive_loss_cap_hit"
         if require_freshness:

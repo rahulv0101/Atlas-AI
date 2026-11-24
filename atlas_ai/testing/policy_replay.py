@@ -15,6 +15,7 @@ from atlas_ai.learning.online_allocator import OnlineAllocator
 from atlas_ai.models import TradeSignal
 from atlas_ai.risk.risk_manager import RiskManager,RiskSnapshot
 from atlas_ai.risk.volume import floor_volume
+from atlas_ai.risk.outcome_counter import outcome_label
 from atlas_ai.execution.session_control import DayTradingSessionControl
 from atlas_ai.strategies.inventory import base_inventory
 from atlas_ai.trader import AtlasTrader
@@ -187,7 +188,7 @@ def replay(frame,cache,settings,spec,variant,store,limits,*,strategy=None,strict
             last_index=last if held<settings.backtest_max_hold_bars else None)
         busy=trade["exit_bar"];balance+=trade["net_cash"];equity.append(balance)
         trader.allocator.update(chosen.strategy,trade["net_cash"])
-        calendar.record_execution(executed=True,dry_run=False,outcome="win" if trade["net_cash"]>0 else "loss")
+        calendar.record_execution(executed=True,dry_run=False,outcome=outcome_label(trade["net_cash"]))
         trades.append({**trade,"strategy":chosen.strategy,"side":chosen.side,"confidence":chosen.confidence,
             "entry_at":at.isoformat(),"exit_at":pd.Timestamp(frame.time.iloc[busy]).tz_localize("UTC").isoformat()
                 if pd.Timestamp(frame.time.iloc[busy]).tzinfo is None else pd.Timestamp(frame.time.iloc[busy]).tz_convert("UTC").isoformat(),
