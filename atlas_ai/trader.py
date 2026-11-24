@@ -5706,7 +5706,7 @@ class AtlasTrader:
             status["higher_timeframe"]["entry_gate"] = confluence
             if not confluence["passed"]:
                 status["action"] = "blocked"
-                status["message"] = "Higher-timeframe confluence required: M5 " + chosen.side + "; need M15 plus either H1 or H4; missing=" + ", ".join(confluence["nonconfirming_timeframes"])
+                status["message"] = "H1 direction required for M5 " + chosen.side + "; H1=" + str(higher_tf_context.get("details", {}).get("H1", "unknown")) + "; required evidence unavailable or not confirming"
                 self._log_status_event("risk",status)
                 self._publish_status(status)
                 return status

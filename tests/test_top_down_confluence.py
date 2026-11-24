@@ -50,14 +50,14 @@ def test_bounded_confluence_truth_table(side, d1, h1, h4, m15):
                details=details, evidence={tf: {'status': 'unavailable' if bias=='unknown' else 'available'}
                                          for tf, bias in details.items()})
     result = entry_gate(ctx, side)
-    assert result['passed'] == (m15 == side and side in (h1, h4))
+    assert result['passed'] == (h1 == side)
 
 
 def test_gate_rejects_invalid_context_and_unavailable_claimed_confirmation():
     ctx = collect(Feed(), NOW)
     for field, value in [('policy', 'old'), ('closed_candles_only', False), ('entry_timeframe', 'M1')]:
         assert not entry_gate({**ctx, field: value}, 'buy')['passed']
-    ctx['evidence']['M15']['status'] = 'unavailable'
+    ctx['evidence']['H1']['status'] = 'unavailable'
     assert not entry_gate(ctx, 'buy')['passed']
 
 
@@ -170,5 +170,16 @@ def test_live_confluence_changes_do_not_rewrite_frozen_smc_research_hypothesis()
     assert entry_gate(ctx,'buy')['passed']
     assert not research_gate(ctx,'buy')['passed']
     ctx=collect(Feed(opposite='H1'),NOW)
-    assert entry_gate(ctx,'buy')['passed']
+    assert not entry_gate(ctx,'buy')['passed']
     assert not research_gate(ctx,'buy')['passed']
+
+
+def test_h1_drives_bias_when_context_timeframes_disagree():
+    ctx = collect(Feed(opposite='H1'), NOW)
+    assert ctx['bias'] == 'sell' and ctx['confirm_tf'] == 'H1'
+    assert ctx['all_timeframes_bias'] == 'mixed'
+    assert entry_gate(ctx, 'sell')['passed']
+    for tf in ('D1', 'H4', 'M15'):
+        ctx['evidence'][tf]['status'] = 'unavailable'
+    assert entry_gate(ctx, 'sell')['passed']
+    assert not entry_gate(collect(Feed(broken='H1'), NOW), 'buy')['passed']

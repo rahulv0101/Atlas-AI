@@ -1,11 +1,11 @@
-"""Explicit closed-candle D1/H4/H1/M15 confluence for M5 entries."""
+"""Closed-candle H1 direction for M5 entries, with D1/H4/M15 context."""
 import math
 import pandas as pd
 from atlas_ai.data.timeframe_bias import bias_from_closes
 
 TIMEFRAMES = ("D1", "H4", "H1", "M15")
 MINUTES = {"D1":1440, "H4":240, "H1":60, "M15":15, "M5":5}
-POLICY = "top_down_m15_and_h1_or_h4_m5_v2"
+POLICY = "top_down_h1_direction_m5_entry_v3"
 
 
 def closed_bars(frame, timeframe, now, *, broker_timezone="UTC"):
@@ -64,10 +64,12 @@ def collect(feed, now, *, broker_timezone="UTC"):
             details[tf]="unknown"
             evidence[tf]={"bias":"unknown","status":"unavailable","reason":str(exc) if isinstance(exc,ValueError) else type(exc).__name__}
     sides=set(details.values())
-    bias=next(iter(sides)) if len(sides)==1 and sides <= {"buy","sell"} else "mixed"
-    return {"policy":POLICY,"enabled":True,"entry_timeframe":"M5","confirm_tf":"M15",
+    aggregate=next(iter(sides)) if len(sides)==1 and sides <= {"buy","sell"} else "mixed"
+    bias=details['H1']
+    return {"policy":POLICY,"enabled":True,"entry_timeframe":"M5","confirm_tf":"H1",
         "context_tfs":list(TIMEFRAMES),"details":details,"evidence":evidence,"bias":bias,
-        "aligned":bias in {"buy","sell"},"closed_candles_only":True,"evaluated_at":pd.Timestamp(now).isoformat()}
+        "direction_timeframe":"H1","all_timeframes_bias":aggregate,
+        "aligned":aggregate in {"buy","sell"},"closed_candles_only":True,"evaluated_at":pd.Timestamp(now).isoformat()}
 
 
 def entry_gate(context, side):
@@ -77,17 +79,13 @@ def entry_gate(context, side):
     evidence = context.get("evidence", {})
     def confirms(tf):
         return details.get(tf) == side and evidence.get(tf, {}).get("status") == "available"
-    supporters = [tf for tf in ("H1", "H4") if confirms(tf)]
-    missing = []
-    if not confirms("M15"):
-        missing.append("M15")
-    if not supporters:
-        missing.append("H1 or H4")
+    supporters = ['H1'] if confirms('H1') else []
+    missing = [] if supporters else ['H1']
     valid = (context.get("policy") == POLICY and context.get("entry_timeframe") == "M5"
              and context.get("closed_candles_only") is True)
     passed = valid and not missing
     return {"passed": passed, "policy": POLICY, "side": side,
             "nonconfirming_timeframes": missing, "supporting_timeframes": supporters,
-            "context_only_timeframes": ["D1"], "requirement": "M15 plus either H1 or H4",
-            "reason": ("m15_and_h1_or_h4_confirm" if passed else
+            "context_only_timeframes": ["D1", "H4", "M15"], "requirement": "H1 direction matches M5 entry",
+            "reason": ("h1_direction_confirms_m5" if passed else
                        "higher_timeframe_confluence_required" if valid else "invalid_confluence_context")}

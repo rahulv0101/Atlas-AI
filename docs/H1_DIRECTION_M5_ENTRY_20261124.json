@@ -1,0 +1,68 @@
+{
+  "change": "Explicit operator request: H1 direction and M5 entry; D1/H4/M15 context only.",
+  "policy": "top_down_h1_direction_m5_entry_v3",
+  "direction_basis": "10 vs 30 closed H1 close averages",
+  "required_data": "Fresh available directional H1 evidence matching M5 side; unknown/flat/stale/unavailable blocks.",
+  "live_verified": {
+    "updated_at": "2026-11-24T14:08:37.484029+00:00",
+    "action": "blocked",
+    "message": "Timing discipline blocked trade: Waiting for clean entry timing: tradable location, strong/turning M5 momentum, and New York momentum confirmation missing (location=mid_range, momentum=weak, session=new_york).",
+    "policy": "top_down_h1_direction_m5_entry_v3",
+    "bias": "sell",
+    "confirm_tf": "H1",
+    "entry_timeframe": "M5",
+    "details": {
+      "D1": "sell",
+      "H1": "sell",
+      "H4": "sell",
+      "M15": "buy"
+    },
+    "entry_gate": {
+      "context_only_timeframes": [
+        "D1",
+        "H4",
+        "M15"
+      ],
+      "nonconfirming_timeframes": [],
+      "passed": true,
+      "policy": "top_down_h1_direction_m5_entry_v3",
+      "reason": "h1_direction_confirms_m5",
+      "requirement": "H1 direction matches M5 entry",
+      "side": "sell",
+      "supporting_timeframes": [
+        "H1"
+      ]
+    },
+    "broker": {
+      "account_matches_configuration": true,
+      "checked_at": "2026-11-24T14:08:31.834729+00:00",
+      "connected": true,
+      "symbol_selected": true,
+      "terminal_connected": true
+    },
+    "smc_mode": "shadow_only"
+  },
+  "tests": {
+    "passed": 561,
+    "groups": [
+      "test_top_down_confluence",
+      "test_m5_ema_stop_only_study",
+      "test_replay_htf_parity",
+      "test_historical_policy",
+      "test_smc_composite"
+    ]
+  },
+  "restart_preflight": "Matching configured demo account, zero broker positions and pending orders. Backend gracefully restarted without forced termination.",
+  "risk_limits_changed": false,
+  "stop_geometry_changed": false,
+  "research_models_activated": false,
+  "enabled_strategies": [
+    "ema_crossover",
+    "pullback_trend",
+    "momentum_continuation",
+    "gold_micro_impulse",
+    "gold_breakout_retest",
+    "gold_liquidity_sweep"
+  ],
+  "limits": "The timeframe rule changed; earlier replay results used the prior policy and do not validate profitability under this new policy. Existing timing, session, volatility, risk and execution gates remain required."
+}

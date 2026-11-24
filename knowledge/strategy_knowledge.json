@@ -113,5 +113,19 @@
     "What changed in comparison outcomes",
     "What bounded next-safe experiment is appropriate",
     "Which confluence elements are missing before execution eligibility"
-  ]
+  ],
+  "live_timeframe_policy": {
+    "policy": "top_down_h1_direction_m5_entry_v3",
+    "direction_timeframe": "H1",
+    "entry_timeframe": "M5",
+    "direction_basis": "10 versus 30 closed H1 close averages",
+    "required_confirmation": "Fresh available H1 direction must match M5 candidate side. Flat, unknown, stale or unavailable H1 cannot confirm.",
+    "context_only_timeframes": [
+      "D1",
+      "H4",
+      "M15"
+    ],
+    "entry_timing_and_risk_gates_remain_required": true,
+    "authority": "Explanation of explicit operator-requested code policy; not an independent control input."
+  }
 }
