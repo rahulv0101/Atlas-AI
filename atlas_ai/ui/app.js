@@ -127,14 +127,14 @@ async function loadAIStrategyPreferences() { return fetchJson("/api/ai/strategy/
 async function loadAIPromotionRecommendations() { return fetchJson("/api/ai/promotion/recommendations"); }
 async function loadAIResearchQueue() { return fetchJson("/api/ai/research/queue"); }
 async function loadTeachingDigest() { return fetchJson("/api/teaching/digest"); }
-async function askAtlas(query, timeoutMs = ASK_ATLAS_TIMEOUT_MS) {
+async function askAtlas(query, timeoutMs = ASK_ATLAS_TIMEOUT_MS, requestOrigin = "operator") {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch("/api/ask-atlas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, request_origin: requestOrigin }),
       signal: controller.signal,
     });
     if (!res.ok) {
@@ -2013,11 +2013,11 @@ async function refreshOperatorPanels() {
   operatorRefreshInFlight = true;
   try {
     const panelLoaders = [
-      () => askAtlas(OPERATOR_QUERIES.recommendation),
-      () => askAtlas(OPERATOR_QUERIES.feedback),
-      () => askAtlas(OPERATOR_QUERIES.tuning),
-      () => askAtlas(OPERATOR_QUERIES.live_review),
-      () => askAtlas(OPERATOR_QUERIES.queue),
+      () => askAtlas(OPERATOR_QUERIES.recommendation, ASK_ATLAS_TIMEOUT_MS, "dashboard_poll"),
+      () => askAtlas(OPERATOR_QUERIES.feedback, ASK_ATLAS_TIMEOUT_MS, "dashboard_poll"),
+      () => askAtlas(OPERATOR_QUERIES.tuning, ASK_ATLAS_TIMEOUT_MS, "dashboard_poll"),
+      () => askAtlas(OPERATOR_QUERIES.live_review, ASK_ATLAS_TIMEOUT_MS, "dashboard_poll"),
+      () => askAtlas(OPERATOR_QUERIES.queue, ASK_ATLAS_TIMEOUT_MS, "dashboard_poll"),
       () => loadSelfImprovementProposals(),
       () => loadSelfImprovementRollouts(),
       () => loadSelfImprovementAudit(),

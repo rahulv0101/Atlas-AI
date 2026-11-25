@@ -1,0 +1,27 @@
+{
+  "date_local": "2026-11-26",
+  "scope": "Brain coordination and operator conversation continuity; no trading policy changes",
+  "finding": "Automatic dashboard Ask Atlas refreshes were persisted as operator dialogue and could displace follow-up context.",
+  "repair": {
+    "dashboard": "Five panel queries carry dashboard_poll origin; interactive requests carry operator origin.",
+    "service": "Whitelisted dashboard summaries use request-local, nonpersistent memory and cannot route other commands.",
+    "legacy_clients": "Untagged requests matching the five panel queries are treated as background refreshes. Explicit operator origin preserves genuine questions with identical wording.",
+    "legacy_memory": "Ambiguous old poll rows are excluded from usable conversation context without deleting them from disk. Previously displaced dialogue cannot be recovered from the capped conversation file.",
+    "concurrency": "ContextVar isolates informational evidence and conversation memory per request."
+  },
+  "validation": {
+    "tests_passed": 152,
+    "coverage": ["poll memory isolation", "operator persistence", "legacy row filtering", "concurrent requests", "background command rejection", "API origin handling", "Brain coordination", "broker outcome proof", "voice relevance", "follow-up continuity", "control layer", "UI server"],
+    "live_ui_health": "passed after service reload",
+    "live_dashboard_poll": "Returned dashboard_poll origin; conversation file bytes unchanged",
+    "voice_listener": "Reloaded existing active listener; microphone ready at local 00:38:51",
+    "earlier_runtime_check": "Dashboard and answer decision identity matched, capture had no read failures, blocked candidate remained not_allowed."
+  },
+  "remaining_limits": [
+    "User's real spoken limitations question has not been observed; microphone initialization does not prove spoken acceptance.",
+    "Spoken replies are configured off; this check did not change that setting.",
+    "Adaptation speed fields are heuristic estimates, not measured learning latency.",
+    "Two inspected loss/timing learning guards are M1-only and do not alter M5 entries; other ranking feedback exists.",
+    "Profitability and a validated learned M5 strategy improvement remain unproven."
+  ]
+}

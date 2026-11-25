@@ -61,6 +61,16 @@ class AskAtlasReply:
 
 class AskAtlasService:
     @property
+    def memory(self):
+        scope = getattr(self, '_request_memory', None)
+        selected = scope.get() if scope is not None else None
+        return selected if selected is not None else self._memory
+
+    @memory.setter
+    def memory(self, value):
+        self._memory = value
+
+    @property
     def source(self):
         scope = getattr(self, '_request_source', None)
         return (scope.get() if scope is not None else None) or self._source
@@ -72,6 +82,7 @@ class AskAtlasService:
     def __init__(self, source: Any, *, execution_gate: ExecutionGate | None = None) -> None:
         self.source = source
         self._request_source = ContextVar('atlas_informational_evidence', default=None)
+        self._request_memory = ContextVar('atlas_conversation_memory', default=None)
         store_base = getattr(getattr(source, 'store', None), 'base', None)
         self.memory = BrainMemory(file_path=Path(store_base)/'assistant_conversation.json' if store_base is not None else None)
         self.knowledge = BrainKnowledge()
@@ -113,7 +124,22 @@ class AskAtlasService:
         rows.sort(key=lambda row: str(row.get('time', '')))
         return rows[-1] if rows else {}
 
-    def answer(self, query: str, mode: str = "standard") -> dict[str, Any]:
+    def answer(self, query: str, mode: str = "standard", *, request_origin: str = 'operator') -> dict[str, Any]:
+        from atlas_ai.brain.context import is_background_query
+        if request_origin not in {'operator', 'dashboard_poll'} or (
+            request_origin == 'dashboard_poll' and not is_background_query(query)
+        ):
+            return {'answer': 'Background requests are limited to read-only dashboard summaries.',
+                    'handled_as': 'rejected', 'request_origin': request_origin}
+        token = self._request_memory.set(BrainMemory() if request_origin == 'dashboard_poll' else None)
+        try:
+            payload = self._answer_pinned(query, mode=mode)
+            payload['request_origin'] = request_origin
+            return payload
+        finally:
+            self._request_memory.reset(token)
+
+    def _answer_pinned(self, query: str, mode: str = "standard") -> dict[str, Any]:
         q = ' '.join(str(query or '').strip().split())
         intent = parse_user_language(q).intent
         # Explicit commands retain their live reads and existing command path.

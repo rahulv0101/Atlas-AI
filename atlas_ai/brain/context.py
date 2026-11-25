@@ -5,6 +5,15 @@ import hashlib
 import json
 
 REASONING_EVENT_LIMIT = 160
+BACKGROUND_OPERATOR_QUERIES = frozenset({
+    'what is the next safe step?', 'how well are you adapting?',
+    'what small tuning do you recommend?', 'show me the live pilot review',
+    'show pending items',
+})
+
+
+def is_background_query(query):
+    return ' '.join(str(query or '').lower().split()) in BACKGROUND_OPERATOR_QUERIES
 
 
 def fingerprint(value):

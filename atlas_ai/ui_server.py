@@ -3862,7 +3862,10 @@ def create_ui_app(
         payload = request.get_json(silent=True) or {}
         query = str(payload.get("query", "") or "")
         mode = str(payload.get("mode", "") or "")
-        return jsonify(assistant.answer(query, mode=mode))
+        from atlas_ai.brain.context import is_background_query
+        # Compatibility with cached dashboard scripts that predate origin tags.
+        origin = payload.get('request_origin') or ('dashboard_poll' if is_background_query(query) else 'operator')
+        return jsonify(assistant.answer(query, mode=mode, request_origin=origin))
 
     @app.post("/api/ui-ready")
     def ui_ready():

@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+from atlas_ai.brain.context import is_background_query
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,7 @@ class BrainTurn:
     entities: list[str]
     timestamp: float
     evidence_receipt: dict[str, Any] = field(default_factory=dict)
+    request_origin: str = 'operator'
 
 
 class BrainMemory:
@@ -56,7 +58,11 @@ class BrainMemory:
             expired = bool(self._turns) and time.time()-self._turns[0].timestamp > self._max_age_seconds
             if stamp == self._file_stamp and not expired: return
             rows = self._read_rows()[-self._turns.maxlen:]
-            turns = [BrainTurn(**row) for row in rows]
+            # Old clients did not distinguish panel polls from operator dialogue.
+            # Keep those rows on disk, but never use ambiguous polls as context.
+            turns = [BrainTurn(**row) for row in rows
+                     if row.get('request_origin', 'legacy_unknown') != 'dashboard_poll'
+                     and not ('request_origin' not in row and is_background_query(row.get('query')))]
             self._turns.clear(); self._turns.extend(turns)
             self.recent_questions.clear(); self.recent_questions.extend(t.query for t in turns)
             self.recent_conclusions.clear(); self.recent_conclusions.extend(t.main_conclusion for t in turns)
