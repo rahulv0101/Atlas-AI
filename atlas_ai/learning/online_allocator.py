@@ -27,6 +27,7 @@ class OnlineAllocator:
         self.store = store
         self.exploration_epsilon = 0.0
         self._rng = random.Random(17)
+        self.last_selection: dict = {}
         self._restore()
 
     def set_exploration(self, epsilon: float) -> None:
@@ -52,8 +53,6 @@ class OnlineAllocator:
             return 0.82
         if name.startswith("evolved_rule"):
             return 0.78
-        if name == "ema_crossover":
-            return 1.08
         return 1.0
 
     def _key(self, strategy_name: str) -> str:
@@ -80,11 +79,26 @@ class OnlineAllocator:
             score = float(overrides.get(key, self.score_signal(signal)))
             scored.append((score, signal))
 
-        scored.sort(key=lambda x: x[0], reverse=True)
+        # Canonical ordering makes the seeded tie draw independent of inventory
+        # order. It does not decide the winner of equal scores.
+        scored.sort(key=lambda x: (-x[0], self._key(x[1].strategy), x[1].side,
+                                   x[1].stop_loss_points, x[1].take_profit_points))
+        reason = 'highest_score'
         if len(scored) > 1 and self.exploration_epsilon > 0.0 and self._rng.random() < self.exploration_epsilon:
-            pool = scored[: min(3, len(scored))]
-            return self._rng.choice(pool)[1]
-        return scored[0][1]
+            # Include every candidate tied at the exploration boundary, rather
+            # than granting the first three inventory entries extra access.
+            cutoff = scored[min(3, len(scored))-1][0]
+            pool = [row for row in scored if row[0] >= cutoff]
+            reason = 'configured_exploration'
+        else:
+            pool = [row for row in scored if row[0] == scored[0][0]]
+            if len(pool) > 1: reason = 'equal_score_seeded_draw'
+        selected = self._rng.choice(pool) if len(pool) > 1 else pool[0]
+        self.last_selection = {'policy': 'no_EMA_name_bonus_order_independent_ties_v1',
+                               'reason': reason, 'chosen_strategy': selected[1].strategy,
+                               'chosen_score': selected[0],
+                               'eligible_pool': [row[1].strategy for row in pool]}
+        return selected[1]
 
     def update(self, strategy_name: str, trade_pnl: float) -> None:
         key = self._key(strategy_name)

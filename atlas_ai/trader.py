@@ -5554,6 +5554,7 @@ class AtlasTrader:
         self._current_cycle_timing["cycle_elapsed_ms_before_gates"] = round((time.perf_counter() - cycle_started_mono) * 1000.0, 2)
         status["best_actionable_candidate"] = best_actionable_candidate
         status["contextual_ranking"]["best_actionable"] = dict(best_actionable_candidate or {})
+        status['contextual_ranking']['selection'] = dict(getattr(self.allocator, 'last_selection', {}) or {})
         status["signal_summary"] = {
             "raw_count": len(raw_signals),
             "active_count": len(signals),

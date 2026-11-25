@@ -1,0 +1,52 @@
+{
+  "change": "Remove fixed 1.08 EMA score multiplier. Exact-score ties use a seeded draw over canonically ordered candidates; input inventory order cannot decide the winner. Exploration includes all candidates tied at the third-score boundary.",
+  "scope": "All six currently enabled strategies now have a 1.0 name multiplier. Existing inactive MACD/evolved-rule penalties are retained, not silently removed.",
+  "unchanged": "70% confidence / 30% stored win rate, performance history, contextual ranking factors, strategy signals, H1/M5 direction/timing, risk thresholds, execution gates and configured exploration rate.",
+  "equal_input_example": {
+    "confidence": 0.8,
+    "prior_win_rate": 0.5,
+    "previous_EMA_score": 0.7668,
+    "current_scores": {
+      "ema_crossover": 0.71,
+      "pullback_trend": 0.71,
+      "momentum_continuation": 0.71,
+      "gold_micro_impulse": 0.71,
+      "gold_breakout_retest": 0.71,
+      "gold_liquidity_sweep": 0.71
+    }
+  },
+  "selection_diagnostics": "Runtime contextual_ranking.selection exposes policy, chosen strategy/score, reason and eligible pool.",
+  "tests": {
+    "unique_passed": 45,
+    "runs": [
+      "44 allocator/pipeline/historical-policy/replay-parity tests passed",
+      "9 allocator tests passed after one additional regression was added; eight overlap the earlier run"
+    ]
+  },
+  "live_verified": {
+    "updated_at": "2026-11-25T05:09:12.754001+00:00",
+    "action": "blocked",
+    "message": "Risk guard active: Volatility protection active: extreme volatility regime; new entries paused. No trade executed.",
+    "selection": {
+      "chosen_score": 0.22796550281644848,
+      "chosen_strategy": "ema_crossover",
+      "eligible_pool": [
+        "ema_crossover"
+      ],
+      "policy": "no_EMA_name_bonus_order_independent_ties_v1",
+      "reason": "highest_score"
+    },
+    "broker": {
+      "account_matches_configuration": true,
+      "checked_at": "2026-11-25T05:09:11.072953+00:00",
+      "connected": true,
+      "symbol_selected": true,
+      "terminal_connected": true
+    }
+  },
+  "restarted_gracefully_after_flat_demo_preflight": true,
+  "strategy_history_reset": false,
+  "forced_rotation": false,
+  "diagnostic_orders_sent": 0,
+  "limitations": "This removes a fixed EMA preference; it does not establish profitability, uniform allocation, complete strategy fairness, or the causal explanation for all 26 historical EMA entries. EMA can still win legitimately."
+}

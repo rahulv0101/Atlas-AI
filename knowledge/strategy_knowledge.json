@@ -127,5 +127,16 @@
     ],
     "entry_timing_and_risk_gates_remain_required": true,
     "authority": "Explanation of explicit operator-requested code policy; not an independent control input."
+  },
+  "live_strategy_selection_policy": {
+    "policy": "no_EMA_name_bonus_order_independent_ties_v1",
+    "enabled_strategy_name_multiplier": 1.0,
+    "EMA_fixed_bonus": false,
+    "base_score": "0.7 * signal confidence + 0.3 * stored win rate",
+    "tie_break": "Seeded draw among exact top-score ties, independent of inventory order.",
+    "contextual_scores_and_risk_gates_preserved": true,
+    "does_not_force_equal_trade_counts": true,
+    "source": "atlas_ai/learning/online_allocator.py",
+    "authority": "Factual description of operator-requested code change, not a separate runtime control."
   }
 }
