@@ -54,6 +54,7 @@ from atlas_ai.brain.ai_demo_activation_preflight import AIDemoActivationPrefligh
 from atlas_ai.brain.ai_demo_activation import AIDemoActivator
 from atlas_ai.brain.adaptation import build_adaptation_summary
 from atlas_ai.brain.cognitive_core import build_cognitive_core
+from atlas_ai.brain.context import build_reasoning_bundle, REASONING_EVENT_LIMIT
 from atlas_ai.brain.why_engine import build_why_trace
 from atlas_ai.self_improvement import (
     approve_proposal_for_rollout,
@@ -502,13 +503,14 @@ def _last_confirmed_trade_outcome(outcomes: list[dict]) -> dict:
     rows = [
         dict(item or {})
         for item in list(outcomes or [])
-        if str(dict(item or {}).get("outcome", "")).strip().lower() in {"win", "loss", "draw"}
+        if dict(item or {}).get('broker_confirmed_closed') is True
+        and str(dict(item or {}).get("outcome", "")).strip().lower() in {"win", "loss", "draw"}
     ]
     if not rows:
         return {
             "available": False,
             "outcome": "unknown",
-            "lesson": "No broker-confirmed closed trade outcome is available yet.",
+            "lesson": "No account-scoped confirmed closure evidence is available in this view; learning records alone do not establish it.",
         }
 
     last = rows[-1]
@@ -520,7 +522,7 @@ def _last_confirmed_trade_outcome(outcomes: list[dict]) -> dict:
     trend_strength = float(last.get("trend_strength", 0.0) or 0.0)
     htf_aligned = bool(last.get("htf_aligned", False))
     lesson = (
-        "Last confirmed trade was a loss; similar setups should require stronger trend, confidence, and entry quality before approval."
+        "Last confirmed trade was a loss; review its context and execution. A single outcome does not establish a trading-rule change."
         if outcome == "loss"
         else (
             "Last confirmed trade was a win; keep it as supportive evidence only until the sample size is larger."
@@ -530,6 +532,8 @@ def _last_confirmed_trade_outcome(outcomes: list[dict]) -> dict:
     )
     return {
         "available": True,
+        'broker_confirmed_closed': True,
+        'source': last.get('source', 'account_scoped_closed_position_ledger'),
         "ticket": str(last.get("ticket", "") or ""),
         "decision_id": str(last.get("decision_id", "") or ""),
         "time": str(last.get("time", "") or ""),
@@ -586,7 +590,8 @@ def _build_learning_summary(source: "UIDashboardSource") -> dict:
         "setup_family_summary": setup_family_summary,
         "weak_point_summary": weak_point_summary,
         "loss_reason_summary": _loss_reason_summary(recent_slice),
-        "last_confirmed_trade": _last_confirmed_trade_outcome(recent_outcomes),
+        "last_confirmed_trade": _last_confirmed_trade_outcome(
+            getattr(source, 'load_broker_confirmed_outcomes', lambda: [])()),
         "latest_training": latest_training,
     }
 
@@ -1836,11 +1841,10 @@ def _build_cognitive_state_payload(
         learning_state = dict(store.load_learning_state() or {})
     except Exception:
         learning_state = {}
-    events = _tail_learning_events_fast(store, limit=120)
-    adaptation = build_adaptation_summary(status_payload, events)
-    cognitive_core = build_cognitive_core(
+    events = list(getattr(store, 'tail_events', lambda **kw: [])(limit=REASONING_EVENT_LIMIT))
+    bundle = build_reasoning_bundle(
         status=status_payload,
-        runtime={"execution": automation_payload, **reconciled_runtime},
+        runtime={**reconciled_runtime, "execution": automation_payload},
         events=events,
         learning_state=learning_state,
         knowledge_payload={
@@ -1849,17 +1853,13 @@ def _build_cognitive_state_payload(
             "operator_teaching_reviews": _load_json_file(Path(store.base).parent / "knowledge" / "operator_teaching_reviews.json")
             or _load_json_file(Path.cwd() / "knowledge" / "operator_teaching_reviews.json"),
         },
-        adaptation_summary=adaptation,
-        evidence_separation={
-            "market_bias": str(dict(status_payload.get("decision_analysis", {}) or {}).get("final_trade_bias", "")),
-            "signal_direction": str(dict(status_payload.get("chosen", {}) or {}).get("side", "flat")),
-            "higher_timeframe_bias": str(dict(status_payload.get("decision_analysis", {}) or {}).get("higher_timeframe_bias", "")),
-            "final_trade_bias": str(dict(status_payload.get("decision_analysis", {}) or {}).get("final_trade_bias", "neutral")),
-            "setup_readiness": str(dict(status_payload.get("decision_analysis", {}) or {}).get("setup_readiness", "")),
-            "execution_permission": "allowed" if bool(execution_readiness.get("ready", False)) else "not_allowed",
-            "primary_blocker": str(dict(execution_readiness.get("primary_blocker", {}) or {}).get("detail", status_payload.get("message", "")) or ""),
-        },
+        execution_ready=bool(execution_readiness.get('ready', False)),
     )
+    cognitive_core = bundle['cognitive_core']
+    infrastructure_ready = bool(execution_readiness.get('ready', False))
+    candidate_ready = infrastructure_ready and bundle['evidence_separation']['execution_permission'] == 'allowed'
+    execution_readiness = {**execution_readiness, 'infrastructure_ready': infrastructure_ready,
+                           'ready': candidate_ready}
     lanes = dict(learning_lanes.get("lanes", {}) or {})
     active_lane_names = [name for name, lane in lanes.items() if bool(dict(lane or {}).get("active", False))]
     primary_blocker = dict(execution_readiness.get("primary_blocker", {}) or {})
@@ -1868,6 +1868,8 @@ def _build_cognitive_state_payload(
         mind_state = "ready_to_evaluate_execution_gate"
     return {
         "schema": "atlas_cognitive_state_v1",
+        'evidence_receipt': bundle['evidence_receipt'],
+        'evidence_separation': bundle['evidence_separation'],
         "enabled": True,
         "mind_model": "one_coordinated_mind_with_modular_specialists",
         "state": mind_state,
@@ -1995,6 +1997,13 @@ class UIDashboardSource:
     def load_learning_state(self) -> dict:
         return dict(self.store.load_learning_state() or {})
 
+    def load_broker_confirmed_outcomes(self) -> list[dict]:
+        from atlas_ai.brain.outcomes import load_confirmed_outcomes
+        try:
+            return load_confirmed_outcomes(self.store.base)
+        except (ValueError, OSError):
+            return []
+
     def load_runtime_flags(self) -> dict:
         return dict(self.store.load_runtime_flags() or {})
 
@@ -2009,6 +2018,10 @@ class UIDashboardSource:
 
 
 class ComparisonDashboardSource(UIDashboardSource):
+    def load_broker_confirmed_outcomes(self) -> list[dict]:
+        # A historical experiment view is not the live account's closure proof.
+        return []
+
     def __init__(self, store: KnowledgeStore, run_root: Path):
         super().__init__(store)
         self.run_root = Path(run_root)

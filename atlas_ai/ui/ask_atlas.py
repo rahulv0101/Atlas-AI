@@ -9,6 +9,8 @@ from typing import Any
 import uuid
 import hashlib
 from collections import Counter
+from contextvars import ContextVar
+from atlas_ai.brain.context import SnapshotSource
 
 from atlas_ai.brain import AnswerEngine, BrainKnowledge, BrainMemory, classify_intent_candidates
 from atlas_ai.brain.ai_decision_journal import AIDecisionJournal
@@ -58,9 +60,20 @@ class AskAtlasReply:
 
 
 class AskAtlasService:
+    @property
+    def source(self):
+        scope = getattr(self, '_request_source', None)
+        return (scope.get() if scope is not None else None) or self._source
+
+    @source.setter
+    def source(self, value):
+        self._source = value
+
     def __init__(self, source: Any, *, execution_gate: ExecutionGate | None = None) -> None:
         self.source = source
-        self.memory = BrainMemory()
+        self._request_source = ContextVar('atlas_informational_evidence', default=None)
+        store_base = getattr(getattr(source, 'store', None), 'base', None)
+        self.memory = BrainMemory(file_path=Path(store_base)/'assistant_conversation.json' if store_base is not None else None)
         self.knowledge = BrainKnowledge()
         self.answer_engine = AnswerEngine(self.knowledge)
         self.control = ControlLayer()
@@ -93,22 +106,35 @@ class AskAtlasService:
 
     def _last_confirmed_trade_outcome(self) -> dict[str, Any]:
         try:
-            state = dict(self.source.load_learning_state().get("state", {}) or {})
+            rows = list(getattr(self.source, 'load_broker_confirmed_outcomes', lambda: [])() or [])
         except Exception:
-            state = {}
-        intelligence = dict(state.get("trade_outcome_intelligence", {}) or {})
-        trades = list(dict(intelligence.get("outcome_memory", {}) or {}).get("trades", []) or [])
-        if not trades:
-            loss_memory = dict(state.get("loss_memory", {}) or {})
-            trades = list(loss_memory.get("recent_outcomes", []) or [])
-        rows = [
-            dict(row or {})
-            for row in trades
-            if str(dict(row or {}).get("outcome", "")).strip().lower() in {"win", "loss", "draw"}
-        ]
+            rows = []
+        rows = [row for row in rows if row.get('broker_confirmed_closed') is True]
+        rows.sort(key=lambda row: str(row.get('time', '')))
         return rows[-1] if rows else {}
 
     def answer(self, query: str, mode: str = "standard") -> dict[str, Any]:
+        q = ' '.join(str(query or '').strip().split())
+        intent = parse_user_language(q).intent
+        # Explicit commands retain their live reads and existing command path.
+        if intent in {'system_command', 'trading_command'} or self._classify_handling_mode(q) == 'command':
+            return self._answer_in_context(q, mode=mode)
+        captured = SnapshotSource(self._source)
+        token = self._request_source.set(captured)
+        try:
+            payload = self._answer_in_context(q, mode=mode)
+            if payload.get('handled_as') != 'command':
+                receipt = dict(captured.receipt)
+                payload['evidence_receipt'] = receipt
+                trace = dict(payload.get('answer_trace') or {})
+                trace['evidence_receipt'] = receipt
+                payload['answer_trace'] = trace
+                payload.setdefault('debug', {})['answer_trace'] = trace
+            return payload
+        finally:
+            self._request_source.reset(token)
+
+    def _answer_in_context(self, query: str, mode: str = "standard") -> dict[str, Any]:
         q = " ".join(str(query or "").strip().split())
         payload = self._dispatch_answer(q, mode=mode)
         if payload.get("handled_as") == "command":
@@ -121,6 +147,8 @@ class AskAtlasService:
                 "status": status, "runtime": runtime,
                 "events": list(self.source.load_events(limit=160) or []),
                 "comparison": dict(getattr(self.source, "load_comparison", lambda: {})() or {}),
+                'learning_state': dict(getattr(self.source, 'load_learning_state', lambda: {})() or {}),
+                'evidence_receipt': dict(getattr(self.source, 'receipt', {}) or {}),
                 "knowledge_payload": {
                     name: self.knowledge.load(name) for name in
                     ("system_overview", "market_knowledge", "strategy_knowledge", "risk_policy", "readiness_rules", "glossary")
@@ -303,6 +331,7 @@ class AskAtlasService:
                 "events": events,
                 "comparison": comparison,
                 "learning_state": learning_state,
+                'evidence_receipt': dict(getattr(self.source, 'receipt', {}) or {}),
                 "ai_decision_journal_recent": ai_decision_journal_recent,
                 "ai_decision_reviews_recent": ai_decision_reviews_recent,
                 "ai_strategy_preferences": ai_strategy_preferences,
@@ -324,6 +353,7 @@ class AskAtlasService:
                 plan=engine_result.selected_plan,
                 answer=result,
                 confidence=engine_result.confidence,
+                evidence_receipt=dict(getattr(self.source, 'receipt', {}) or {}),
             )
         created_control_items = (
             self.control.ingest_from_debug(dict(engine_result.debug_summary or {}))
@@ -669,6 +699,7 @@ class AskAtlasService:
             plan=str(trace.get("selected_plan", debug.get("selected_plan", "direct_handler")) or "direct_handler"),
             answer=str(payload.get("result", "") or ""),
             confidence=float(payload.get("confidence", confidence) or confidence),
+            evidence_receipt=dict(trace.get('evidence_receipt') or getattr(self.source, 'receipt', {}) or {}),
         )
 
     @staticmethod

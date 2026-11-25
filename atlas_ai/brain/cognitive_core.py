@@ -42,6 +42,7 @@ def _recent_outcomes(learning_state: dict[str, Any], limit: int = 12) -> list[di
 
 
 def _learning_lanes(learning_state: dict[str, Any]) -> dict[str, Any]:
+    from atlas_ai.learning.evidence_provenance import outcome_source
     state = dict(learning_state.get("state", learning_state) or {})
     outcomes = _recent_outcomes(state, limit=20)
     counts = Counter(str(row.get("outcome", "")).lower() for row in outcomes)
@@ -51,6 +52,8 @@ def _learning_lanes(learning_state: dict[str, Any]) -> dict[str, Any]:
     allocator = dict(state.get("allocator", {}) or {})
     learned = dict(state.get("learned_patterns", {}) or state.get("pattern_memory", {}) or {})
     return {
+        'sample_scope': 'recorded_learning_examples_not_verified_live_performance',
+        'outcome_sources': dict(Counter(outcome_source(row) for row in outcomes)),
         "recent_sample_size": len(outcomes),
         "closed_sample_size": closed,
         "wins": counts.get("win", 0),

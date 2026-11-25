@@ -21,6 +21,7 @@ from atlas_ai.brain.self_model import build_self_model
 from atlas_ai.brain.synthesis import synthesize
 from atlas_ai.brain.types import AnswerResult, EvidenceItem
 from atlas_ai.decision_support import build_evidence_separation
+from atlas_ai.brain.context import build_reasoning_bundle
 
 
 class AnswerEngine:
@@ -81,16 +82,16 @@ class AnswerEngine:
             "ai_strategy_preferences": ai_strategy_preferences,
             "ai_promotion_intelligence": ai_promotion_intelligence,
         }
-        evidence_separation = build_evidence_separation(status, runtime)
-        cognitive_core = build_cognitive_core(
+        bundle = build_reasoning_bundle(
             status=status,
             runtime=runtime,
             events=events,
             learning_state=learning_state,
             knowledge_payload=knowledge_payload,
             adaptation_summary=adaptation_summary,
-            evidence_separation=evidence_separation,
         )
+        evidence_separation = bundle['evidence_separation']
+        cognitive_core = bundle['cognitive_core']
         knowledge_payload["cognitive_core"] = cognitive_core
         ai_decision_trace = self.ai_decision_core.decide(
             status=status,
@@ -210,6 +211,7 @@ class AnswerEngine:
         trace["relevance_passed"] = relevance.passed
         trace["relevance_attempts"] = relevance_attempts
         trace["evidence_separation"] = evidence_separation
+        trace['evidence_receipt'] = dict(atlas_context.get('evidence_receipt') or bundle['evidence_receipt'])
         trace["cognitive_core"] = {
             "mode": cognitive_core.get("mode"),
             "world_model": cognitive_core.get("world_model", {}),

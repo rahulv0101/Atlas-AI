@@ -47,6 +47,10 @@ def _mutex() -> object | None:
 class VoiceSource:
     store: KnowledgeStore
 
+    def load_broker_confirmed_outcomes(self):
+        from atlas_ai.brain.outcomes import load_confirmed_outcomes
+        return load_confirmed_outcomes(self.store.base)
+
     def load_status(self) -> dict[str, Any]:
         return dict(self.store.load_status() or {})
 
@@ -55,6 +59,12 @@ class VoiceSource:
 
     def load_runtime_flags(self) -> dict[str, Any]:
         return dict(self.store.load_runtime_flags() or {})
+
+    def load_learning_state(self) -> dict[str, Any]:
+        return dict(self.store.load_learning_state() or {})
+
+    def load_comparison_from_status(self, status) -> dict[str, Any]:
+        return dict(status.get('comparison', {}) or {})
 
     def load_comparison(self) -> dict[str, Any]:
         status = self.load_status()

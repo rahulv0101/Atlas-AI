@@ -1,0 +1,75 @@
+{
+  "state": "coordination_repaired_and_deployed",
+  "date_sa": "2026-11-26",
+  "repairs": [
+    "Pinned per-request informational evidence with read-failure metadata and independent copies; ContextVar prevents concurrent requests swapping sources.",
+    "Common reasoning bundle for Ask Atlas and dashboard; fresh automation data wins over stale runtime execution copies.",
+    "Blocked/HOLD decisions cannot become allowed merely because automation is enabled. Candidate readiness remains separate from infrastructure readiness.",
+    "Standalone voice now loads learning state; comparison metadata is derived from its captured status rather than a second status read.",
+    "Dashboard, typed and voice reasoning use the most recent 160 risk/learning events instead of incompatible learning-only and all-event windows.",
+    "Compact cross-process conversation memory with 20-turn/four-hour retention, file locking, evidence references and basic credential redaction.",
+    "Broker-confirmed outcome claims require account-scoped closed-position proof, separate from unverified/historical learning examples.",
+    "Adaptation latency and learning-speed scores explicitly labelled heuristic estimates."
+  ],
+  "tests": {
+    "total_unique_passed": 286,
+    "runs": [
+      {
+        "passed": 205,
+        "scope": "coordination, outcome proof, Brain v2, follow-ups, voice relevance, relevance guard, adaptation, universal engine, cognitive core, command orchestration, voice commands, UI, closed-outcome counter"
+      },
+      {
+        "passed": 81,
+        "scope": "legacy brain, control, knowledge, recommendations, performance feedback, paper tuning and comparison intelligence"
+      }
+    ]
+  },
+  "live_read_only_verification": {
+    "status_updated_at": "2026-11-25T22:16:05.153931+00:00",
+    "action": "hold",
+    "cognitive_schema": "atlas_cognitive_state_v1",
+    "decision_key": "42f6b79d27149fd38879a91e",
+    "reported_permission": "not_allowed",
+    "candidate_ready": false,
+    "brain_safety": {
+      "can_bypass_execution_gate": false,
+      "can_design_strategy_proposals": true,
+      "can_explain": true,
+      "can_learn_from_evidence": true,
+      "can_mutate_risk_policy": false,
+      "can_mutate_strategy_policy": false,
+      "can_propose_changes": true,
+      "policy_note": "Cognitive core is Atlas' AI coordination layer. It may design strategy proposals, but does not change strategy, risk, or execution policy without the guarded promotion path."
+    },
+    "confirmed_closure_rows": 2,
+    "source": "account_scoped_closed_position_ledger"
+  },
+  "isolated_live_evidence_verification": {
+    "typed_domain": "self_model",
+    "voice_domain": "self_model",
+    "same_decision_key": true,
+    "voice_shorter": true,
+    "read_failures": {},
+    "confirmed_trade_attached": true,
+    "last_trade_intent": "last_trade_outcome",
+    "execution_controls_unchanged": true,
+    "persistent_compact_memory_present": true
+  },
+  "deployment": {
+    "backend": "graceful restart after matching demo account verified flat with no pending orders",
+    "ui_server": "graceful restart",
+    "active_voice_listener": "reloaded; reports voice.wake_loop active"
+  },
+  "strategy_signal_changes": false,
+  "risk_limit_changes": false,
+  "execution_authority_changes": false,
+  "diagnostic_orders_sent": 0,
+  "limitations": [
+    "This repairs coordination and reporting, not trading profitability or validated strategy learning.",
+    "Captures are per request, not cross-file atomic transactions. Independent requests can legitimately refer to different backend decisions.",
+    "Adaptation numbers remain heuristics; their provenance is explicit, not converted into real measured latency.",
+    "The conversational brain remains separate from trading authority and cannot rewrite strategies or retrain itself.",
+    "Voice-mode reasoning and source/memory handoffs were tested; a spoken microphone-to-transcription acceptance test was not performed.",
+    "Only active answer/dashboard/voice coordination was unified; legacy compatibility modules were retained."
+  ]
+}

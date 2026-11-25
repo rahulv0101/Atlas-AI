@@ -949,7 +949,7 @@ def synthesize(
             return f"Regime-change detection took about {float(ad.get('regime_shift_detection_delay', 0.0)):.1f} cycles."
         if voice_mode and ("adjust confidence" in ql or "confidence" in ql):
             return (
-                "Confidence adjustment latency is about "
+                "Estimated confidence adjustment latency is about "
                 f"{float(ad.get('detection_to_confidence_update_latency', 0.0)):.1f} cycles."
             )
         if voice_mode:
@@ -971,6 +971,7 @@ def synthesize(
             + f"- Setup quality change: {float(ad.get('setup_quality_change', 0.0)):+.3f}\n"
             + f"- Filter rejection rate change: {float(ad.get('filter_rejection_rate_change', 0.0)):.3f}\n"
             + "\nLearning speed:\n"
+            + "These are heuristic estimates, not measured learning performance.\n"
             + f"- Evidence strength score: {float(ad.get('evidence_strength_score', 0.0)):.3f}\n"
             + f"- Evidence to detection latency: {float(ad.get('evidence_to_detection_latency', 0.0)):.2f}\n"
             + f"- Detection to confidence update latency: {float(ad.get('detection_to_confidence_update_latency', 0.0)):.2f}\n"
@@ -987,7 +988,7 @@ def synthesize(
             + f"- overreaction risk: {float(ad.get('overreaction_score', 0.0)):.3f}\n"
             + ("\nGuardrails:\n" + "\n".join(f"- {g}" for g in guardrails) if guardrails else "\nGuardrails:\n- none triggered")
             + f"\nSafety:\n- {ad.get('safety_note', 'Observation only.')}"
-            + f"\n- {ad.get('learning_speed_note', 'Learning speed is measured, not self-modified.')}"
+            + f"\n- {ad.get('learning_speed_note', 'Learning-speed values are estimates, not measured training performance.')}"
         )
 
     top = evidence[0].content if evidence else reason

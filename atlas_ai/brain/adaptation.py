@@ -231,5 +231,7 @@ def build_adaptation_summary(status: dict[str, Any], events: list[dict[str, Any]
         "speed_label": speed_label,
         # Explicit safety guardrail statement.
         "safety_note": "Observation and reporting only. No automatic core strategy/risk rule rewrite is performed.",
-        "learning_speed_note": "Learning speed is measured from evidence and response timing proxies; no uncontrolled self-modification is enabled.",
+        "metric_basis": "heuristic_estimates_not_measured_learning_performance",
+        "measured_latency_available": False,
+        "learning_speed_note": "Learning-speed and latency values are heuristic proxies, not measured retraining speed or demonstrated trading improvement. No uncontrolled self-modification is enabled.",
     }

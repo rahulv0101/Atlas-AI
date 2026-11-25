@@ -1533,7 +1533,7 @@ def test_status_api_includes_decision_explanation_when_present(tmp_path):
     assert payload["decision_explanation"]["signal_source"] == "momentum_continuation"
 
 
-def test_learning_insights_exposes_last_confirmed_trade(tmp_path, monkeypatch):
+def test_learning_insights_does_not_label_unverified_learning_row_as_confirmed(tmp_path, monkeypatch):
     store = KnowledgeStore(str(tmp_path))
     monkeypatch.setattr("atlas_ai.ui_server.announce_ui_ready_once", lambda *_args, **_kwargs: True)
     store.save_learning_state(
@@ -1561,10 +1561,9 @@ def test_learning_insights_exposes_last_confirmed_trade(tmp_path, monkeypatch):
     app = create_ui_app(store)
     payload = app.test_client().get("/api/learning-insights").get_json()
     last = payload["last_confirmed_trade"]
-    assert last["available"] is True
-    assert last["ticket"] == "T1"
-    assert last["outcome"] == "loss"
-    assert "similar setups should require stronger trend" in last["lesson"]
+    assert last["available"] is False
+    assert last["outcome"] == "unknown"
+    assert 'learning records alone' in last['lesson']
 
 
 def test_teaching_review_endpoint_records_bounded_operator_label(tmp_path, monkeypatch):

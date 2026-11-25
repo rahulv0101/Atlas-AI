@@ -1,7 +1,10 @@
 {
   "name": "Atlas Operator Assistant",
   "purpose": "Read-only operator reasoning over live status, comparison runs, events, and runtime safety flags.",
-  "runtime_modes": ["paper", "live"],
+  "runtime_modes": [
+    "paper",
+    "live"
+  ],
   "full_stack_coordination": {
     "components": [
       "voice_listener",
@@ -49,8 +52,35 @@
   },
   "ui_mode": "read-only during active comparison runs",
   "voice_loop": {
-    "states": ["asleep", "awake"],
-    "wake_phrases": ["Atlas wake", "Wake Atlas"],
-    "sleep_phrases": ["Atlas sleep", "Go to sleep Atlas"]
+    "states": [
+      "asleep",
+      "awake"
+    ],
+    "wake_phrases": [
+      "Atlas wake",
+      "Wake Atlas"
+    ],
+    "sleep_phrases": [
+      "Atlas sleep",
+      "Go to sleep Atlas"
+    ]
+  },
+  "reasoning_coordination": {
+    "shared_builder": "atlas_ai.brain.context.build_reasoning_bundle",
+    "informational_evidence": "Status, runtime flags, recent events, learning state and confirmation proof are captured once per informational request and referenced by a decision key and content fingerprints.",
+    "event_window": "Most recent 160 events, including risk and learning events, for the dashboard and main answer paths.",
+    "atomicity_limit": "The capture pins each source read for one answer; separate files are not an atomic broker snapshot.",
+    "conversation_memory": {
+      "scope": "One local operator conversation shared by dashboard and standalone voice workers",
+      "maximum_turns": 20,
+      "maximum_age_hours": 4,
+      "storage": "Ignored local storage/assistant_conversation.json",
+      "authority": "Follow-up continuity only. Cannot change strategy, risk, execution policy or command authority.",
+      "redaction": "Known API-key patterns and credential assignments are redacted before persistence."
+    },
+    "broker_outcome_claims": "Confirmed closures come from the matching account-scoped closed-position ledger with decision links and non-test evidence. Learning examples alone are not broker confirmation; comparison views do not borrow live-account closure proof.",
+    "adaptation_metrics": "Heuristic proxy estimates; not measured retraining speed or proof of trading improvement.",
+    "permissions": "Enabled automation does not override a blocked or waiting current candidate. The shared reasoning projection cannot grant broker authority.",
+    "explicit_commands": "Retain their separate live command path; informational evidence pinning does not broaden command actions."
   }
 }

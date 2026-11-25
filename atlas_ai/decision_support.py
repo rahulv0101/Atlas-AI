@@ -166,6 +166,10 @@ def build_evidence_separation(status: dict[str, Any], runtime: dict[str, Any] | 
         or "unknown"
     )
     blocker_text = str(blocker.get("primary") or status.get("primary_blocker") or status.get("message") or "")
+    current_blocked = action in {'blocked', 'hold', 'wait', 'no_trade', 'error', 'starting', 'connecting', 'connected'}
+    current_blocked = current_blocked or any(g.get('hard_blocked') for g in _active_guards(status))
+    permission = (has_direction and not current_blocked
+                  and (action in {'paper', 'execute', 'buy', 'sell'} or gate_allowed))
     return {
         "market_bias": str(bias.get("chart_structure_bias", "neutral") or "neutral"),
         "signal_direction": side if has_direction else "neutral",
@@ -177,7 +181,7 @@ def build_evidence_separation(status: dict[str, Any], runtime: dict[str, Any] | 
         "confidence_ready": confidence_ready,
         "blocker_class": str(blocker.get("class") or status.get("blocker_class") or "unknown"),
         "primary_blocker": blocker_text,
-        "execution_permission": "allowed" if action in {"paper", "execute", "buy", "sell"} or gate_allowed else "not_allowed",
+        "execution_permission": "allowed" if permission else "not_allowed",
         "execution_reason": str(execution_state.get("auto_trade_reason") or blocker_text or ""),
         "policy_note": "Evidence lanes are explanatory only; they do not change strategy, risk, or execution policy.",
     }
