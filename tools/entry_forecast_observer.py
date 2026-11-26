@@ -40,6 +40,16 @@ def timely(available,observed,start):
     return pd.Timestamp(available)>=pd.Timestamp(start) and 0<=(pd.Timestamp(observed)-pd.Timestamp(available)).total_seconds()<=120
 
 
+def proven_closed_bars(frame,minutes,now):
+    raw=frame.copy();raw['time']=pd.to_datetime(raw.time,utc=True)
+    if raw.empty or raw.time.duplicated().any() or not raw.time.is_monotonic_increasing:
+        raise ValueError('ordered_native_bars_required')
+    # MT5's final native row can remain mutable after its nominal close if
+    # the next bar has not arrived. Wall-clock age alone is insufficient.
+    preceding=raw.iloc[:-1]
+    return preceding[preceding.time+pd.Timedelta(minutes=minutes)<=pd.Timestamp(now)].copy()
+
+
 def initialize(history):
     cfg=load_settings();storage=Path(cfg.storage_dir).resolve();pointer=storage/'entry_forecast_active.json'
     if pointer.exists():
@@ -90,8 +100,7 @@ def once(directory,*,clock=None):
         finally:mt5.shutdown()
     frames={}
     for tf,minutes in [('M5',5),('H1',60)]:
-        raw=incoming[tf].copy();raw['time']=pd.to_datetime(raw.time,utc=True)
-        closed=raw[raw.time+pd.Timedelta(minutes=minutes)<=now]
+        closed=proven_closed_bars(incoming[tf],minutes,now)
         records=json.loads(closed.to_json(orient='records',date_format='iso',double_precision=15))
         saved[tf]=merge_closed(saved[tf],records)
         frames[tf]=prepare_frame(pd.DataFrame(saved[tf]));frames[tf]['time']=pd.to_datetime(frames[tf].time,utc=True)
@@ -102,6 +111,9 @@ def once(directory,*,clock=None):
         forming=forming[forming.time==available]
         prediction_frame=pd.concat([frames['M5'],forming],ignore_index=True)
         if not forming.empty:
+            previous=pd.Timestamp(state['last_available']) if state['last_available'] else pd.Timestamp(plan['start'])-pd.Timedelta(minutes=5)
+            skipped=max(0,int((available-previous).total_seconds()//300)-1)
+            state['missed_closed_bars']=state.get('missed_closed_bars',0)+skipped
             with tempfile.TemporaryDirectory() as temp:
                 frozen_cfg=settings_for(plan,temp);generated={}
                 for model,generator in [('unchanged_retest',retest_generate),('sweep_reclaim',sweep_generate)]:
@@ -120,6 +132,7 @@ def once(directory,*,clock=None):
     data_fresh=0<=(pd.Timestamp(clock())-available).total_seconds()<=120
     return {'state':'collecting_diagnostic_forecasts' if data_fresh else 'waiting_for_fresh_demo_bars','data_fresh':data_fresh,'checked_at':pd.Timestamp(clock()).isoformat(),
         'start':plan['start'],'deadline':plan['deadline'],'bars_evaluated':state['bars_evaluated'],'late_discarded':state['late_discarded'],
+        'missed_closed_bars':state.get('missed_closed_bars',0),'closure_basis':'following_native_bar_present_and_close_time_passed',
         'forecasts':{k:len(v) for k,v in state['forecasts'].items()},'latest_closed_M5':frames['M5'].time.iloc[-1].isoformat(),
         'historical_qualified':plan['historical_qualified'],'qualification_cases':0,'natural_broker_cycles':0,
         'note':'Timed predictions on fresh demo data; outcomes require later frozen cost-aware review. Historical failure remains blocked.',

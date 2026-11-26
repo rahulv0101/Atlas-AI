@@ -26,6 +26,16 @@ def test_retrospective_late_and_future_predictions_cannot_count_as_timely():
     assert not module.timely(now,now+pd.Timedelta(seconds=1),now+pd.Timedelta(minutes=5))
 
 
+def test_native_final_row_is_not_closed_merely_because_wall_clock_advanced():
+    f=pd.DataFrame({'time':pd.date_range('2026-11-26T10:00Z',periods=3,freq='5min'),'close':[100.,101.,102.]})
+    now=pd.Timestamp('2026-11-26T10:20Z')
+    closed=module.proven_closed_bars(f,5,now)
+    assert list(closed.close)==[100.,101.]
+    # Only the appearance of a following bar confirms the previous final row.
+    f.loc[3]=[pd.Timestamp('2026-11-26T10:15Z'),103.]
+    assert list(module.proven_closed_bars(f,5,now).close)==[100.,101.,102.]
+
+
 def fixture(tmp_path):
     directory=tmp_path/'entry';directory.mkdir();now=datetime.now(timezone.utc)
     save_signed(directory,'plan',{'deadline':(now+timedelta(days=1)).isoformat()})

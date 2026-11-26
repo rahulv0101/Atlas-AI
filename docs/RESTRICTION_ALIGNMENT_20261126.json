@@ -1,0 +1,26 @@
+{
+  "state": "applied",
+  "changes": {
+    "MAX_TRADES_PER_DAY": {
+      "before": "12",
+      "after": "6"
+    },
+    "MAX_CONSECUTIVE_LOSSES": {
+      "before": "3",
+      "after": "2"
+    },
+    "HIGHER_TIMEFRAME_CONFIRM": {
+      "before": "M15",
+      "after": "H1"
+    }
+  },
+  "effect": "File defaults aligned to existing H1 direction and stricter runtime session limits. Effective live controls were not raised.",
+  "other_parsed_values_unchanged": true,
+  "credentials_exposed": false,
+  "runtime_controls_changed": false,
+  "volatility_guard_changed": false,
+  "pilot_lot_cap_changed": false,
+  "orders_sent": 0,
+  "current_blocker": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+  "not_a_profitability_fix": true
+}

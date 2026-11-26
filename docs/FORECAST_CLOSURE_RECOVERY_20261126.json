@@ -1,0 +1,22 @@
+{
+  "reason": "Only unreferenced tail removed. Original data and code archived. No evaluated candle or forecast rewritten.",
+  "original_plan_sha256": "1c0540dffee3664763c4c0a2ae7f5bd2dde5e0e843f166aa8fe7350e5e6ee1af",
+  "new_plan_sha256": "e8a98268a7557f35b1f84a57291f5dec2508c5805c4e8d10412c8dfbe388a854",
+  "dropped_unconfirmed_bars": {
+    "M5": 1,
+    "H1": 6
+  },
+  "retained_forecasts": {
+    "unchanged_retest": 1,
+    "sweep_reclaim": 0
+  },
+  "retained_bars_evaluated": 25,
+  "original_start": "2026-11-26T10:10:00+00:00",
+  "original_deadline": "2026-12-10T10:08:19.968097+00:00",
+  "model_rules_changed": false,
+  "registration_reset": false,
+  "orders_sent": 0,
+  "broker_eligible": false,
+  "outcome_review_rules_preserved_and_rebound": true,
+  "tests_passed": 17
+}
