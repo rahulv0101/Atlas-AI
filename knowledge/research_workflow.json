@@ -1,0 +1,13 @@
+{
+  "schema": "atlas_controlled_research_workflow_v1",
+  "purpose": "Continuous bounded research with frozen evidence and controlled activation review",
+  "current_research_problem": "Recent retrospective gains disappeared under doubled modeled spread and slippage.",
+  "proposal_scope": "Existing validated chromosome templates only; no arbitrary generated code or live strategy edits.",
+  "stages": ["training-only selection", "separate historical base and stress screens", "persistent frozen forward trial", "two separate 30-trade stages", "at least 100 total shadow observations", "independent broker-cost and live-gate parity validation", "existing promotion and operator approval", "existing execution and drawdown safeguards"],
+  "trial_policy": {"historical_trades_per_split": 30, "forward_stage_trades": 30, "total_shadow_trades": 100, "minimum_profit_factor": 1.1, "maximum_drawdown_r": 6, "deadline_days": 28},
+  "insufficient_activity": "Do not force entries or relax thresholds. End the frozen trial as insufficient activity at its deadline.",
+  "monitoring": "Source drift, coverage gaps, invalid chronology, changed evidence or excess research drawdown quarantine the trial.",
+  "activation": "Research output does not grant broker authority. Passing research screens is an input to independent validation and existing promotion review.",
+  "rollback": "New research quarantine does not close positions or mutate current strategies. Existing broker-authorized strategy drawdown controls remain responsible for deployed models.",
+  "limitations": ["Generated-rule simulator is not full live-system parity.", "Doubled hypothetical friction is a sensitivity check, not calibrated fill costs.", "Data reuse and multiple candidate searches limit historical evidence.", "Future trade counts and profitable qualification cannot be guaranteed."]
+}

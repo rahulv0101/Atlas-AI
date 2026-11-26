@@ -243,11 +243,28 @@ def load_research_progress(storage, *, now=None):
         result['settled_m5_outcomes'].update(state=observed.get('state','unknown'),stale=age is None or age>120 or observed.get('state')!='evaluating_paper_candidates',broker_eligible=False,strategy_qualified=False)
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['settled_m5_outcomes']={'state':'unavailable','stale':True,'broker_eligible':False,'strategy_qualified':False}
+    try:
+        scheduler = _read(storage/'evolution_scheduler_state.json')
+        trial = scheduler.get('governed_trial') or {'state': 'awaiting_fresh_research_cycle'}
+        if trial.get('broker_eligible', False) or trial.get('auto_promotion', False):
+            raise ValueError('unexpected_trial_authority')
+        age = _age(scheduler.get('checked_at'), now)
+        result['governed_trial'] = {**trial, 'stale': age is None or age > 180,
+                                    'age_seconds': age, 'broker_eligible': False}
+    except (OSError, ValueError, TypeError, AttributeError):
+        result['governed_trial'] = {'state': 'unavailable', 'stale': True, 'broker_eligible': False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'governed' in q or 'frozen trial' in q:
+        trial = progress.get('governed_trial') or {}
+        if trial.get('stale', True):
+            return 'The governed research trial report is unavailable or stale. I cannot confirm its progress; it has no trading authority.'
+        return (f"Frozen research trial: {str(trial.get('state', 'unknown')).replace('_', ' ')}. "
+                f"{trial.get('reason', '')} No broker activation is authorized."
+                + ('' if voice else f" Deadline: {trial.get('deadline', 'not started')}. Existing risk and promotion gates remain required."))
     if 'settled' in q and ('outcome' in q or 'evaluation' in q):
         observed=progress.get('settled_m5_outcomes') or {}
         if observed.get('stale',True):return 'The settled paper outcome evaluator is unavailable or needs review. No strategy qualification or broker fills are verified.'

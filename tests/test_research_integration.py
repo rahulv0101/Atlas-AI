@@ -69,6 +69,25 @@ def test_missing_partial_and_external_reports_fail_visibly(tmp_path):
     assert load_research_progress(tmp_path)["acceptance"]["stale"]
 
 
+def test_governed_trial_is_shared_by_typed_voice_and_cannot_claim_activation(reports):
+    folder, _, now = reports
+    atomic_json(folder/'evolution_scheduler_state.json', {'checked_at': now.isoformat(),
+        'governed_trial': {'state': 'collecting_forward', 'reason': 'Collecting frozen observations.',
+                           'broker_eligible': False, 'auto_promotion': False}})
+    progress = load_research_progress(folder, now=now)
+    assert progress['governed_trial']['state'] == 'collecting_forward'
+    engine = AnswerEngine()
+    context = {'status': {}, 'runtime': {'research_progress': progress}}
+    for mode in ('standard', 'voice'):
+        answer = engine.answer('How is the governed research trial?', context, mode=mode)
+        assert answer.selected_domain == 'research_progress'
+        assert answer.relevance_passed
+        assert 'No broker activation is authorized' in answer.text
+    atomic_json(folder/'evolution_scheduler_state.json', {'checked_at': now.isoformat(),
+        'governed_trial': {'state': 'ready', 'broker_eligible': True}})
+    assert load_research_progress(folder, now=now)['governed_trial']['state'] == 'unavailable'
+
+
 def test_boot_inspection_failure_does_not_break_other_research_reports(reports, monkeypatch):
     folder, _, now = reports
     monkeypatch.setattr("atlas_ai.research_status.verify_startup", Mock(side_effect=OSError("boot information unavailable")))

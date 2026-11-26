@@ -1,0 +1,84 @@
+{
+  "date_local": "2026-11-26",
+  "purpose": "Connect bounded strategy proposals, frozen evidence, prospective observation and controlled promotion review without changing the deployed trader.",
+  "implemented": [
+    "Existing validated DNA templates remain the only candidate-generation mechanism; no arbitrary generated code or uncontrolled retraining.",
+    "Selection uses training results only; separate historical holdout and doubled modeled-friction screens can reject the selected candidate.",
+    "One eligible trial is copied outside the four rotating research batches and retains its frozen rules, source protocol, evidence hashes, policy and deadline.",
+    "Forward outcomes must start after the freeze, remain chronological and nonoverlapping, and resolve before the observation deadline.",
+    "Two separate 30-trade forward stages plus at least 100 total shadow observations are required for independent validation review.",
+    "Base and stressed mean return must be positive, profit factor at least 1.1 when losses exist, and research drawdown no more than 6R.",
+    "Rule drift, altered evidence, source mismatch, coverage gaps or excess drawdown quarantine the research trial.",
+    "No qualifying activity by the 28-day deadline is insufficient evidence, never a reason to force broker trades.",
+    "Failed and expired trials are archived intact before a later bounded research batch may select a replacement; successful shadow trials stay pinned for review.",
+    "Shared research status and Brain v2 typed/voice answers expose the governed trial without granting execution authority."
+  ],
+  "deployment_validation": {
+    "tests_passed": 49,
+    "account_preflight": "Configured demo account matched; no open positions or pending orders before restart.",
+    "services": "Backend, UI and existing active voice listener reloaded; backend reconnected and fresh heartbeat observed; microphone ready.",
+    "fresh_research_cycle": {
+      "total_batches": 47,
+      "state": "rejected_historical",
+      "reason": "Separate historical base or cost-stress screen failed.",
+      "trial_id": "eaba19ebc952ee7cba01",
+      "historical": {
+        "training": {
+          "base": {
+            "trades": 57,
+            "mean_r": 0.17440365422289622,
+            "net_r": 9.941008290705085,
+            "profit_factor": 1.4605945778059495,
+            "has_losses": true,
+            "max_drawdown_r": 3.8152645946981254
+          },
+          "stress": {
+            "trades": 57,
+            "mean_r": 0.053186365139467597,
+            "net_r": 3.031622812949653,
+            "profit_factor": 1.1202911211825892,
+            "has_losses": true,
+            "max_drawdown_r": 6.257427642046517
+          }
+        },
+        "holdout": {
+          "base": {
+            "trades": 13,
+            "mean_r": 0.09924213596940709,
+            "net_r": 1.290147767602292,
+            "profit_factor": 1.207847494152348,
+            "has_losses": true,
+            "max_drawdown_r": 3.162221996148838
+          },
+          "stress": {
+            "trades": 13,
+            "mean_r": 0.01302594169800598,
+            "net_r": 0.16933724207407774,
+            "profit_factor": 1.0255556810981017,
+            "has_losses": true,
+            "max_drawdown_r": 3.3244439922976734
+          }
+        }
+      },
+      "new_broker_eligible": false
+    }
+  },
+  "unchanged": [
+    "Live strategy inventory and selection",
+    "H1 direction / M5 entry policy",
+    "Risk and execution limits",
+    "PromotionGovernor and human approval",
+    "Existing deployed-model drawdown guards"
+  ],
+  "remaining_evidence_and_activation_requirements": [
+    "A candidate must actually qualify; no profitable replacement is asserted.",
+    "Future forward observations cannot be manufactured or completed immediately.",
+    "The generated-rule simulator is not a full live-gate replay and uses hypothetical costs without a complete commission model.",
+    "Broker-unit cost calibration and independent live-gate parity validation remain required before promotion review.",
+    "The current top-down M5 path does not automatically load generated evolved rules; a qualified candidate requires a reviewed integration before broker use.",
+    "Passing shadow screens never enables a broker adapter, changes the current trader, or constitutes permission to activate a model."
+  ],
+  "orders_sent_by_this_workflow": 0,
+  "live_policy_changed": false,
+  "broker_eligible": false
+}

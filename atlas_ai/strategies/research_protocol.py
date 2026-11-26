@@ -8,6 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = (
+    "atlas_ai/strategies/governed_trial.py",
     "atlas_ai/strategies/research_protocol.py", "atlas_ai/strategies/research_worker.py",
     "atlas_ai/strategies/strategy_factory.py", "atlas_ai/strategies/strategy_inventor.py",
     "atlas_ai/strategies/dna.py", "atlas_ai/strategies/gold_validator.py",

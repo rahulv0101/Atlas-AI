@@ -24,6 +24,7 @@ from atlas_ai.strategies.gold_validator import GoldValidator
 from atlas_ai.strategies.strategy_factory import StrategyFactory
 from atlas_ai.strategies.strategy_inventor import StrategyInventor
 from atlas_ai.strategies.research_protocol import freeze, source_hashes, validate, frozen_settings, gene_hash
+from atlas_ai.strategies.governed_trial import freeze_trial, review as review_trial
 
 
 def summary(rows):
@@ -129,7 +130,11 @@ class StrategyResearchWorker:
             current_hashes = source_hashes()
             if current_hashes != self._loaded_source_hashes:
                 raise RuntimeError("research_source_changed_restart_required")
-            for batch in state["batches"][-4:]:
+            pinned = state.get('governed_trial')
+            if pinned is not None:
+                pinned['forward_integrity'] = validate(pinned, self.settings, current_hashes)
+            active_trial = pinned is not None and review_trial(pinned, now)['state'] == 'collecting_forward'
+            for batch in state["batches"][-4:] + ([pinned] if active_trial else []):
                 integrity = validate(batch, self.settings, current_hashes)
                 batch["forward_integrity"] = integrity
                 if integrity != "verified_frozen_protocol":
@@ -138,6 +143,8 @@ class StrategyResearchWorker:
                 experiment_settings = frozen_settings(self.settings, batch)
                 for candidate in batch["candidates"]:
                     cursor = pd.Timestamp(candidate["next_forward_at"])
+                    if cursor.tzinfo is not None:
+                        cursor = cursor.tz_convert('UTC').tz_localize(None)
                     indices = frame.index[frame["time"] >= cursor]
                     if not len(indices):
                         continue
@@ -176,6 +183,7 @@ class StrategyResearchWorker:
                     training, _ = evaluate(chromosome, train, self.settings, stop_event=self.stop_event)
                     heldout, _ = evaluate(chromosome, holdout, self.settings, stop_event=self.stop_event)
                     candidates.append({"chromosome": chromosome.to_dict(), "training": summary(training),
+                                       "training_rows": training, "holdout_rows": heldout,
                                        "holdout": summary(heldout), "forward": [], "forward_summary": summary([]),
                                        "next_forward_at": (frame["time"].iloc[-1] + pd.Timedelta(minutes=self.settings.timeframe_minutes)).isoformat(),
                                        "promotion": "research_only_not_broker_eligible"})
@@ -203,6 +211,20 @@ class StrategyResearchWorker:
                 state["batches"][-1]["forward_integrity"] = "verified_frozen_protocol"
                 for candidate in candidates:
                     candidate["frozen_gene_sha256"] = gene_hash(candidate["chromosome"])
+                previous_trial = state.get('governed_trial')
+                if previous_trial is not None:
+                    previous_review = review_trial(previous_trial, now)
+                    if previous_review['state'] in {'quarantined', 'rejected_historical', 'rejected_forward', 'insufficient_activity'}:
+                        # Keep the rejected experiment inspectable; a new batch is a new
+                        # proposal, never a rewrite of the old frozen rules or evidence.
+                        if not self.dry_run:
+                            archive_id = hashlib.sha256(previous_trial['identity_sha256'].encode()).hexdigest()
+                            atomic_json(self.path.parent/'governed_archive'/(archive_id+'.json'),
+                                        {'trial': previous_trial, 'review': previous_review})
+                        state['last_governed_review'] = previous_review
+                        state['governed_trial'] = None
+                if state.get('governed_trial') is None:
+                    state['governed_trial'] = freeze_trial(state['batches'][-1], now)
                 state["last_created_at"] = now.isoformat()
                 # Keep only four active batches; archive completed research without
                 # allowing old replay history to grow the live worker indefinitely.
@@ -211,6 +233,13 @@ class StrategyResearchWorker:
                         key = hashlib.sha256(archived["created_at"].encode()).hexdigest()[:16]
                         atomic_json(self.path.parent / "archive" / (key + ".json"), archived)
                 state["batches"] = state["batches"][-4:]
+            state['governed_review'] = review_trial(state.get('governed_trial'), now)
+            if state.get('governed_trial') is None:
+                latest_candidates = (state['batches'][-1] if state['batches'] else {}).get('candidates', [])
+                state['governed_review']['candidate_screen'] = [
+                    {'training': c['training'], 'holdout': c['holdout'],
+                     'fresh_detailed_evidence': 'training_rows' in c and 'holdout_rows' in c}
+                    for c in latest_candidates]
             state.update(checked_at=now.isoformat(), mode="research_only", timestamp_basis="UTC", orders_sent=0,
                          limitations=["Recorded spread plus hypothetical slippage; commission model not supplied.",
                                       "Historical holdout is not forward trading; repeated research involves multiple comparisons.",
@@ -232,6 +261,9 @@ class StrategyResearchWorker:
                           "unverified_protocol_forward_trades": sum(len(c["forward"]) for b in state["batches"]
                               if b.get("forward_integrity") != "verified_frozen_protocol" for c in b["candidates"]),
                           "forward_trades": sum(len(c["forward"]) for b in state["batches"] for c in b["candidates"])}
+                report['governed_trial'] = state['governed_review']
+                if state.get('last_governed_review'):
+                    report['last_governed_trial'] = state['last_governed_review']
                 atomic_json(Path(self.store.base) / "evolution_scheduler_state.json", report)
             return state
 
