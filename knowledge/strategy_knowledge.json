@@ -76,7 +76,7 @@
     },
     {
       "name": "combined_smc",
-      "description": "Observer-only SMC framework; it cannot execute trades. Version smc_framework_v4 has two explicit setup families: a liquidity-sweep reversal and a break-of-structure continuation. Both share D1/H4 direction, H1/M15 pullback context, recent M5 reaction-zone evidence, closed-candle confirmation, structural protection and a higher-timeframe target. A continuation does not require a prior liquidity sweep.",
+      "description": "Observer-only SMC framework; it cannot execute trades. Version smc_framework_v4 has two explicit setup families: a liquidity-sweep reversal and a break-of-structure continuation. Both share D1/H4 direction, H1/M15 pullback context, recent M5 reaction-zone evidence, closed-candle confirmation, structural protection and a higher-timeframe target. A continuation does not require a prior liquidity sweep. Separate v6 research variants now use H1 direction with M5 event/FVG/order-block retests or M5 sweep/reclaims. They are diagnostic paper models, have not passed the required sample stages, and have no broker authority. The conditions below describe the original v4 observer.",
       "conditions": [
         "D1/H4 direction must agree and both H1/M15 setup frames must be available.",
         "A recent closed M5 pullback must have reached the direction-appropriate half of an H1 or M15 range; entry can follow confirmation outside that half while remaining within the H4 reference range.",
@@ -87,6 +87,34 @@
       ],
       "notes": "This is a separately frozen research hypothesis, not a broker strategy. Previous v1/v2/v3 experiments produced zero complete trades and are preserved. Historical inputs are reused diagnostics; fresh forward validation is separate. No automatic promotion or risk-limit changes are permitted. The completed reused six-month v4 replay generated two complete signals: one simulated 0.01-lot trade lost about R45.21, and one was rejected by the nominal risk budget. All review stages failed; the strategy remains paper-only and has no proven edge. A separate v5 matched diagnostic compared event-retest and sweep-reclaim entries: 80 complete signals, 78 above the initial R50 simulation risk budget at minimum lot. Only two simulated trades occurred, neither model passed development, and neither was selected for forward paper or broker execution. The active v4 observer is unchanged. These nominal figures do not describe the actual account balance.",
       "voice_summary": "The SMC framework is observer-only and cannot execute trades. It tests sweep reversal and BOS continuation as separate setups, with shared higher-timeframe context, confirmed retests and risk checks."
+    },
+    {
+      "name": "smc_h1_event_retest_v6",
+      "description": "Research-only H1-direction/M5-entry model: first fresh FVG or order-block retest after M5 impulse and confirmed structure break. Not broker activated.",
+      "conditions": [
+        "Closed H1 direction confirms the M5 entry; D1/H4/M15 direction agreement is not required.",
+        "Existing closed-candle/quote validation and structural stop/target geometry remain required.",
+        "A model-specific historical screen, independent 30+30 forward outcomes and full live-gate review are required before any activation consideration."
+      ],
+      "risks": [
+        "Stage samples are insufficient; profitability and natural broker lifecycle are unproven.",
+        "Frozen conversion, margin and fees are historical approximations."
+      ],
+      "status": "diagnostic_paper_only"
+    },
+    {
+      "name": "smc_h1_sweep_reclaim_v6",
+      "description": "Research-only H1-direction/M5-entry model: liquidity sweep followed by the first directional closed-M5 reclaim. Not broker activated.",
+      "conditions": [
+        "Closed H1 direction confirms the M5 entry; D1/H4/M15 direction agreement is not required.",
+        "Existing closed-candle/quote validation and structural stop/target geometry remain required.",
+        "A model-specific historical screen, independent 30+30 forward outcomes and full live-gate review are required before any activation consideration."
+      ],
+      "risks": [
+        "Stage samples are insufficient; profitability and natural broker lifecycle are unproven.",
+        "Frozen conversion, margin and fees are historical approximations."
+      ],
+      "status": "diagnostic_paper_only"
     }
   ],
   "operator_teaching_labels": {
@@ -138,5 +166,26 @@
     "does_not_force_equal_trade_counts": true,
     "source": "atlas_ai/learning/online_allocator.py",
     "authority": "Factual description of operator-requested code change, not a separate runtime control."
+  },
+  "h1_m5_research_variants": {
+    "models": [
+      "smc_h1_event_retest_v6",
+      "smc_h1_sweep_reclaim_v6"
+    ],
+    "status": "diagnostic_paper_only_not_broker_activated",
+    "direction_timeframe": "H1",
+    "entry_timeframe": "M5",
+    "context_only_direction_timeframes": [
+      "D1",
+      "H4",
+      "M15"
+    ],
+    "entry_families": [
+      "first FVG or order-block event retest",
+      "liquidity sweep followed by the first directional reclaim close"
+    ],
+    "historical_screen_passed": false,
+    "report": "docs/SMC_H1_RESEARCH_20261126.json",
+    "authority": "Informational research summary; never a selection, risk, or execution control."
   }
 }

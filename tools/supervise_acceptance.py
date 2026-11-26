@@ -233,6 +233,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     from tools.entry_forecast_observer import ensure as ensure_entry_forecasts
     try:result['entry_forecasts']=ensure_entry_forecasts(plan['storage_dir'],state,can_start=can_start and remaining>0,now=now)
     except Exception as exc:result['entry_forecasts']={'state':'blocked_evidence_review_required','error':type(exc).__name__,'orders_sent':0,'broker_eligible':False}
+    from tools.smc_diagnostic_cohort import ensure as ensure_smc_cohort
+    try:result['smc_h1_diagnostics']=ensure_smc_cohort(plan['storage_dir'],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:result['smc_h1_diagnostics']={'state':'blocked_review_required','error':type(exc).__name__,'reason':str(exc),'orders_sent':0,'broker_eligible':False}
     return result
 
 

@@ -112,6 +112,48 @@ def test_supervised_worker_uses_frozen_source_and_authoritative_storage(tmp_path
     assert 'frozen_source' in launch.call_args.args[0][1]
 
 
+def test_authorization_pause_can_resume_only_after_verified_matching_account(tmp_path,monkeypatch):
+    from unittest.mock import Mock
+    from types import SimpleNamespace
+    from tools import smc_validation as tool
+    from tools.learn_candidate_ranker import save_signed,digest
+    from atlas_ai.atomic_files import atomic_json
+    from atlas_ai.testing.smc_validation import METHOD
+    run=tmp_path/'run';run.mkdir()
+    manifest={'schema':'atlas_smc_validation_v1','method':METHOD,'source_hashes':{},'account_scope':'scope',
+        'broker_eligible':False,'orders_sent':0,'deadline':(NOW+pd.Timedelta(days=1)).isoformat()}
+    save_signed(run,'manifest',manifest)
+    checkpoint={'manifest_sha256':digest(run/'manifest.json'),'cases':[],'pending':None}
+    save_signed(run,'paper_checkpoint',checkpoint)
+    atomic_json(run/'paper_status.json',{'state':'blocked_review_required','reason':"MT5 initialize failed: (-6, 'Terminal: Authorization failed')"})
+    monkeypatch.setattr(tool,'load_settings',lambda:SimpleNamespace())
+    monkeypatch.setattr(tool,'account_scope',lambda cfg:'scope')
+    check=Mock();monkeypatch.setattr(tool,'check_account',check)
+    monkeypatch.setattr(tool.mt5,'shutdown',lambda:None)
+    launch=Mock(return_value=SimpleNamespace(pid=123))
+    result=tool.ensure_directory(tmp_path,run,{},can_start=True,now=NOW.to_pydatetime(),start=launch)
+    assert result['state']=='smc_paper_observer_launched' and check.call_count==1
+    assert tool.signed(run,'manifest')==manifest and tool.signed(run,'paper_checkpoint')==checkpoint
+    check.side_effect=ValueError('matching_demo_account_required');launch.reset_mock()
+    with pytest.raises(ValueError,match='matching_demo_account_required'):
+        tool.ensure_directory(tmp_path,run,{},can_start=True,now=NOW.to_pydatetime(),start=launch)
+    launch.assert_not_called()
+
+
+def test_integrity_pause_is_never_cleared_by_healthy_broker(tmp_path):
+    from unittest.mock import Mock
+    from tools import smc_validation as tool
+    from tools.learn_candidate_ranker import save_signed
+    from atlas_ai.atomic_files import atomic_json
+    run=tmp_path/'run';run.mkdir()
+    save_signed(run,'manifest',{'schema':'atlas_smc_validation_v1','broker_eligible':False,
+        'deadline':(NOW+pd.Timedelta(days=1)).isoformat()})
+    atomic_json(run/'paper_status.json',{'state':'blocked_review_required','reason':'paper_manifest_changed'})
+    launch=Mock()
+    assert tool.ensure_directory(tmp_path,run,{},can_start=True,now=NOW.to_pydatetime(),start=launch)['reason']=='paper_manifest_changed'
+    launch.assert_not_called()
+
+
 def test_smc_progress_answer_keeps_paper_and_broker_evidence_separate():
     from atlas_ai.research_status import research_answer
     from atlas_ai.brain.intent import classify_intent_candidates

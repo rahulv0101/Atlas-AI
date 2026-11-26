@@ -1,0 +1,937 @@
+{
+  "schema": "atlas_h1_smc_research_audit_v1",
+  "checked_at_utc": "2026-11-26T19:51:45.909685+00:00",
+  "protocol_sha256": "85dd82b0f2e3fe7aaca30670479c17ce42b04971c9dca14990c96d2eb94d5739",
+  "report_sha256": "409c0d241f44977cd8f766bba839ceb56462f1a9e466cb67a261f20630714bf5",
+  "study_directory": "storage\\smc_h1_comparison_20261126",
+  "change": "New separately named H1-direction/M5-entry research variants; existing broker strategies and frozen v5 controls are unchanged.",
+  "models": {
+    "smc_event_retest_v5": {
+      "development": {
+        "base": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:displacement": 113,
+            "stage:structure_reclaim": 220,
+            "stage:M5_retest": 36,
+            "session_or_close_buffer": 312,
+            "stage:setup_location": 165,
+            "input_or_outcome_gap": 268,
+            "stage:entry_zone": 9,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:displacement": 113,
+            "stage:structure_reclaim": 220,
+            "stage:M5_retest": 36,
+            "session_or_close_buffer": 312,
+            "stage:setup_location": 165,
+            "input_or_outcome_gap": 268,
+            "stage:entry_zone": 9,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        }
+      },
+      "holdout": {
+        "base": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:setup_location": 95,
+            "stage:structure_reclaim": 227,
+            "stage:displacement": 45,
+            "split_boundary_purge": 10,
+            "stage:M5_retest": 8
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:setup_location": 95,
+            "stage:structure_reclaim": 227,
+            "stage:displacement": 45,
+            "split_boundary_purge": 10,
+            "stage:M5_retest": 8
+          },
+          "screen_passed": false
+        }
+      }
+    },
+    "smc_sweep_reclaim_v5": {
+      "development": {
+        "base": {
+          "simulated_trades": 3,
+          "wins": 3,
+          "net_cash_zar": 258.73,
+          "mean_r": 0.5805883920896108,
+          "stage_reviews": {
+            "development": {
+              "trades": 3,
+              "days": 2,
+              "wins": 3,
+              "losses": 0,
+              "mean_r": 0.5805883920896108,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 258.73463318097987,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:sweep_reclaim": 337,
+            "stage:liquidity_target": 2,
+            "stage:candidate_ready": 3,
+            "open_paper_position": 36,
+            "session_or_close_buffer": 312,
+            "stage:setup_location": 165,
+            "input_or_outcome_gap": 268,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 3,
+          "wins": 3,
+          "net_cash_zar": 242.32,
+          "mean_r": 0.5242817423354255,
+          "stage_reviews": {
+            "development": {
+              "trades": 3,
+              "days": 2,
+              "wins": 3,
+              "losses": 0,
+              "mean_r": 0.5242817423354255,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 242.32133327100212,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:sweep_reclaim": 337,
+            "stage:liquidity_target": 2,
+            "stage:candidate_ready": 3,
+            "open_paper_position": 36,
+            "session_or_close_buffer": 312,
+            "stage:setup_location": 165,
+            "input_or_outcome_gap": 268,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        }
+      },
+      "holdout": {
+        "base": {
+          "simulated_trades": 1,
+          "wins": 0,
+          "net_cash_zar": -82.36,
+          "mean_r": -1.0061814202478296,
+          "stage_reviews": {
+            "development": {
+              "trades": 1,
+              "days": 1,
+              "wins": 0,
+              "losses": 1,
+              "mean_r": -1.0061814202478296,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 1.0061814202478296,
+              "net_cash": -82.35668520000216,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:setup_location": 95,
+            "stage:sweep_reclaim": 266,
+            "stage:liquidity_target": 1,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12,
+            "split_boundary_purge": 10
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 1,
+          "wins": 0,
+          "net_cash_zar": -88.12,
+          "mean_r": -1.0057749164156664,
+          "stage_reviews": {
+            "development": {
+              "trades": 1,
+              "days": 1,
+              "wins": 0,
+              "losses": 1,
+              "mean_r": -1.0057749164156664,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 1.0057749164156664,
+              "net_cash": -88.11826399999693,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:setup_location": 95,
+            "stage:sweep_reclaim": 266,
+            "stage:liquidity_target": 1,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12,
+            "split_boundary_purge": 10
+          },
+          "screen_passed": false
+        }
+      }
+    },
+    "smc_h1_event_retest_v6": {
+      "development": {
+        "base": {
+          "simulated_trades": 1,
+          "wins": 0,
+          "net_cash_zar": -75.07,
+          "mean_r": -1.0074723846654865,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 1,
+              "days": 1,
+              "wins": 0,
+              "losses": 1,
+              "mean_r": -1.0074723846654865,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 1.0074723846654865,
+              "net_cash": -75.06998260000495,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:displacement": 175,
+            "stage:structure_reclaim": 310,
+            "stage:M5_retest": 24,
+            "session_or_close_buffer": 312,
+            "input_or_outcome_gap": 268,
+            "stage:higher_timeframe_confluence": 5,
+            "stage:entry_zone": 16,
+            "split_boundary_purge": 6,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 1,
+          "wins": 0,
+          "net_cash_zar": -80.83,
+          "mean_r": -1.0069360675514736,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 1,
+              "days": 1,
+              "wins": 0,
+              "losses": 1,
+              "mean_r": -1.0069360675514736,
+              "profit_factor": 0.0,
+              "max_drawdown_r": 1.0069360675514736,
+              "net_cash": -80.8315614000074,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:displacement": 175,
+            "stage:structure_reclaim": 310,
+            "stage:M5_retest": 24,
+            "session_or_close_buffer": 312,
+            "input_or_outcome_gap": 268,
+            "stage:higher_timeframe_confluence": 5,
+            "stage:entry_zone": 16,
+            "split_boundary_purge": 6,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12
+          },
+          "screen_passed": false
+        }
+      },
+      "holdout": {
+        "base": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:displacement": 117,
+            "stage:structure_reclaim": 240,
+            "stage:M5_retest": 17,
+            "stage:liquidity_target": 1,
+            "split_boundary_purge": 10
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 0,
+          "wins": 0,
+          "net_cash_zar": 0,
+          "mean_r": null,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:displacement": 117,
+            "stage:structure_reclaim": 240,
+            "stage:M5_retest": 17,
+            "stage:liquidity_target": 1,
+            "split_boundary_purge": 10
+          },
+          "screen_passed": false
+        }
+      }
+    },
+    "smc_h1_sweep_reclaim_v6": {
+      "development": {
+        "base": {
+          "simulated_trades": 5,
+          "wins": 4,
+          "net_cash_zar": 181.46,
+          "mean_r": 0.15589063615923943,
+          "stage_reviews": {
+            "development": {
+              "trades": 5,
+              "days": 3,
+              "wins": 4,
+              "losses": 1,
+              "mean_r": 0.15589063615923943,
+              "profit_factor": 1.7740824312283852,
+              "max_drawdown_r": 1.0069382140081504,
+              "net_cash": 181.46243773371677,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:sweep_reclaim": 470,
+            "stage:liquidity_target": 3,
+            "stage:candidate_ready": 5,
+            "open_paper_position": 60,
+            "session_or_close_buffer": 312,
+            "input_or_outcome_gap": 268,
+            "stage:higher_timeframe_confluence": 5,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 5,
+          "wins": 4,
+          "net_cash_zar": 159.58,
+          "mean_r": 0.12226008646587157,
+          "stage_reviews": {
+            "development": {
+              "trades": 5,
+              "days": 3,
+              "wins": 4,
+              "losses": 1,
+              "mean_r": 0.12226008646587157,
+              "profit_factor": 1.607366404581697,
+              "max_drawdown_r": 1.0064771902396712,
+              "net_cash": 159.57551165374903,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "stage:sweep_reclaim": 470,
+            "stage:liquidity_target": 3,
+            "stage:candidate_ready": 5,
+            "open_paper_position": 60,
+            "session_or_close_buffer": 312,
+            "input_or_outcome_gap": 268,
+            "stage:higher_timeframe_confluence": 5,
+            "split_boundary_purge": 6
+          },
+          "screen_passed": false
+        }
+      },
+      "holdout": {
+        "base": {
+          "simulated_trades": 1,
+          "wins": 1,
+          "net_cash_zar": 155.16,
+          "mean_r": 1.2457362861836108,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 1,
+              "days": 1,
+              "wins": 1,
+              "losses": 0,
+              "mean_r": 1.2457362861836108,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 155.15565239999754,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:sweep_reclaim": 362,
+            "split_boundary_purge": 10,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12
+          },
+          "screen_passed": false
+        },
+        "stress": {
+          "simulated_trades": 1,
+          "wins": 1,
+          "net_cash_zar": 149.4,
+          "mean_r": 1.1464624963057113,
+          "stage_reviews": {
+            "development": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "validation": {
+              "trades": 0,
+              "days": 0,
+              "wins": 0,
+              "losses": 0,
+              "mean_r": null,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 0,
+              "review_passed": false
+            },
+            "holdout": {
+              "trades": 1,
+              "days": 1,
+              "wins": 1,
+              "losses": 0,
+              "mean_r": 1.1464624963057113,
+              "profit_factor": null,
+              "max_drawdown_r": 0.0,
+              "net_cash": 149.39659979999507,
+              "review_passed": false
+            }
+          },
+          "stage_counts": {
+            "session_or_close_buffer": 197,
+            "input_or_outcome_gap": 194,
+            "stage:sweep_reclaim": 362,
+            "split_boundary_purge": 10,
+            "stage:candidate_ready": 1,
+            "open_paper_position": 12
+          },
+          "screen_passed": false
+        }
+      }
+    }
+  },
+  "periods": {
+    "development_start": "2026-11-16T09:50:00+00:00",
+    "development_end": "2026-11-20T12:45:00+00:00",
+    "holdout_start": "2026-11-24T00:00:00+00:00",
+    "holdout_end": "2026-11-26T19:35:00+00:00"
+  },
+  "virtual_initial_balance_zar": 100000.0,
+  "cost_method": {
+    "base": "Frozen reference fees/spread, 3 points slippage per side",
+    "stress": "Double reported spread and fees; same 3 points slippage per side"
+  },
+  "historically_qualified": [],
+  "full_live_policy_parity": false,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "auto_promotion": false,
+  "diagnostic_registry_sha256": "e7acd620befade8617c3d03f435982b457c0070438801896a6a52025f72ea6ca",
+  "forward_models": {
+    "smc_event_retest_v5": {
+      "state": "collecting_paper",
+      "paper_trades": 0,
+      "pending": false
+    },
+    "smc_sweep_reclaim_v5": {
+      "state": "collecting_paper",
+      "paper_trades": 0,
+      "pending": false
+    },
+    "smc_h1_event_retest_v6": {
+      "state": "collecting_paper",
+      "paper_trades": 0,
+      "pending": false
+    },
+    "smc_h1_sweep_reclaim_v6": {
+      "state": "collecting_paper",
+      "paper_trades": 0,
+      "pending": false
+    }
+  },
+  "legacy_smc_observer_recovery": {
+    "state": "collecting_paper",
+    "manifest_reset": false,
+    "cases_reset": false,
+    "original_deadline": "2026-12-10T19:51:19.852433+00:00",
+    "reason": "Strict matching-demo check succeeded after historical authorization failure; archived previous failure before resuming frozen code."
+  },
+  "data_integrity": [
+    "Older settled-forecast journal remains blocked after a real tick-volume revision; no historical bar, forecast or result was overwritten.",
+    "Old calibration lane also fails current/frozen settings equality; it is not silently rebased or pooled with the new diagnostic cohort.",
+    "The latest broker quote stopped at 2026-11-26T19:30:37Z during this audit. Current diagnostics must wait for fresh data; no market-closure cause is asserted."
+  ],
+  "limitations": [
+    "Development candles were previously inspected; this is a bounded hypothesis test.",
+    "Later dates are a chronological holdout, not proof they were never inspected elsewhere.",
+    "Model-only bar replay omits some deployed gates and uses frozen conversion/margin/fee estimates.",
+    "Small stage samples fail the unchanged minimum of 30 trades per stage. No model qualifies.",
+    "Source costs are frozen estimates, not measured new entry/exit fills.",
+    "The remaining optional OpenAI credential rejection requires a valid replacement or the pending Gemini-only choice.",
+    "Earlier native-crash cause and this build's natural broker lifecycle remain unproven.",
+    "This short diagnostic comparison cannot meet 30 trades in every time split under the six-per-day research cap. It measures setup activity and paths, and is not a full historical qualification attempt. Thresholds were not lowered."
+  ],
+  "validation": {
+    "regression_suite_passed": 632,
+    "smc_model_suite_passed": 62,
+    "final_integration_suite_passed": 224,
+    "counts_overlap": true,
+    "real_broker_orders_sent_by_new_models": 0
+  },
+  "deployed_verification": {
+    "live_scan_consistency": true,
+    "decision_id": "662122cf50a6468198a5a50619b174a9",
+    "new_strategy_question_intent": "research_progress",
+    "new_strategy_answer": "The new H1/M5 SMC observer is running. It evaluates entries only when its data, session and paper-risk checks allow. The models have no broker authority. smc_event_retest_v5: 0 simulated cases; smc_sweep_reclaim_v5: 0 simulated cases; smc_h1_event_retest_v6: 0 simulated cases; smc_h1_sweep_reclaim_v6: 0 simulated cases. Historical screens passed: 0. Full trading-gate parity and an independent edge remain unproven.",
+    "source": "Live local API after reload; no diagnostic broker order sent."
+  }
+}

@@ -96,6 +96,14 @@ def test_cycle_exception_cannot_inherit_a_previous_fill_or_analysis():
     assert validate_record(failure)['verified']
 
 
+def test_stale_closed_input_before_analysis_is_a_data_wait_not_a_runtime_crash():
+    cycle={'decision_id':'current','as_of_utc':'2026-11-26T12:00:00Z','candles':{}}
+    result=cycle_failure(cycle,symbol='XAUUSD',timeframe='M5',error='stale_closed_candles')
+    assert result['action']=='blocked' and result['freshness_runtime']['is_stale']
+    assert result['current_execution']['state']=='not_submitted'
+    assert 'waiting for fresh' in result['message']
+
+
 def test_status_apis_preserve_scan_outcome_and_separate_older_fill(tmp_path, monkeypatch):
     from atlas_ai.memory.knowledge_store import KnowledgeStore
     from atlas_ai.ui_server import create_ui_app

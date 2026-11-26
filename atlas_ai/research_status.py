@@ -264,11 +264,52 @@ def load_research_progress(storage, *, now=None):
         result['entry_forecasts'].update(stale=age is None or age>180,broker_eligible=False,qualification_cases=0)
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['entry_forecasts']={'state':'unavailable','stale':True,'broker_eligible':False}
+    try:
+        registry=_read(storage/'smc_h1_diagnostic_active.json',signed=True)
+        if registry.get('broker_eligible') is not False or registry.get('auto_promotion') is not False:
+            raise ValueError('unexpected_SMC_diagnostic_authority')
+        directory=Path(registry['comparison_directory']).resolve();directory.relative_to(storage.resolve())
+        if hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest()!=registry['comparison_protocol_sha256']:
+            raise ValueError('SMC_comparison_protocol_changed')
+        observed=_read(storage/'smc_h1_diagnostic_status.json')
+        if observed.get('registry_sha256')!=hashlib.sha256((storage/'smc_h1_diagnostic_active.json').read_bytes()).hexdigest():
+            raise ValueError('SMC_diagnostic_registry_changed')
+        age=_age(observed.get('checked_at'),now)
+        study=_read(directory/'report.json',signed=True) if (directory/'report.json').exists() else {}
+        if study and study.get('protocol_sha256')!=registry['comparison_protocol_sha256']:raise ValueError('SMC_report_scope_changed')
+        model_views={name:dict(row) for name,row in observed.get('models',{}).items()}
+        for name,entry in registry.get('models',{}).items():
+            model_dir=Path(entry['run_dir']).resolve();model_dir.relative_to(storage.resolve())
+            if hashlib.sha256((model_dir/'manifest.json').read_bytes()).hexdigest()!=entry['manifest_sha256']:
+                raise ValueError('SMC_model_manifest_changed')
+            if (model_dir/'paper_status.json').exists() and name in model_views:
+                latest=_read(model_dir/'paper_status.json');observation=latest.get('latest_observation') or {}
+                model_views[name]['latest_rejection']=observation.get('reason')
+                if observation.get('stage')=='input_validation' and observation.get('reason') in {'stale_or_future_quote','stale_closed_candles'}:
+                    model_views[name]['data_state']='waiting_for_fresh_broker_data'
+                elif not observation and not latest.get('pending') and (latest.get('counts') or {}).get('session_risk_or_daily_limit',0):
+                    model_views[name]['data_state']='waiting_for_session_or_paper_risk_window'
+        result['h1_smc_diagnostics']={'state':observed.get('state'),'models':model_views,
+            'stale':age is None or age>180,'historically_qualified':study.get('historically_qualified',[]),
+            'comparison_state':study.get('state','running'),'broker_eligible':False,'orders_sent':0,
+            'note':'Model-only diagnostic paper. Independent trading edge, full live-gate parity and broker lifecycle remain unproven.'}
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['h1_smc_diagnostics']={'state':'unavailable_or_review_required','stale':True,'broker_eligible':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'new strategies' in q or 'h1 smc' in q or 'h1/m5 smc' in q:
+        cohort=progress.get('h1_smc_diagnostics') or {}
+        if cohort.get('stale',True):return 'The new H1/M5 SMC diagnostic report is unavailable or stale. Broker activation is not verified.'
+        waiting=any(row.get('data_state')=='waiting_for_fresh_broker_data' for row in cohort.get('models',{}).values())
+        text=('The new H1/M5 SMC observer is running but waiting for fresh broker data. The models have no broker authority.' if waiting else
+              'The new H1/M5 SMC observer is running. It evaluates entries only when its data, session and paper-risk checks allow. The models have no broker authority.')
+        if not voice:
+            text+=' '+ '; '.join(f"{name}: {row.get('paper_trades',0)} simulated cases" for name,row in cohort.get('models',{}).items())+'.'
+            text+=' Historical screens passed: '+str(len(cohort.get('historically_qualified',[])))+'. Full trading-gate parity and an independent edge remain unproven.'
+        return text
     if 'entry comparison' in q or 'entry forecasts' in q:
         observed=progress.get('entry_forecasts') or {}
         if observed.get('stale',True):return 'The fresh entry comparison is unavailable or stale. No candidate profitability or broker activation is verified.'

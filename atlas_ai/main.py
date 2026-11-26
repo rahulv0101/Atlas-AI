@@ -1192,7 +1192,9 @@ def run_live(poll_seconds: int, mode_override: str = "") -> None:
                 from atlas_ai.decision_record import cycle_failure
                 failure = cycle_failure(getattr(trader, "_decision_cycle", None),
                                         symbol=settings.symbol, timeframe=settings.timeframe, error=step_exc)
-                store.log_event("error", failure["message"], {
+                if str(step_exc)=='stale_closed_candles':
+                    failure['market_data_clock']=dict(getattr(getattr(trader,'feed',None),'last_fetch_meta',{}) or {})
+                store.log_event("risk" if failure["action"] == "blocked" else "error", failure["message"], {
                     **_process_meta(mode="live", role="cycle_error"), **failure,
                     "cycle_duration_ms": round((time.perf_counter() - cycle_started) * 1000.0, 2),
                 })

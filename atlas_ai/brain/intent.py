@@ -17,6 +17,9 @@ def classify_intent_candidates(query: str) -> list[IntentCandidate]:
 
     cands: list[IntentCandidate] = []
     add = cands.append
+    if (any(p in q for p in ('new strategies','h1 smc','h1/m5 smc','h1 m5 smc'))
+        and any(p in q for p in ('progress','doing','status','working','ready','active','activated','qualified','result','how is','how are'))):
+        add(IntentCandidate('research_progress',0.998,['specific_new_strategy_progress_terms']))
     if (any(p in q for p in ('m5 calibration','m5 proposal'))
         and any(p in q for p in ('progress','how is',"how's",'status','doing','result','complete','passed','fail'))):
         add(IntentCandidate('research_progress',0.995,['specific_M5_calibration_terms']))

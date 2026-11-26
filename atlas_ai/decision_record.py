@@ -91,8 +91,12 @@ def historical_execution(automation):
 
 def cycle_failure(cycle, *, symbol, timeframe, error):
     """Do not combine a new exception with the prior scan's analysis or fill."""
-    return bind_record({"symbol": symbol, "timeframe": timeframe, "action": "degraded",
-                        "message": "Live cycle error: " + str(error),
+    stale_before_analysis=(str(error)=='stale_closed_candles' and bool(cycle) and not cycle.get('candles'))
+    return bind_record({"symbol": symbol, "timeframe": timeframe, "action": "blocked" if stale_before_analysis else "degraded",
+                        "message": ("Market data is stale; waiting for fresh closed candles before analysing an entry." if stale_before_analysis
+                                    else "Live cycle error: " + str(error)),
+                        **({'freshness_runtime': {'is_stale': True, 'market_data_reasons': ['closed_candles_stale']}}
+                           if stale_before_analysis else {}),
                         "cycle_error": {"error": str(error)}, "decision_analysis": {},
                         "decision_trace": {}, "context_snapshot": {}}, cycle)
 

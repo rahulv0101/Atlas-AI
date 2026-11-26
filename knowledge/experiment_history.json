@@ -412,6 +412,23 @@
       "result": "rejected_cross_period_and_cost_validation",
       "report": "docs/SWEEP_RECLAIM_RESEARCH_20261126.json",
       "interpretation": "Earlier positive base-cost result failed higher costs and separate April data. A frozen 14-day fresh-demo forecast comparison is diagnostic only; it does not authorize trading."
+    },
+    {
+      "id": "smc_h1_context_comparison_20261126",
+      "models": [
+        "smc_h1_event_retest_v6",
+        "smc_h1_sweep_reclaim_v6"
+      ],
+      "controls": [
+        "smc_event_retest_v5",
+        "smc_sweep_reclaim_v5"
+      ],
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "result": "insufficient_stage_samples_no_activation",
+      "report": "docs/SMC_H1_RESEARCH_20261126.json",
+      "interpretation": "H1 sweep had five earlier-period simulated trades and one later holdout trade. Positive small-sample returns do not establish an edge. A matched four-model diagnostic observer preserves per-model cases; no pooling or broker orders."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

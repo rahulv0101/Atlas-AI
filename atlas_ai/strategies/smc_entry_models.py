@@ -18,8 +18,8 @@ RULES={'context':'D1_H4_direction_H1_M15_pullback_recent_M5_zone_reference',
     'minimum_reward_risk_before_costs':2.,'execution_authority':'none','automatic_promotion':False}
 
 
-def prepare(frame,context,quote,now,name):
-    base=context_observation(frame,context,quote,now)
+def prepare(frame,context,quote,now,name,*,context_provider=None):
+    base=(context_provider or context_observation)(frame,context,quote,now)
     keys=['mode','broker_eligible','orders_sent','auto_promotion','side','setup_context','trigger_bar_utc','evaluated_at','quote_at']
     report={k:base[k] for k in keys if k in base}
     report.update(strategy=name,schema='atlas_smc_entry_research_v5',rules=RULES,candidate=None)
@@ -29,8 +29,8 @@ def prepare(frame,context,quote,now,name):
     return f,report
 
 
-def event_retest(frame,context,quote,now):
-    name=MODELS[0];f,report=prepare(frame,context,quote,now,name)
+def event_retest(frame,context,quote,now,*,context_provider=None):
+    name=MODELS[0];f,report=prepare(frame,context,quote,now,name,context_provider=context_provider)
     if f is None:return report
     side=report['side'];sign=1 if side=='buy' else -1
     times=pd.to_datetime(f.time,utc=True);vol=atr(f);point=float(quote['point'])
@@ -82,8 +82,8 @@ def event_retest(frame,context,quote,now):
     return best
 
 
-def sweep_reclaim(frame,context,quote,now):
-    name=MODELS[1];f,report=prepare(frame,context,quote,now,name)
+def sweep_reclaim(frame,context,quote,now,*,context_provider=None):
+    name=MODELS[1];f,report=prepare(frame,context,quote,now,name,context_provider=context_provider)
     if f is None:return report
     side=report['side'];sign=1 if side=='buy' else -1;last=f.iloc[-1];times=pd.to_datetime(f.time,utc=True)
     point=float(quote['point']);entry=float(quote['ask'] if sign==1 else quote['bid']);spread=float(quote['ask'])-float(quote['bid']);vol=atr(f)

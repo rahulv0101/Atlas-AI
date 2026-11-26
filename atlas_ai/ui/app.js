@@ -1496,6 +1496,12 @@ function renderResearchProgress(status) {
   setText("research-next", settledForecasts.stale === false
     ? `Settled M5 collector: ${String(settledForecasts.state || "unknown").replace(/_/g, " ")}; ${settledForecasts.forecasts ?? 0} fresh candidate sets. Forecasts are not trades or completed validation. No broker authority.`
     : "Compare the frozen learner with the baseline on fresh paper data. Observations are not unique setups. No automatic strategy activation or risk changes.");
+  const cohort = progress.h1_smc_diagnostics || {};
+  if (Object.keys(cohort.models || {}).length) {
+    const models = Object.entries(cohort.models).map(([name, row]) =>
+      `${name.replace(/^smc_/, "").replaceAll("_", " ")}: ${row.paper_trades ?? 0} diagnostic paper cases${row.pending ? " + pending" : ""} (${String(row.data_state || row.state || "unknown").replaceAll("_", " ")})`);
+    setText("research-next", `${cohort.stale ? "Last known: " : ""}SMC comparison: ${models.join("; ")}. Historical screens passed: ${(cohort.historically_qualified || []).length}. These are simulated cases, not broker trades. No automatic activation.`);
+  }
 }
 
 function renderLearningLoop(status) {

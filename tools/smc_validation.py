@@ -49,6 +49,9 @@ def evaluator_for(manifest):
     if name=='smc_sweep_reclaim_v5':
         from atlas_ai.strategies.smc_entry_models import sweep_reclaim
         return sweep_reclaim
+    if name in {'smc_h1_event_retest_v6','smc_h1_sweep_reclaim_v6'}:
+        from atlas_ai.strategies.smc_h1_research import event_retest, sweep_reclaim
+        return event_retest if name=='smc_h1_event_retest_v6' else sweep_reclaim
     raise ValueError('unsupported_frozen_model')
 
 
@@ -204,18 +207,40 @@ def once(directory,now):
 def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
     storage=Path(storage);pointer=storage/'smc_validation_active.json'
     if not pointer.exists():return {'state':'not_configured'}
-    directory=Path(read(pointer)['run_dir']).resolve();directory.relative_to(storage.resolve());m=signed(directory,'manifest')
+    directory=Path(read(pointer)['run_dir']).resolve()
+    return ensure_directory(storage,directory,state,can_start=can_start,now=now,start=start)
+
+
+def ensure_directory(storage,directory,state,*,can_start,now,start=subprocess.Popen):
+    storage=Path(storage).resolve();directory=Path(directory).resolve()
+    directory.relative_to(storage);m=signed(directory,'manifest')
     if m.get('broker_eligible') is not False or m.get('schema')!='atlas_smc_validation_v1':raise ValueError('invalid_paper_boundary')
     if pd.Timestamp(now)>=pd.Timestamp(m['deadline']):return {'state':'deadline_reached'}
     try:
         with observation_lock(directory/'watch.lock'):pass
     except RuntimeError:return {'state':'existing_smc_paper_observer_running'}
     report=read(directory/'paper_status.json') if (directory/'paper_status.json').exists() else {}
-    if report.get('state') in {'blocked_review_required','completed_review_required','deadline_review_required'}:return {'state':report['state']}
+    recover_auth=(report.get('state')=='blocked_review_required'
+                  and str(report.get('reason','')).startswith('MT5 initialize failed:')
+                  and 'Authorization failed' in str(report.get('reason','')))
+    if report.get('state') in {'blocked_review_required','completed_review_required','deadline_review_required'} and not recover_auth:
+        return {'state':report['state'],'reason':report.get('reason')}
     if not can_start:return {'state':'waiting_for_backend_and_operator'}
     attempts=state.setdefault('smc_validation_starts',[]);attempts[:]=[t for t in attempts if now.timestamp()-t<3600]
     if len(attempts)>=3:return {'state':'restart_budget_exhausted'}
     validate(directory)
+    if recover_auth:
+        cfg=load_settings()
+        if account_scope(cfg)!=m['account_scope']:raise ValueError('account_scope_changed')
+        checkpoint=directory/'paper_checkpoint.json'
+        if checkpoint.exists() and signed(directory,'paper_checkpoint')['manifest_sha256']!=digest(directory/'manifest.json'):
+            raise ValueError('paper_manifest_changed')
+        with patch.object(mt5,'login',deny),patch.object(mt5,'order_send',deny):
+            try:check_account(cfg)
+            finally:mt5.shutdown()
+        atomic_json(directory/('auth_resume_'+now.strftime('%Y%m%dT%H%M%SZ')+'.json'),{
+            'previous_status':report,'manifest_sha256':digest(directory/'manifest.json'),
+            'reason':'Matching demo account is now verified; resume identical frozen model and checkpoint without resetting evidence.'})
     with (directory/'stdout.log').open('a') as out,(directory/'stderr.log').open('a') as err:
         env=dict(os.environ);env['STORAGE_DIR']=str(storage.resolve())
         child=start([sys.executable,str(directory/'frozen_source/tools/smc_validation.py'),'watch','--run-dir',str(directory)],
