@@ -1,4 +1,16 @@
 from tools.execution_quality_report import summarize,build_report
+
+
+def test_unscoped_and_other_account_fills_are_not_current_account_cost_evidence():
+    row={'schema':'atlas_execution_cost_v1','source':'entry','started_at':'now',
+         'order_id':'1','deal_id':'1','filled':True,'diagnostic':False,'adverse_fill_difference_bps':.2}
+    report=summarize([row,{**row,'order_id':'2','account_scope':'current'},
+                     {**row,'order_id':'3','account_scope':'other'}],account_scope='current')
+    assert report['measured_fill_observations']==3
+    assert report['scoped_measured_fill_observations']==1
+    assert report['unscoped_measured_fill_observations']==1
+    assert report['other_account_fill_observations']==1
+    assert not report['cost_calibration_ready']
 import json
 from tools.candidate_score_audit import filtered_cache
 

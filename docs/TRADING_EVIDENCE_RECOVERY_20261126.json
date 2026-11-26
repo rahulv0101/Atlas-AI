@@ -1,0 +1,52 @@
+{
+  "date_local": "2026-11-26",
+  "problem": "Acceptance reporting had stopped after a Windows file-access failure, leaving evidence stale and hiding an already observed historical protected lifecycle.",
+  "repairs": [
+    "Bounded retries for permission failures while reading evidence files.",
+    "A paper-report access failure no longer prevents independent natural-lifecycle observation.",
+    "Transient access failures keep the supervisor retrying within the original deadline; corruption still requires review.",
+    "A historical verified cycle no longer ends natural observation for later builds during the existing observation window.",
+    "Future dispatch observations carry account scope; legacy and other-account fills are separated from current-account calibration evidence.",
+    "Calibration blockers explicitly identify missing exit observations, broker-fee reconciliation and profile review.",
+    "Shared research status distinguishes historical protected cycles from unverified current-build lifecycle evidence.",
+    "A read-only auditor recomputes closures from current guarded-decision rules and checks raw journal entries, protection chronology and exit fills."
+  ],
+  "verified_historical_evidence": {
+    "date": "2026-11-23",
+    "strategy": "ema_crossover",
+    "closed_cycles_recomputed": 2,
+    "protected_cycles_verified_from_raw_journal": 1,
+    "entry_and_protection_observed_utc": "2026-11-23T08:01:43.079176+00:00",
+    "exit_observed_utc": "2026-11-23T08:01:53.128760+00:00",
+    "net_zar": -17.78,
+    "scope": "Natural guarded entry, broker-observed protective SL/TP, balanced exit and flat position for the earlier version.",
+    "does_not_prove": ["Profitability", "Current-build or new-model lifecycle", "Active trailing-stop changes", "Representative execution costs"]
+  },
+  "cost_evidence": {
+    "natural_entry_fill_observations": 2,
+    "measured_natural_exit_dispatches": 0,
+    "legacy_unscoped_fill_observations": 2,
+    "current_account_scoped_fill_observations": 0,
+    "diagnostic_fills_separate": 2,
+    "cost_calibration_ready": false,
+    "note": "Native broker stop/target exits do not generate an Atlas close dispatch. Missing quote/slippage measurements remain unknown. Legacy records are not retroactively assigned to an account."
+  },
+  "deployment_validation": {
+    "tests_passed": 72,
+    "acceptance_supervisor": "Resumed saved plan and evidence; both paper and natural collectors confirmed running.",
+    "original_deadline_utc": "2026-12-10T19:51:19.852433+00:00",
+    "natural_collector": "Fresh running observer with broker/history checks passing.",
+    "preflight": "Matching configured demo account, flat and no pending orders before service reload.",
+    "backend_ui_voice": "Reloaded to apply observation metadata and shared reporting changes."
+  },
+  "remaining": [
+    "The new generated candidate failed historical validation; no profitable replacement strategy is asserted.",
+    "Current-model forward qualification requires actual future evidence and cannot be completed by forcing trades.",
+    "Representative account-scoped costs and fees need measurement and independent profile review.",
+    "A qualified generated model still needs reviewed top-down M5 integration and existing promotion approval before broker use.",
+    "Historical lifecycle evidence cannot certify the current build without version linkage and review."
+  ],
+  "live_trading_policy_changed": false,
+  "orders_sent_by_repair_or_audit": 0,
+  "broker_eligible": false
+}

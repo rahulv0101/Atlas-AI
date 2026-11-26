@@ -35,8 +35,12 @@ from tools.m5_demo_observer import ensure as ensure_m5_demo
 
 
 def read(path,default=None):
-    try:return json.loads(Path(path).read_text(encoding="utf-8"))
-    except FileNotFoundError:return default
+    for attempt in range(3):
+        try:return json.loads(Path(path).read_text(encoding="utf-8"))
+        except FileNotFoundError:return default
+        except PermissionError:
+            if attempt == 2:raise
+            time.sleep(.05*(attempt+1))
 
 
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -130,11 +134,19 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
         atomic_json(Path(plan["storage_dir"])/"acceptance_execution_costs.json",costs)
         cost_status={k:costs[k] for k in ("checked_at","state","measured_fill_observations",
             "diagnostic_measured_fill_observations","invalid_journal_rows","cost_calibration_ready")}
+        cost_status.update({k:costs.get(k) for k in ('scoped_measured_fill_observations',
+            'unscoped_measured_fill_observations','scoped_entry_observations','scoped_exit_observations','calibration_blockers')})
     except Exception as exc:
         cost_status={"state":"report_failed","error":type(exc).__name__,"cost_calibration_ready":False}
     remaining=(datetime.fromisoformat(plan["deadline"])-now).total_seconds()/3600
-    paper=read(Path(plan["paper_run"])/"status.json",{})
-    outcomes=read(Path(plan["paper_run"])/"outcomes.json",[])
+    paper_accessible=True
+    try:
+        paper=read(Path(plan["paper_run"])/"status.json",{})
+        outcomes=read(Path(plan["paper_run"])/"outcomes.json",[])
+    except PermissionError:
+        # A Windows sharing conflict in one report must not starve the natural
+        # lifecycle observer. Do not start or repair the unreadable paper lane.
+        paper_accessible=False;paper={};outcomes=[]
     _,_,_,summary=load_checkpoint(Path(plan["journal"]).with_suffix(".checkpoint.json"),s,journal=plan["journal"])
     natural=summary.get("lifecycle_acceptance",{})
     natural_ready=(natural.get("state")=="verified" and bool(natural.get("verified_end_to_end_cycles"))
@@ -157,11 +169,19 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
         "first_stage_cases":min(needed,completed),"validation_stage_cases":min(needed,max(0,completed-needed)),
         "required_per_stage":needed,"paper_review_ready":paper.get("research_review_ready") is True,
         "natural_cycle_verified":natural_ready,"natural_cycles":natural.get("verified_end_to_end_cycles",[]),
+        "natural_cycle_scope":"Account-scoped historical protected cycles. This does not establish the current build or a new model's lifecycle.",
+        "current_build_cycle_verified":False,
         "state":"window_completed" if remaining<=0 else "evidence_available_for_operator_review" if paper_done and natural_ready else "collecting",
         "backend_available":bool(backend_ready),"collector_actions":{},"publication_evidence":publication,"execution_costs":cost_status,"broker_eligible":False,"orders_sent":0,
         "note":"Paper qualification and broker cycles are separate evidence streams; same-version strategy linkage requires operator review. No activation is performed."}
     for role,done,lockfile in (("paper",paper_done,Path(plan["paper_run"])/"observer.lock"),
-                               ("natural",natural_ready,Path(plan["storage_dir"])/"lifecycle_observer.lock")):
+                               # Keep observing through the existing window: a
+                               # historical cycle must not stop collection for newer builds.
+                               ("natural",False,Path(plan["storage_dir"])/"lifecycle_observer.lock")):
+        if role == 'paper' and not paper_accessible:
+            result['paper_evidence_error']='paper_file_access_unavailable'
+            result['collector_actions'][role]='waiting_for_evidence_file_access'
+            continue
         action="no_renewal_required" if done else "deadline_reached" if remaining<=0 else None
         if action is None and is_busy(role,lockfile):action="existing_collector_running"
         if action is None and not can_start:
@@ -213,6 +233,18 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
     return result
 
 
+def checked_tick(plan,state,now):
+    try:return tick(plan,state,now)
+    except PermissionError:
+        return {'state':'window_completed' if now>=datetime.fromisoformat(plan['deadline']) else 'waiting_for_evidence_file_access',
+                'checked_at':now.isoformat(),'error':'PermissionError',
+                'reason':'Evidence file access failed after bounded retries; preserving saved evidence and retrying within the original window.',
+                'broker_eligible':False,'orders_sent':0}
+    except Exception as exc:
+        return {'state':'blocked_evidence_review_required','checked_at':now.isoformat(),
+                'error':type(exc).__name__,'reason':str(exc),'broker_eligible':False,'orders_sent':0}
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument("mode",choices=("init","once","watch"))
     p.add_argument("--plan",type=Path,required=True);p.add_argument("--paper-run",type=Path);p.add_argument("--journal",type=Path)
@@ -226,12 +258,9 @@ def main():
         while True:
             if digest(a.plan)!=a.plan.with_suffix(".sha256").read_text().strip():raise ValueError("acceptance_plan_changed")
             plan=read(a.plan);state=read(state_path,{})
-            try:result=tick(plan,state,datetime.now(timezone.utc))
-            except Exception as exc:
-                result={"state":"blocked_evidence_review_required","checked_at":datetime.now(timezone.utc).isoformat(),
-                    "error":type(exc).__name__,"reason":str(exc),"broker_eligible":False,"orders_sent":0}
+            result=checked_tick(plan,state,datetime.now(timezone.utc))
             atomic_json(state_path,state);atomic_json(report,result)
-            if a.mode=="once" or result["state"] in {"window_completed","evidence_available_for_operator_review","blocked_evidence_review_required"}:return
+            if a.mode=="once" or result["state"] in {"window_completed","blocked_evidence_review_required"}:return
             time.sleep(60)
 
 

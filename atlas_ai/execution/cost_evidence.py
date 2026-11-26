@@ -60,6 +60,9 @@ def send_observed(send, request, settings, *, source, strategy="", decision_id="
                  "filled":bool(accepted and filled and filled>0),
                  "diagnostic":bool(diagnostic) if diagnostic is not None else strategy=="manual_broker_test",
                  "policy_note":"Request-to-fill observation, not venue latency or strategy performance. No automatic cost or policy changes."}
+            from atlas_ai.learning.observation_checkpoint import account_scope
+            row['account_scope'] = (account_scope(settings) if all(hasattr(settings, k) for k in
+                ('hfm_login', 'hfm_server', 'symbol', 'magic_number')) else None)
             _append_row(settings, row)
         except Exception:
             logging.warning("Execution cost evidence could not be saved",exc_info=True)

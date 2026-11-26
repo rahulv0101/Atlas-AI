@@ -20,7 +20,7 @@ def distribution(values):
     return {"samples":len(values),"mean":sum(values)/len(values),"p50":quantile(.5),"p95":quantile(.95)}
 
 
-def summarize(rows):
+def summarize(rows, *, account_scope=None):
     measured=[];diagnostic_fills=[];diagnostics=0;unknown=0;seen=set()
     for row in rows:
         if row.get("schema")!="atlas_execution_cost_v1":continue
@@ -35,6 +35,7 @@ def summarize(rows):
         if row.get("filled") is not True or value is None:
             unknown+=1;continue
         measured.append(row)
+    scoped=[r for r in measured if account_scope and r.get('account_scope')==account_scope]
     return {"checked_at":datetime.now(timezone.utc).isoformat(),"state":"collecting" if measured else "diagnostic_only" if diagnostic_fills else "awaiting_measured_fills",
         "measured_fill_observations":len(measured),"diagnostic_dispatches_excluded":diagnostics,
         "diagnostic_measured_fill_observations":len(diagnostic_fills),
@@ -45,6 +46,16 @@ def summarize(rows):
         "dispatch_ms":distribution([v for r in measured if (v:=finite(r.get("dispatch_ms"))) is not None and v>=0]),
         "entry_observations":sum(r.get("source")=="entry" for r in measured),
         "exit_observations":sum(r.get("source") in {"intraday_close","legacy_close"} for r in measured),
+        "scoped_measured_fill_observations":len(scoped),
+        "unscoped_measured_fill_observations":sum(not r.get('account_scope') for r in measured),
+        "other_account_fill_observations":sum(bool(r.get('account_scope')) and r.get('account_scope')!=account_scope for r in measured),
+        "scoped_entry_observations":sum(r.get('source')=='entry' for r in scoped),
+        "scoped_exit_observations":sum(r.get('source') in {'intraday_close','legacy_close'} for r in scoped),
+        "scope_note":"All-fill summaries are descriptive. Legacy unscoped and other-account fills cannot calibrate the current account.",
+        "calibration_blockers":["Representative account-scoped entry and exit samples are required.",
+            "Broker fees and complete lifecycle attribution require independent reconciliation.",
+            "Native stop/target exits may have no dispatch quote; missing exit costs must remain unknown.",
+            "A reviewed cost profile is required before any use in a new frozen validation."],
         "strategy_performance_proven":False,"cost_calibration_ready":False,"broker_eligible":False,"orders_sent":0,
         "limitations":["Request-to-fill differences are not a measurement of venue-only slippage.",
             "Exit attribution requires lifecycle evidence; entry and exit counts are not complete trades.",
@@ -52,7 +63,7 @@ def summarize(rows):
             "No measured costs are substituted automatically into frozen experiments or trading policy."]}
 
 
-def build_report(storage_dir):
+def build_report(storage_dir, *, settings=None):
     rows=[];invalid=0
     for path in sorted((Path(storage_dir)/"execution_quality").glob("dispatches_*.jsonl"))[-31:]:
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -61,7 +72,9 @@ def build_report(storage_dir):
                 if not isinstance(row,dict):raise ValueError("invalid_row")
                 rows.append(row)
             except (ValueError,TypeError):invalid+=1
-    result=summarize(rows);result["invalid_journal_rows"]=invalid
+    from atlas_ai.config.settings import load_settings
+    from atlas_ai.learning.observation_checkpoint import account_scope
+    result=summarize(rows,account_scope=account_scope(settings or load_settings()));result["invalid_journal_rows"]=invalid
     return result
 
 

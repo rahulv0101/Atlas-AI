@@ -41,6 +41,43 @@ def fixture(tmp_path,monkeypatch):
 def now():return datetime(2026,11,11,10,tzinfo=timezone.utc)
 
 
+def test_shared_file_read_retries_without_resetting_evidence(tmp_path, monkeypatch):
+    path=tmp_path/'status.json';path.write_text('{"state":"saved"}')
+    original=module.Path.read_text
+    attempts=[]
+    def read_text(self, *args, **kwargs):
+        if self==path and len(attempts)<2:
+            attempts.append(1);raise PermissionError('sharing conflict')
+        return original(self,*args,**kwargs)
+    monkeypatch.setattr(module.Path,'read_text',read_text)
+    monkeypatch.setattr(module.time,'sleep',lambda seconds:None)
+    assert module.read(path)=={'state':'saved'}
+    assert len(attempts)==2 and path.read_bytes()==b'{"state":"saved"}'
+
+
+def test_paper_access_failure_does_not_starve_independent_natural_observer(fixture, monkeypatch):
+    plan,_,paper,_=fixture
+    original=module.read
+    def read(path, default=None):
+        if module.Path(path)==paper/'status.json':raise PermissionError('sharing conflict')
+        return original(path,default)
+    monkeypatch.setattr(module,'read',read)
+    launch=Mock(return_value=123)
+    result=module.tick(plan,{},now(),is_busy=lambda *args:False,start_worker=launch,backend_ready=True)
+    assert result['collector_actions']['paper']=='waiting_for_evidence_file_access'
+    assert 'resumed_saved_evidence' in result['collector_actions']['natural']
+    assert [call.args[1] for call in launch.call_args_list]==['natural']
+
+
+def test_permission_errors_retry_within_original_window_but_corruption_stays_blocked(fixture, monkeypatch):
+    plan,_,_,_=fixture
+    monkeypatch.setattr(module,'tick',Mock(side_effect=PermissionError('sharing conflict')))
+    assert module.checked_tick(plan,{},now())['state']=='waiting_for_evidence_file_access'
+    assert module.checked_tick(plan,{},datetime.fromisoformat(plan['deadline'])+timedelta(seconds=1))['state']=='window_completed'
+    monkeypatch.setattr(module,'tick',Mock(side_effect=ValueError('source_changed')))
+    assert module.checked_tick(plan,{},now())['state']=='blocked_evidence_review_required'
+
+
 def test_six_trades_per_day_requires_at_least_ten_trading_days_for_both_stages(fixture):
     plan,_,paper,_=fixture
     assert plan["minimum_possible_trading_days"]==10
@@ -117,6 +154,18 @@ def test_review_evidence_does_not_automatically_promote_or_link_different_strate
     result=module.tick(plan,{},now(),is_busy=lambda *args:True,backend_ready=True)
     assert result["state"]=="evidence_available_for_operator_review" and not result["broker_eligible"]
     assert "same-version" in result["note"]
+
+
+def test_historical_cycle_does_not_end_observation_for_newer_builds(fixture):
+    plan,settings,_,journal=fixture
+    save_checkpoint(journal.with_suffix('.checkpoint.json'),settings,set(),{},set(),{'orders_sent':0,
+        'lifecycle_acceptance':{'state':'verified','verified_end_to_end_cycles':[{'strategy':'ema_crossover'}],
+                               'manual_and_forced_tests_count_as_acceptance':False}},journal=journal)
+    launch=Mock(return_value=123)
+    result=module.tick(plan,{},now(),is_busy=lambda role,*args:role=='paper',start_worker=launch,backend_ready=True)
+    assert result['natural_cycle_verified'] is True
+    assert result['current_build_cycle_verified'] is False
+    assert 'resumed_saved_evidence' in result['collector_actions']['natural']
 
 
 def test_cost_report_updates_independently_and_failures_remain_visible(fixture,monkeypatch):

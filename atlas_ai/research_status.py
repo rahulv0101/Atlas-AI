@@ -48,10 +48,10 @@ def load_research_progress(storage, *, now=None):
         acceptance = _read(storage / "acceptance_plan.status.json")
         age = _age(acceptance.get("checked_at"), now)
         result["acceptance"] = {key: acceptance.get(key) for key in
-            ("state", "deadline", "first_stage_cases", "validation_stage_cases", "required_per_stage", "natural_cycle_verified", "paper_evidence_error")}
+            ("state", "deadline", "first_stage_cases", "validation_stage_cases", "required_per_stage", "natural_cycle_verified", "natural_cycle_scope", "current_build_cycle_verified", "paper_evidence_error")}
         result["acceptance"].update(age_seconds=age, stale=age is None or age > 180)
         result["costs"] = {key: (acceptance.get("execution_costs") or {}).get(key) for key in
-                           ("state", "measured_fill_observations", "cost_calibration_ready")}
+                           ("state", "measured_fill_observations", "cost_calibration_ready", "scoped_measured_fill_observations", "unscoped_measured_fill_observations", "scoped_entry_observations", "scoped_exit_observations", "calibration_blockers")}
         result["archive"] = {key: (acceptance.get("publication_evidence") or {}).get(key) for key in ("state", "records", "replay_ready")}
     except (OSError, ValueError, TypeError, AttributeError):
         result["acceptance"] = {"state": "unavailable", "stale": True}

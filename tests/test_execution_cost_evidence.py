@@ -8,6 +8,16 @@ import pytest
 from atlas_ai.execution import cost_evidence as evidence
 
 
+def test_new_dispatch_evidence_is_bound_to_account_without_extra_broker_calls(monkeypatch):
+    from atlas_ai.learning.observation_checkpoint import account_scope
+    rows=[];monkeypatch.setattr(evidence,'_append_row',lambda settings,row:rows.append(row))
+    cfg=NS(hfm_login=1,hfm_server='Demo',symbol='XAUUSD',magic_number=123)
+    result=NS(retcode=mt5.TRADE_RETCODE_DONE,price=100.,volume=.01)
+    send=Mock(return_value=result)
+    evidence.send_observed(send,{'price':100.,'type':mt5.ORDER_TYPE_BUY},cfg,source='entry')
+    assert send.call_count==1 and rows[0]['account_scope']==account_scope(cfg)
+
+
 @pytest.mark.parametrize("side,price,expected",[(mt5.ORDER_TYPE_BUY,100.1,10),
     (mt5.ORDER_TYPE_SELL,99.9,10),(mt5.ORDER_TYPE_BUY,99.9,-10)])
 def test_cost_measurement_preserves_request_and_result_identity(monkeypatch,side,price,expected):
