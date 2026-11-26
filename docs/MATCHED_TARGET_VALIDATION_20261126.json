@@ -1,0 +1,84 @@
+{
+  "schema": "atlas_paired_target_validation_v1",
+  "registered_at": "2026-11-26T09:39:22.176017+00:00",
+  "candidate_id": "e77159f87f43d915fa57dcf94419d28b32ebd8da1f428208c40a24dc7d821c2e",
+  "candidate_report_sha256": "3ede76f1942f39d6836d410086d091ff827213266b60ae74be74041588228581",
+  "baseline_report_sha256": "0fbf63e1c3d2dc9a74ac77dca5f4b853e52369cd5328155c528c9d3f471219d4",
+  "baseline_unchanged": true,
+  "historical_periods_disjoint": true,
+  "historical_scope": "Separate date blocks, previously inspected; not blind or fresh demo evidence.",
+  "cost_model": {
+    "base": "Recorded lagged spread + 3 adverse points per side + frozen broker fees",
+    "stress": "Double spread + 6 adverse points per side + frozen broker fees",
+    "natural_fill_calibration_verified": false
+  },
+  "historical_gate": {
+    "passed": false,
+    "failures": [
+      {
+        "period": "earlier",
+        "cost_lane": "base",
+        "reasons": [
+          "fewer_than_30_trades",
+          "nonpositive_expectancy",
+          "profit_factor_below_1_1",
+          "drawdown_above_6R"
+        ]
+      },
+      {
+        "period": "earlier",
+        "cost_lane": "stress",
+        "reasons": [
+          "fewer_than_30_trades",
+          "nonpositive_expectancy",
+          "profit_factor_below_1_1",
+          "drawdown_above_6R"
+        ]
+      },
+      {
+        "period": "recent",
+        "cost_lane": "base",
+        "reasons": [
+          "fewer_than_30_trades"
+        ]
+      },
+      {
+        "period": "recent",
+        "cost_lane": "stress",
+        "reasons": [
+          "fewer_than_30_trades"
+        ]
+      }
+    ]
+  },
+  "fresh_demo_requirement": {
+    "candidate_id_must_match": "e77159f87f43d915fa57dcf94419d28b32ebd8da1f428208c40a24dc7d821c2e",
+    "must_begin_after_registration": "2026-11-26T09:39:22.176017+00:00",
+    "minimum_first_stage": 30,
+    "minimum_validation_stage": 30,
+    "rules": "Same frozen baseline and candidate on identical fresh data; positive net expectancy, PF>=1.1 and drawdown<=6R in both stages, including cost stress.",
+    "broker_proof": "Separate matching natural guarded entry, observed protection and balanced exit; exclude manual/forced diagnostics.",
+    "forbidden_substitutes": [
+      "Historical replay outcomes",
+      "Trades from another strategy or version",
+      "Manual and forced trades",
+      "Previously collected unrelated paper outcomes"
+    ]
+  },
+  "fresh_demo_observation": {
+    "state": "not_started_historical_rejected",
+    "first_stage_cases": 0,
+    "validation_stage_cases": 0,
+    "verified_candidate_broker_cycles": 0
+  },
+  "activation_blockers": [
+    "Historical qualification failed",
+    "Fresh candidate-specific demo validation incomplete",
+    "Measured cost reconciliation incomplete",
+    "Reviewed M5 integration and existing promotion approval required"
+  ],
+  "activation_allowed": false,
+  "broker_eligible": false,
+  "orders_sent": 0,
+  "live_policy_changed": false
+}
