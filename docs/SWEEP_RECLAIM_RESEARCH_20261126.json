@@ -1,0 +1,524 @@
+{
+  "state": "completed_research_only",
+  "protocol_sha256": "e466f5f03f71cad831b30f93080788170ea105e43958bf6938a20210aaf82a59",
+  "results": {
+    "earlier": {
+      "control_setups": 29,
+      "sweep_setups": 19,
+      "lanes": {
+        "base": {
+          "control": {
+            "trades": 16,
+            "wins": 6,
+            "net_cash": -374.79269256070256,
+            "profit_factor": 0.4895992491645411,
+            "max_drawdown_r": 7.024255654856058,
+            "mean_net_r": -0.2498708326076026,
+            "rejections": {
+              "open_position": 1,
+              "outside_active_session": 5,
+              "volatility_protection": 6,
+              "near_session_open_no_new_trades": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.375,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.5775211939476657,
+              0.09636428694079156
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 22,
+            "active_entry_days": 11,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 16,
+                "wins": 6,
+                "net_cash": -374.79269256007717,
+                "mean_net_r": -0.2498708326076026
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 16,
+            "wins": 10,
+            "net_cash": 101.10710355825722,
+            "profit_factor": 1.1397770419991597,
+            "max_drawdown_r": 2.7934686239686823,
+            "mean_net_r": 0.07079197258014026,
+            "rejections": {
+              "open_position": 1,
+              "outside_active_session": 1,
+              "volatility_protection": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.625,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.36675215971690306,
+              0.450816376972995
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 22,
+            "active_entry_days": 13,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 16,
+                "wins": 10,
+                "net_cash": 101.1071035586912,
+                "mean_net_r": 0.07079197258014026
+              }
+            }
+          }
+        },
+        "stress": {
+          "control": {
+            "trades": 16,
+            "wins": 6,
+            "net_cash": -412.7289053602144,
+            "profit_factor": 0.45611370984249433,
+            "max_drawdown_r": 7.376292583925316,
+            "mean_net_r": -0.27535247415694447,
+            "rejections": {
+              "open_position": 1,
+              "outside_active_session": 5,
+              "volatility_protection": 6,
+              "near_session_open_no_new_trades": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.375,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.6026001867062276,
+              0.07152525767002471
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 22,
+            "active_entry_days": 11,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 16,
+                "wins": 6,
+                "net_cash": -412.7289053600189,
+                "mean_net_r": -0.27535247415694447
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 16,
+            "wins": 9,
+            "net_cash": -43.498733528424054,
+            "profit_factor": 0.9456807087662197,
+            "max_drawdown_r": 3.880836828703809,
+            "mean_net_r": -0.03675381979739791,
+            "rejections": {
+              "open_position": 1,
+              "outside_active_session": 1,
+              "volatility_protection": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.5625,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.4920173242732508,
+              0.3533327319870421
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 22,
+            "active_entry_days": 13,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 16,
+                "wins": 9,
+                "net_cash": -43.49873352855307,
+                "mean_net_r": -0.03675381979739791
+              }
+            }
+          }
+        }
+      }
+    },
+    "recent": {
+      "control_setups": 5,
+      "sweep_setups": 3,
+      "lanes": {
+        "base": {
+          "control": {
+            "trades": 2,
+            "wins": 2,
+            "net_cash": 406.54401824390516,
+            "profit_factor": null,
+            "max_drawdown_r": 0.0,
+            "mean_net_r": 1.3296387211484724,
+            "rejections": {
+              "volatility_protection": 2,
+              "near_session_close_no_new_trades": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 1.0,
+            "mean_net_r_day_block_bootstrap_95_interval": null,
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 6,
+            "active_entry_days": 1,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 2,
+                "wins": 2,
+                "net_cash": 406.54401824391357,
+                "mean_net_r": 1.3296387211484724
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 2,
+            "wins": 2,
+            "net_cash": 55.73743174644187,
+            "profit_factor": null,
+            "max_drawdown_r": 0.0,
+            "mean_net_r": 0.3537716343769387,
+            "rejections": {
+              "volatility_protection": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 1.0,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              0.04277804265120949,
+              0.6647652261026679
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 6,
+            "active_entry_days": 2,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 2,
+                "wins": 2,
+                "net_cash": 55.73743174642916,
+                "mean_net_r": 0.3537716343769387
+              }
+            }
+          }
+        },
+        "stress": {
+          "control": {
+            "trades": 2,
+            "wins": 2,
+            "net_cash": 401.67297304375097,
+            "profit_factor": null,
+            "max_drawdown_r": 0.0,
+            "mean_net_r": 1.3164365431418368,
+            "rejections": {
+              "volatility_protection": 2,
+              "near_session_close_no_new_trades": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 1.0,
+            "mean_net_r_day_block_bootstrap_95_interval": null,
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 6,
+            "active_entry_days": 1,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 2,
+                "wins": 2,
+                "net_cash": 401.67297304394174,
+                "mean_net_r": 1.3164365431418368
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 2,
+            "wins": 2,
+            "net_cash": 48.25689804647118,
+            "profit_factor": null,
+            "max_drawdown_r": 0.0,
+            "mean_net_r": 0.30623043864480803,
+            "rejections": {
+              "volatility_protection": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 1.0,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              0.03557981432053851,
+              0.5768810629690776
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 6,
+            "active_entry_days": 2,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 2,
+                "wins": 2,
+                "net_cash": 48.256898046432006,
+                "mean_net_r": 0.30623043864480803
+              }
+            }
+          }
+        }
+      }
+    },
+    "additional_april": {
+      "control_setups": 16,
+      "sweep_setups": 23,
+      "lanes": {
+        "base": {
+          "control": {
+            "trades": 10,
+            "wins": 8,
+            "net_cash": 167.8477089270018,
+            "profit_factor": 1.7924184060427801,
+            "max_drawdown_r": 1.9622129804090997,
+            "mean_net_r": 0.03884256173302999,
+            "rejections": {
+              "volatility_protection": 4,
+              "outside_active_session": 2
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.8,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.34155078389692684,
+              0.4751704872609219
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 23,
+            "active_entry_days": 8,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 10,
+                "wins": 8,
+                "net_cash": 167.84770892700297,
+                "mean_net_r": 0.03884256173302999
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 20,
+            "wins": 8,
+            "net_cash": -351.95761937461793,
+            "profit_factor": 0.7759852348556161,
+            "max_drawdown_r": 4.2935118809889214,
+            "mean_net_r": -0.10208316127169688,
+            "rejections": {
+              "volatility_protection": 2,
+              "outside_active_session": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.4,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.6290094092897182,
+              0.42673255664680904
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 23,
+            "active_entry_days": 12,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 20,
+                "wins": 8,
+                "net_cash": -351.9576193750614,
+                "mean_net_r": -0.10208316127169688
+              }
+            }
+          }
+        },
+        "stress": {
+          "control": {
+            "trades": 10,
+            "wins": 8,
+            "net_cash": 245.96318353479728,
+            "profit_factor": 2.155509083258316,
+            "max_drawdown_r": 1.9754155138423246,
+            "mean_net_r": 0.0955802539179868,
+            "rejections": {
+              "volatility_protection": 4,
+              "outside_active_session": 2
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.8,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.3204420716731739,
+              0.5082897984380912
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 23,
+            "active_entry_days": 8,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_first_retest": {
+                "trades": 10,
+                "wins": 8,
+                "net_cash": 245.9631835345737,
+                "mean_net_r": 0.0955802539179868
+              }
+            }
+          },
+          "sweep_reclaim": {
+            "trades": 20,
+            "wins": 8,
+            "net_cash": -343.2230027108453,
+            "profit_factor": 0.7872252560476506,
+            "max_drawdown_r": 4.069728286758627,
+            "mean_net_r": -0.10545158260838683,
+            "rejections": {
+              "volatility_protection": 2,
+              "outside_active_session": 1
+            },
+            "full_live_policy_parity": false,
+            "broker_eligible": false,
+            "orders_sent": 0,
+            "strict_evidence_mode": false,
+            "win_rate": 0.4,
+            "mean_net_r_day_block_bootstrap_95_interval": [
+              -0.6314172669051603,
+              0.40655120842153963
+            ],
+            "uncertainty_scope": "Descriptive day-block bootstrap on reused data; not a prospective confidence guarantee.",
+            "observed_weekdays": 23,
+            "active_entry_days": 12,
+            "ambiguous_stop_first": 0,
+            "by_strategy": {
+              "research_h1_m5_sweep_reclaim": {
+                "trades": 20,
+                "wins": 8,
+                "net_cash": -343.22300271124004,
+                "mean_net_r": -0.10545158260838683
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "failures": [
+    {
+      "period": "earlier",
+      "cost": "base",
+      "reasons": [
+        "insufficient_trades"
+      ]
+    },
+    {
+      "period": "earlier",
+      "cost": "stress",
+      "reasons": [
+        "insufficient_trades",
+        "nonpositive_expectancy",
+        "profit_factor"
+      ]
+    },
+    {
+      "period": "recent",
+      "cost": "base",
+      "reasons": [
+        "insufficient_trades",
+        "no_expectancy_improvement"
+      ]
+    },
+    {
+      "period": "recent",
+      "cost": "stress",
+      "reasons": [
+        "insufficient_trades",
+        "no_expectancy_improvement"
+      ]
+    },
+    {
+      "period": "additional_april",
+      "cost": "base",
+      "reasons": [
+        "insufficient_trades",
+        "nonpositive_expectancy",
+        "profit_factor",
+        "no_expectancy_improvement"
+      ]
+    },
+    {
+      "period": "additional_april",
+      "cost": "stress",
+      "reasons": [
+        "insufficient_trades",
+        "nonpositive_expectancy",
+        "profit_factor",
+        "no_expectancy_improvement"
+      ]
+    }
+  ],
+  "historical_qualified": false,
+  "orders_sent": 0,
+  "broker_eligible": false,
+  "live_policy_changed": false,
+  "full_live_policy_parity": false,
+  "limitations": [
+    "Research feature adapters reflect verified closed-candle evidence; not historical screenshots or macro context.",
+    "Previously inspected dates and approximate broker costs; no fresh or blind qualification.",
+    "M5 OHLC stop-first fills and frozen ATR distances approximate broker execution. No automatic activation."
+  ],
+  "rules": {
+    "level_lookback": 20,
+    "sweep_min_ATR": 0.05,
+    "sweep_wick_fraction": 0.5,
+    "confirmation_body_fraction": 0.5,
+    "confirmation": "Separate next closed M5 candle closes beyond sweep candle opposite extreme.",
+    "direction": "Closed H1 10/30-close bias must agree.",
+    "stop": "1.5 closed-M5 ATR; unchanged from control",
+    "target": "Cost-aware >=2R; identical rule in control",
+    "holding_and_gates": "Existing exit management, session, pilot and risk policies unchanged."
+  },
+  "periods": {
+    "earlier": [
+      "2026-10-15T08:10Z",
+      "2026-11-14T08:10Z"
+    ],
+    "recent": [
+      "2026-11-16T00:00Z",
+      "2026-11-23T16:25:00+00:00"
+    ],
+    "additional_april": [
+      "2026-04-01T00:00Z",
+      "2026-05-01T00:00Z"
+    ]
+  },
+  "criteria": "Every period and cost lane >=30 trades, positive mean net R, PF>=1.1 and drawdown<=6R; expectancy improvement over control.",
+  "data_scope": "Previously inspected archives. One predeclared design; no blind validation or fresh demo evidence.",
+  "decision": "Not qualified. Earlier base-cost improvement did not survive higher costs and separate April data. No broker activation.",
+  "adapter_correction": "An aborted preliminary run used an unrecognized location label. Its results were excluded. This report uses the corrected structure_reclaim adapter and a full rerun.",
+  "signed_local_report_sha256": "0f6d9a1dccdbb1af23b433d7b30d6bea93c0794cca25b475e78f2dea43816f5d"
+}

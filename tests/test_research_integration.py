@@ -88,6 +88,20 @@ def test_governed_trial_is_shared_by_typed_voice_and_cannot_claim_activation(rep
     assert load_research_progress(folder, now=now)['governed_trial']['state'] == 'unavailable'
 
 
+def test_entry_forecast_counts_remain_predictions_in_typed_and_voice_answers(reports):
+    folder,_,now=reports;directory=folder/'forecasts';directory.mkdir()
+    save_signed(directory,'plan',{'broker_eligible':False,'auto_promotion':False})
+    atomic_json(folder/'entry_forecast_active.json',{'run_dir':str(directory)})
+    atomic_json(directory/'status.json',{'state':'collecting_diagnostic_forecasts','checked_at':now.isoformat(),
+        'data_fresh':True,'forecasts':{'unchanged_retest':3,'sweep_reclaim':2}})
+    progress=load_research_progress(folder,now=now)
+    for mode in ('standard','voice'):
+        answer=AnswerEngine().answer('How is the entry comparison?',{'runtime':{'research_progress':progress},'status':{}},mode=mode)
+        assert answer.selected_domain=='research_progress' and answer.relevance_passed
+        assert '3 retest forecasts and 2 sweep/reclaim forecasts' in answer.text
+        assert 'not executed trades' in answer.text
+
+
 def test_boot_inspection_failure_does_not_break_other_research_reports(reports, monkeypatch):
     folder, _, now = reports
     monkeypatch.setattr("atlas_ai.research_status.verify_startup", Mock(side_effect=OSError("boot information unavailable")))

@@ -401,6 +401,17 @@
       "artifacts_root": "storage/h1_entry_quality_20261126T094253Z",
       "report": "docs/H1_ENTRY_QUALITY_RESEARCH_20261126.json",
       "interpretation": "Latest closed H1 body >=50% in trade direction worsened earlier average return, removed both recent winners, and improved April on only five trades. More confirmation does not guarantee better entries."
+    },
+    {
+      "id": "sweep_reclaim_comparison_20261126",
+      "model": "research_h1_m5_sweep_reclaim",
+      "evidence_type": "retrospective_reused_history",
+      "historical_review_passed": false,
+      "broker_eligible": false,
+      "auto_promotion": false,
+      "result": "rejected_cross_period_and_cost_validation",
+      "report": "docs/SWEEP_RECLAIM_RESEARCH_20261126.json",
+      "interpretation": "Earlier positive base-cost result failed higher costs and separate April data. A frozen 14-day fresh-demo forecast comparison is diagnostic only; it does not authorize trading."
     }
   ],
   "note": "Research summaries are informational evidence, not trading instructions or permission to change policy."

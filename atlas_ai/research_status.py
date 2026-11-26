@@ -253,11 +253,31 @@ def load_research_progress(storage, *, now=None):
                                     'age_seconds': age, 'broker_eligible': False}
     except (OSError, ValueError, TypeError, AttributeError):
         result['governed_trial'] = {'state': 'unavailable', 'stale': True, 'broker_eligible': False}
+    try:
+        pointer=_read(storage/'entry_forecast_active.json')
+        directory=Path(pointer['run_dir']).resolve();directory.relative_to(storage.resolve())
+        plan=_read(directory/'plan.json',signed=True)
+        if plan.get('broker_eligible') is not False or plan.get('auto_promotion') is not False:
+            raise ValueError('unexpected_forecast_authority')
+        status=_read(directory/'status.json');age=_age(status.get('checked_at'),now)
+        result['entry_forecasts']={k:status.get(k) for k in ('state','data_fresh','start','deadline','bars_evaluated','late_discarded','forecasts','latest_closed_M5','note')}
+        result['entry_forecasts'].update(stale=age is None or age>180,broker_eligible=False,qualification_cases=0)
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['entry_forecasts']={'state':'unavailable','stale':True,'broker_eligible':False}
     return result
 
 
 def research_answer(progress, query, *, voice=False):
     q = query.lower(); learning = progress.get("learning") or {}; activity = progress.get("activity") or {}
+    if 'entry comparison' in q or 'entry forecasts' in q:
+        observed=progress.get('entry_forecasts') or {}
+        if observed.get('stale',True):return 'The fresh entry comparison is unavailable or stale. No candidate profitability or broker activation is verified.'
+        counts=observed.get('forecasts') or {}
+        if observed.get('data_fresh') is False:
+            return 'The entry comparison is waiting for fresh demo bars. Saved forecasts are diagnostic predictions; no candidate profitability or broker activation is verified.'
+        return (f"Fresh demo entry comparison: {counts.get('unchanged_retest',0)} retest forecasts and {counts.get('sweep_reclaim',0)} sweep/reclaim forecasts. "
+                "These are recorded predictions, not executed trades or a proven edge. No broker activation is authorized."
+                + ('' if voice else f" Deadline: {observed.get('deadline','unknown')}. Both models remain diagnostic and require independent outcome review."))
     if 'governed' in q or 'frozen trial' in q:
         trial = progress.get('governed_trial') or {}
         if trial.get('stale', True):

@@ -230,6 +230,9 @@ def tick(plan,state,now,*,is_busy=busy,start_worker=spawn,backend_ready=None):
         result['m5_demo']={'state':'blocked_evidence_review_required','error':type(exc).__name__,'broker_eligible':False,'orders_sent':0}
     from tools.supervise_settled_forecasts import ensure as ensure_settled
     result['settled_forecasts']=ensure_settled(plan['storage_dir'],state,can_start=can_start and remaining>0,now=now)
+    from tools.entry_forecast_observer import ensure as ensure_entry_forecasts
+    try:result['entry_forecasts']=ensure_entry_forecasts(plan['storage_dir'],state,can_start=can_start and remaining>0,now=now)
+    except Exception as exc:result['entry_forecasts']={'state':'blocked_evidence_review_required','error':type(exc).__name__,'orders_sent':0,'broker_eligible':False}
     return result
 
 

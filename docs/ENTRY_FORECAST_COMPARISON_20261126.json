@@ -1,0 +1,98 @@
+{
+  "date_local": "2026-11-26",
+  "purpose": "Break the retrospective tuning loop with frozen, timely forecasts on fresh demo candles.",
+  "historical_result": "Neither design is qualified; historical failures remain blocking.",
+  "followthrough_diagnostic": {
+    "state": "completed_diagnostic",
+    "results": {
+      "earlier": {
+        "two_R_first": 1,
+        "initial_stop_first": 11,
+        "neither_within_one_hour": 3,
+        "ambiguous_stop_first": 1
+      },
+      "recent": {
+        "two_R_first": 2
+      }
+    },
+    "scope": "First quote-side barrier over 12 M5 bars, without break-even/trailing/time exits.",
+    "limitations": [
+      "Barrier counts are not executable returns or qualification. Costs and session cutoff are not reproduced by this diagnostic.",
+      "M5 bars cannot establish intrabar order; ambiguous bars are stop-first."
+    ],
+    "orders_sent": 0,
+    "broker_eligible": false,
+    "live_policy_changed": false
+  },
+  "observer": {
+    "registered_at": "2026-11-26T10:08:19.968097+00:00",
+    "start_utc": "2026-11-26T10:10:00+00:00",
+    "deadline_utc": "2026-12-10T10:08:19.968097+00:00",
+    "models": [
+      "unchanged_retest",
+      "sweep_reclaim"
+    ],
+    "purpose": "Diagnostic comparison of frozen failed/unqualified hypotheses; not a qualification-stage promotion.",
+    "rules": "Forecasts must be saved within 120 seconds after close and after registration. Never backfill missed forecasts.",
+    "cost_lanes": {
+      "base": {
+        "spread_multiplier": 1,
+        "slippage_points": 3
+      },
+      "stress": {
+        "spread_multiplier": 2,
+        "slippage_points": 6
+      }
+    },
+    "source_snapshot_verified": true,
+    "source_files": 343,
+    "first_live_check": {
+      "bars_evaluated": 1,
+      "late_discarded": 0,
+      "forecasts": {
+        "unchanged_retest": 0,
+        "sweep_reclaim": 0
+      }
+    },
+    "supervision": "Existing acceptance supervisor resumes the observer within the deadline, only when the backend and operator state allow it; three starts/hour maximum.",
+    "integrity": "Changed source, revised closed bars or altered saved evidence halt collection for review; no automatic reset or retraining.",
+    "evaluation": "This collector saves predictions and later closed candles. Independent cost-aware outcome review is still required. Forecast counts are not trades or qualification cases."
+  },
+  "verification": {
+    "tests_passed": 49,
+    "fresh_demo_first_bar_observed": true,
+    "additional_tests_passed": 16,
+    "latest_live_check": {
+      "checked_at": "2026-11-26T10:15:42.912211+00:00",
+      "state": "collecting_diagnostic_forecasts",
+      "bars_evaluated": 2,
+      "late_discarded": 0,
+      "forecasts": {
+        "unchanged_retest": 0,
+        "sweep_reclaim": 0
+      },
+      "qualification_cases": 0,
+      "orders_sent": 0
+    },
+    "total_unique_tests_passed": 65
+  },
+  "remaining": [
+    "Prospective outcomes need time and separate review.",
+    "Historical failure is not erased by collecting new forecasts.",
+    "Measured execution costs, model-specific live parity and guarded broker lifecycle remain prerequisites to any promotion."
+  ],
+  "orders_sent": 0,
+  "broker_eligible": false,
+  "auto_promotion": false,
+  "live_trading_policy_changed": false,
+  "future_outcome_review_contract": {
+    "plan_sha256": "1c0540dffee3664763c4c0a2ae7f5bd2dde5e0e843f166aa8fe7350e5e6ee1af",
+    "rule": "First modeled M5 opening strictly after the recorded observation timestamp; otherwise wait. Never use a past opening quote.",
+    "timeliness": "Available time after registered start; observation within 0..120 seconds of close.",
+    "entry_guard_source_sha256": "b168a763a1861161e92c09c34f8fbf3775677778359117a77b8f466247125292",
+    "costs": "Same frozen base/stress quote-side costs for both models; measured broker costs are still unverified.",
+    "scope": "Future diagnostic outcome review only. This is different from an instantaneous next-open backtest fill and cannot be called exact live parity.",
+    "orders_sent": 0,
+    "broker_eligible": false
+  }
+}
