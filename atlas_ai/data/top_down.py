@@ -55,7 +55,8 @@ def collect(feed, now, *, broker_timezone="UTC"):
             if not all(math.isfinite(v) and v>0 for v in [high,low]) or low>high:
                 raise ValueError("invalid_liquidity_reference")
             details[tf]=bias
-            evidence[tf]={"bias":bias,"last_closed_bar_utc":pd.to_datetime(frame.time.iloc[-1],utc=True).isoformat(),
+            from atlas_ai.decision_record import candle_manifest
+            evidence[tf]={"candle_manifest": candle_manifest(frame, tf, broker_timezone=broker_timezone), "bias":bias,"last_closed_bar_utc":pd.to_datetime(frame.time.iloc[-1],utc=True).isoformat(),
                 "closed_bars":len(frame),"recent_high":high,"recent_low":low,
                 "freshness_basis":frame.attrs["freshness_basis"],"freshness_age_seconds":frame.attrs["freshness_age_seconds"],
                 "recent_closes":[float(v) for v in frame.close.tail(6)],

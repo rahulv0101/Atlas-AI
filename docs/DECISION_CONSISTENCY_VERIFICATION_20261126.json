@@ -1,0 +1,228 @@
+{
+  "verified": true,
+  "checked_at_utc": "2026-11-26T18:51:38.441127+00:00",
+  "decision_id": "d46aae87a052495e8a07058655c48f97",
+  "decision_ref": {
+    "decision_id": "d46aae87a052495e8a07058655c48f97",
+    "as_of_utc": "2026-11-26T18:50:52.165202+00:00",
+    "snapshot_sha256": "39df0e528540fadce8c1923b3463da872796d8ed3132f3f999a1496735b286c7",
+    "outcome_sha256": "bf46052a2bc420d9af39feb95e55d32402683770aab076339051ed952a509614"
+  },
+  "decision_snapshot": {
+    "decision_id": "d46aae87a052495e8a07058655c48f97",
+    "started_at_utc": "2026-11-26T18:50:23.319133+00:00",
+    "as_of_utc": "2026-11-26T18:50:52.165202+00:00",
+    "candles": {
+      "D1": {
+        "timeframe": "D1",
+        "last_open_utc": "2026-11-24T22:00:00+00:00",
+        "last_close_utc": "2026-11-25T22:00:00+00:00",
+        "bars": 89,
+        "fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "tick_volume",
+          "spread",
+          "real_volume"
+        ],
+        "candles_sha256": "1a71bf2ce8d8c1d57526621fbd13e45fb2f55298dd66ce9c9018cfad2a4c7003",
+        "timestamp_basis": "UTC"
+      },
+      "H4": {
+        "timeframe": "H4",
+        "last_open_utc": "2026-11-26T14:00:00+00:00",
+        "last_close_utc": "2026-11-26T18:00:00+00:00",
+        "bars": 89,
+        "fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "tick_volume",
+          "spread",
+          "real_volume"
+        ],
+        "candles_sha256": "7a2835a870af182544ba2ded058077c2389c02bf11b98cd5dd6137f690fa9a6e",
+        "timestamp_basis": "UTC"
+      },
+      "H1": {
+        "timeframe": "H1",
+        "last_open_utc": "2026-11-26T17:00:00+00:00",
+        "last_close_utc": "2026-11-26T18:00:00+00:00",
+        "bars": 89,
+        "fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "tick_volume",
+          "spread",
+          "real_volume"
+        ],
+        "candles_sha256": "51647fecaf3adcb8f2e9df5100ac24385e95f11b420d93016ddc88924aef6463",
+        "timestamp_basis": "UTC"
+      },
+      "M15": {
+        "timeframe": "M15",
+        "last_open_utc": "2026-11-26T18:30:00+00:00",
+        "last_close_utc": "2026-11-26T18:45:00+00:00",
+        "bars": 89,
+        "fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "tick_volume",
+          "spread",
+          "real_volume"
+        ],
+        "candles_sha256": "faa741e3d29d2d0b7987a00d0832c9d0f7859a6b42a117fe40e7b6489eb5662c",
+        "timestamp_basis": "UTC"
+      },
+      "M5": {
+        "timeframe": "M5",
+        "last_open_utc": "2026-11-26T18:45:00+00:00",
+        "last_close_utc": "2026-11-26T18:50:00+00:00",
+        "bars": 1199,
+        "fields": [
+          "open",
+          "high",
+          "low",
+          "close",
+          "tick_volume",
+          "spread",
+          "real_volume"
+        ],
+        "candles_sha256": "6c439a46256f75dcd728ba0a45d2838d1de8ed1060b5a0fefed036d0ae38c1bb",
+        "timestamp_basis": "UTC"
+      }
+    },
+    "evidence_status": "closed_candles_pinned"
+  },
+  "current_execution": {
+    "decision_id": "d46aae87a052495e8a07058655c48f97",
+    "state": "not_submitted",
+    "action": "blocked",
+    "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+    "submitted_to_gate": false,
+    "request_id": null,
+    "success": null,
+    "retcode": null,
+    "order_id": null,
+    "deal_id": null,
+    "broker_order_id": null,
+    "scope": "scan_entry_result_only; position management and closure are separate linked events"
+  },
+  "api_observations": {
+    "status/compact": {
+      "validation": {
+        "verified": true,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "errors": [],
+        "scope": "scan provenance only; separate runtime controls and historical evidence are not atomic"
+      },
+      "decision_ref": {
+        "as_of_utc": "2026-11-26T18:50:52.165202+00:00",
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "outcome_sha256": "bf46052a2bc420d9af39feb95e55d32402683770aab076339051ed952a509614",
+        "snapshot_sha256": "39df0e528540fadce8c1923b3463da872796d8ed3132f3f999a1496735b286c7"
+      },
+      "current_execution": {
+        "action": "blocked",
+        "broker_order_id": null,
+        "deal_id": null,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "order_id": null,
+        "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+        "request_id": null,
+        "retcode": null,
+        "scope": "scan_entry_result_only; position management and closure are separate linked events",
+        "state": "not_submitted",
+        "submitted_to_gate": false,
+        "success": null
+      }
+    },
+    "status": {
+      "validation": {
+        "verified": true,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "errors": [],
+        "scope": "scan provenance only; separate runtime controls and historical evidence are not atomic"
+      },
+      "decision_ref": {
+        "as_of_utc": "2026-11-26T18:50:52.165202+00:00",
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "outcome_sha256": "bf46052a2bc420d9af39feb95e55d32402683770aab076339051ed952a509614",
+        "snapshot_sha256": "39df0e528540fadce8c1923b3463da872796d8ed3132f3f999a1496735b286c7"
+      },
+      "current_execution": {
+        "action": "blocked",
+        "broker_order_id": null,
+        "deal_id": null,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "order_id": null,
+        "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+        "request_id": null,
+        "retcode": null,
+        "scope": "scan_entry_result_only; position management and closure are separate linked events",
+        "state": "not_submitted",
+        "submitted_to_gate": false,
+        "success": null
+      }
+    },
+    "status/full": {
+      "validation": {
+        "verified": true,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "errors": [],
+        "scope": "scan provenance only; separate runtime controls and historical evidence are not atomic"
+      },
+      "decision_ref": {
+        "as_of_utc": "2026-11-26T18:50:52.165202+00:00",
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "outcome_sha256": "bf46052a2bc420d9af39feb95e55d32402683770aab076339051ed952a509614",
+        "snapshot_sha256": "39df0e528540fadce8c1923b3463da872796d8ed3132f3f999a1496735b286c7"
+      },
+      "current_execution": {
+        "action": "blocked",
+        "broker_order_id": null,
+        "deal_id": null,
+        "decision_id": "d46aae87a052495e8a07058655c48f97",
+        "order_id": null,
+        "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+        "request_id": null,
+        "retcode": null,
+        "scope": "scan_entry_result_only; position management and closure are separate linked events",
+        "state": "not_submitted",
+        "submitted_to_gate": false,
+        "success": null
+      }
+    }
+  },
+  "matching_journal_events": 1,
+  "errors": [],
+  "scope": "One current scan across backend, API projections and journal. No forced order; natural filled lifecycle not demonstrated by this check.",
+  "operational_verification": {
+    "source_snapshot_matches_plan": true,
+    "frozen_sources_intact": true,
+    "observer_state": "collecting_diagnostic_forecasts",
+    "original_registered_at": "2026-11-26T10:08:19.968097+00:00",
+    "original_start": "2026-11-26T10:10:00+00:00",
+    "original_deadline": "2026-12-10T10:08:19.968097+00:00",
+    "forecasts": {
+      "unchanged_retest": 1,
+      "sweep_reclaim": 0
+    },
+    "orders_sent": 0,
+    "desktop_ready": true
+  },
+  "regression_validation": {
+    "final_core_ui_and_observer_suite": "591 passed",
+    "api_and_main_regression_suite": "141 passed",
+    "final_record_and_browser_suite": "21 passed",
+    "main_and_replay_parity_suite": "35 passed",
+    "note": "Suites overlap; counts are not additive."
+  }
+}

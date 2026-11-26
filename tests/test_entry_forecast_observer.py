@@ -51,6 +51,27 @@ def test_supervision_respects_standby_deadline_and_blocked_evidence(tmp_path):
     assert module.ensure(tmp_path,{},can_start=True,now=now,start=launch)['state']=='blocked_evidence_review_required'
 
 
+def test_live_source_change_resumes_only_verified_registered_snapshot(tmp_path):
+    directory, now = fixture(tmp_path)
+    frozen = directory/'frozen_source'/'tools'
+    frozen.mkdir(parents=True)
+    runner = frozen/'entry_forecast_observer.py'
+    runner.write_text('# frozen collector')
+    plan = module.signed(directory, 'plan')
+    plan['source_hashes'] = {'tools/entry_forecast_observer.py': module.digest(runner)}
+    save_signed(directory, 'plan', plan)
+    (directory/'status.json').write_text(json.dumps({'state':'blocked_evidence_review_required', 'reason':'frozen_source_changed'}))
+    launch = Mock(return_value=SimpleNamespace(pid=123))
+    result = module.ensure(tmp_path, {}, can_start=True, now=now, start=launch)
+    assert result['state']=='entry_forecast_observer_started'
+    assert launch.call_args.args[0][1] == str(runner)
+    assert module.signed(directory,'plan') == plan
+    runner.write_text('# tampered')
+    launch.reset_mock()
+    assert module.ensure(tmp_path,{},can_start=True,now=now,start=launch)['reason']=='registered_source_snapshot_changed'
+    launch.assert_not_called()
+
+
 def test_forecast_collector_denies_changed_boundary_before_native_reads(tmp_path):
     save_signed(tmp_path,'plan',{'schema':'atlas_entry_forecast_v1','broker_eligible':True,'auto_promotion':False,'orders_sent':0})
     save_signed(tmp_path,'checkpoint',{})

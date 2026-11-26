@@ -1,0 +1,99 @@
+{
+  "schema": "atlas_decision_consistency_audit_v1",
+  "audited_at_utc": "2026-11-26T18:34:44.370318+00:00",
+  "verdict": "not_consistent_end_to_end",
+  "scope": "Read-only runtime sample plus static producer/API/frontend trace; no trading behavior changed.",
+  "sample": {
+    "status_sha256": "0d3583aceff4b288a31193499e2591137e4676049ad7e18b6708e0d280a4d5bc",
+    "updated_at": "2026-11-26T18:34:24.244290+00:00",
+    "action": "blocked",
+    "message": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+    "decision_id": null,
+    "trace_decision_id": null,
+    "m5_candle_open_as_stored": "2026-11-26 18:25:00",
+    "context_timestamp": "2026-11-26T18:25:00",
+    "m5_context_matches_market": true,
+    "m5_closed_by_evaluation": true,
+    "higher_timeframe_evaluation_utc": "2026-11-26T18:34:08.063651+00:00",
+    "higher_candles": {
+      "D1": {
+        "open_utc": "2026-11-24T22:00:00+00:00",
+        "close_utc": "2026-11-25T22:00:00+00:00",
+        "closed_at_evaluation": true
+      },
+      "H4": {
+        "open_utc": "2026-11-26T14:00:00+00:00",
+        "close_utc": "2026-11-26T18:00:00+00:00",
+        "closed_at_evaluation": true
+      },
+      "H1": {
+        "open_utc": "2026-11-26T17:00:00+00:00",
+        "close_utc": "2026-11-26T18:00:00+00:00",
+        "closed_at_evaluation": true
+      },
+      "M15": {
+        "open_utc": "2026-11-26T18:15:00+00:00",
+        "close_utc": "2026-11-26T18:30:00+00:00",
+        "closed_at_evaluation": true
+      }
+    }
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "issue": "No shared ID for blocked scans",
+      "evidence": "Sample status and trace IDs are absent. trader.py allocates decision_id only at line 6245 after early returns; IDs are not added at top-level status.",
+      "source": "atlas_ai/trader.py:6245"
+    },
+    {
+      "severity": "high",
+      "issue": "API execution field changes meaning",
+      "evidence": "/api/status and /api/status/full overwrite backend scan execution with automation snapshots. Last persisted execution truth references decision d7f81487 from an older fill, not the current blocked scan. This is historical entry evidence, not the current outcome or trade closure.",
+      "source": "atlas_ai/ui_server.py:2893"
+    },
+    {
+      "severity": "high",
+      "issue": "No cross-component identity check",
+      "evidence": "Frontend fetches compact status and runtime separately, with auxiliary events/AI caches on other refresh schedules; there is no shared decision ID join at refresh. Compact trace projection does not include a decision ID.",
+      "source": "atlas_ai/ui/app.js:3164"
+    },
+    {
+      "severity": "medium",
+      "issue": "Timestamp roles and timezone are ambiguous",
+      "evidence": "context_snapshot.timestamp and market.recent_time contain naive timestamps. Stored UTC fetch timestamps and higher-timeframe evidence are timezone-aware. Context timestamp is the M5 candle OPEN, not evaluation or publication. Different roles should remain separately labelled, not made numerically identical.",
+      "source": "atlas_ai/trader.py:5406"
+    },
+    {
+      "severity": "medium",
+      "issue": "No frozen full candle manifest",
+      "evidence": "M5 history in status contains times/closes only; HTF evidence contains partial price features, not a shared OHLC fingerprint. HTF and M5 are fetched and closed-filtered at separate evaluation instants; rollover parity cannot be guaranteed from current records.",
+      "source": "atlas_ai/trader.py:5389"
+    },
+    {
+      "severity": "medium",
+      "issue": "Terminal scan result not a shared immutable record",
+      "evidence": "decision_sample is logged before status action/execution is finalized. Payload includes success/order references but no common candle manifest or explicit final scan outcome. Request ID is not copied into status.execution even though trace expects it.",
+      "source": "atlas_ai/trader.py:6414"
+    }
+  ],
+  "validation": {
+    "command": "python -m pytest -q tests/test_ui_runtime_consistency.py tests/test_execution_snapshot_freshness.py tests/test_decision_execution_display.py tests/test_top_down_confluence.py tests/test_brain_coordination.py",
+    "passed": 555,
+    "duration_seconds": 23.56,
+    "limitation": "Existing checks pass but do not establish a shared identity/candle/outcome contract across all components."
+  },
+  "recommended_contract": [
+    "Allocate one cycle decision ID before any return and carry it through all derived views and records.",
+    "Freeze one aware UTC as-of time; attach per-timeframe closed-candle open/close and OHLC hash. Keep feed forming-bar timestamps separate.",
+    "Publish a finalized scan outcome with decision ID and gate request/order/deal IDs; distinguish not_submitted, blocked, failed, filled, and unknown.",
+    "Keep current scan execution, historical last execution, and later position closure as separate linked records.",
+    "Have APIs/frontend validate identity and label independently refreshed or historical panels explicitly."
+  ],
+  "changes_applied": "Audit report only; no source, strategy, risk, execution, or observer registration changed.",
+  "remediation": {
+    "implemented_at_utc": "2026-11-26T18:52:08.539895+00:00",
+    "verification": "docs/DECISION_CONSISTENCY_VERIFICATION_20261126.json",
+    "status": "Current scan provenance repaired and live verified; original audit above retained as historical evidence.",
+    "policy_changes": "No strategy/risk thresholds changed. Candle filtering now shares one fixed UTC cutoff across the scan; a candle closing after that cutoff waits for the next scan."
+  }
+}

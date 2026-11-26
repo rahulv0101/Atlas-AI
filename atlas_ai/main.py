@@ -1189,25 +1189,14 @@ def run_live(poll_seconds: int, mode_override: str = "") -> None:
             try:
                 trader.step()
             except Exception as step_exc:
-                store.log_event(
-                    "error",
-                    f"Live cycle failed: {step_exc}",
-                    {
-                        **_process_meta(mode="live", role="cycle_error"),
-                        "cycle_duration_ms": round((time.perf_counter() - cycle_started) * 1000.0, 2),
-                    },
-                )
-                store.save_status(
-                    {
-                        **dict(store.load_status() or {}),
-                        "action": "degraded",
-                        "message": f"Live cycle error: {step_exc}",
-                        "cycle_error": {
-                            "error": str(step_exc),
-                            "at": datetime.now(timezone.utc).isoformat(),
-                        },
-                    }
-                )
+                from atlas_ai.decision_record import cycle_failure
+                failure = cycle_failure(getattr(trader, "_decision_cycle", None),
+                                        symbol=settings.symbol, timeframe=settings.timeframe, error=step_exc)
+                store.log_event("error", failure["message"], {
+                    **_process_meta(mode="live", role="cycle_error"), **failure,
+                    "cycle_duration_ms": round((time.perf_counter() - cycle_started) * 1000.0, 2),
+                })
+                store.save_status(failure)
             else:
                 cycle_ms = round((time.perf_counter() - cycle_started) * 1000.0, 2)
                 if cycle_ms > 45000.0:

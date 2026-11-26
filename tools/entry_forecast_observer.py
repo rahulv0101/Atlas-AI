@@ -146,15 +146,30 @@ def ensure(storage,state,*,can_start,now,start=subprocess.Popen):
     plan=signed(directory,'plan')
     if now>=datetime.fromisoformat(plan['deadline']):return {'state':'deadline_reached'}
     status=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
-    if status.get('state')=='blocked_evidence_review_required':return {'state':status['state']}
+    # Registered research runs use their own immutable source, so unrelated live
+    # repairs cannot change their model or halt evidence collection.
+    frozen=directory/'frozen_source'
+    recover_source_only=(status.get('state')=='blocked_evidence_review_required'
+                         and status.get('reason')=='frozen_source_changed')
+    if status.get('state')=='blocked_evidence_review_required' and not recover_source_only:
+        return {'state':status['state']}
     try:
         with observation_lock(directory/'observer.lock'):pass
     except RuntimeError:return {'state':'existing_entry_forecast_observer_running'}
     if not can_start:return {'state':'waiting_for_backend_and_operator'}
+    for name,expected in plan['source_hashes'].items():
+        source=(frozen/name).resolve()
+        source.relative_to(frozen.resolve())
+        if not source.is_file() or digest(source)!=expected:
+            return {'state':'blocked_evidence_review_required','reason':'registered_source_snapshot_changed'}
     attempts=state.setdefault('entry_forecast_starts',[]);attempts[:]=[t for t in attempts if now.timestamp()-t<3600]
     if len(attempts)>=3:return {'state':'restart_budget_exhausted_review_required'}
     with (directory/'stdout.log').open('a') as out,(directory/'stderr.log').open('a') as err:
-        child=start([sys.executable,'-m','tools.entry_forecast_observer','watch','--run-dir',str(directory)],cwd=ROOT,
+        if recover_source_only:
+            atomic_json(directory/('source_isolation_resume_'+now.strftime('%Y%m%dT%H%M%SZ')+'.json'),
+                        {'previous_status':status,'plan_sha256':digest(directory/'plan.json'),
+                         'reason':'Resume identical registered code from verified source snapshot; no plan or evidence reset.'})
+        child=start([sys.executable,str(frozen/'tools/entry_forecast_observer.py'),'watch','--run-dir',str(directory)],cwd=ROOT,
                     stdout=out,stderr=err,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     attempts.append(now.timestamp());return {'state':'entry_forecast_observer_started','pid':child.pid,'orders_sent':0,'broker_eligible':False}
 

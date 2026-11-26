@@ -209,10 +209,10 @@ def test_compact_status_api_returns_operator_critical_fields(tmp_path, monkeypat
     assert payload["learning_critic"]["previous_failure_axis"] == "timing"
     assert payload["learning_loop"]["status"] == "waiting"
     assert payload["learning_loop"]["pattern_lessons"] == 0
-    assert payload["execution"]["session_control"]["next_session_local"] == "london@2026-05-21T08:00:00+01:00"
-    assert payload["execution"]["auto_trade_reason"] == "outside_active_session"
-    assert payload["execution"]["reconciliation_status"] == "mismatch_detected"
-    assert payload["execution"]["orphan_order_count"] == 1
+    assert payload["automation_state"]["session_control"]["next_session_local"] == "london@2026-05-21T08:00:00+01:00"
+    assert payload["automation_state"]["auto_trade_reason"] == "outside_active_session"
+    assert payload["automation_state"]["reconciliation_status"] == "mismatch_detected"
+    assert payload["automation_state"]["orphan_order_count"] == 1
     assert payload["structured_blocker"]["code"] == "no_high_confidence_setup"
     assert payload["structured_blocker"]["reconciliation"]["orphan_order_count"] == 1
     assert payload["structured_blocker"]["reconciliation"]["top_orphan_orders"][0]["broker_order_id"] == "T1"
@@ -937,8 +937,8 @@ def test_automation_truth_hides_stale_block_reason_when_resumed(tmp_path, monkey
     assert payload["automation_truth"]["automation_enabled"] is True
     assert payload["automation_truth"]["last_auto_execution_block_reason"] == ""
     assert payload["automation_truth"]["last_auto_execution_block_stale"] is True
-    assert payload["execution"]["auto_trade_allowed"] is None
-    assert payload["execution"]["auto_trade_status_known"] is False
+    assert payload["automation_state"]["auto_trade_allowed"] is None
+    assert payload["automation_state"]["auto_trade_status_known"] is False
     assert payload["execution_readiness"]["state"]["auto_trade_status_known"] is False
 
 

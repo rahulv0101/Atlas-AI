@@ -370,6 +370,9 @@ def build_decision_trace(
         final_decision = "block"
     return {
         "schema": "atlas_decision_trace_v1",
+        "decision_id": status.get("decision_id"),
+        "decision_ref": dict(status.get("decision_ref", {}) or {}),
+        "current_execution": dict(status.get("current_execution", {}) or {}),
         "symbol": str(status.get("symbol", "")),
         "timeframe": str(status.get("timeframe", "")),
         "final_action": final_action,

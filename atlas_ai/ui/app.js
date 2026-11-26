@@ -603,7 +603,7 @@ function renderAICorePanel(latestPayload, reviewsPayload, preferencesPayload, pr
   renderDetailList(
     "ai-decision-reason",
     [
-      `Recorded: ${compactText(latest.recorded_at, "unknown")} | source: ${compactText(latest.source, "unknown")}`,
+      `Historical AI analysis record: ${compactText(latest.recorded_at, "unknown")} | source: ${compactText(latest.source, "unknown")} | Separate from the current trading scan`,
       `Query: ${compactText(latest.query, "none")}`,
       compactText(recommendation.reason, "No decision trace recorded yet."),
       `Trade bias: ${compactText(recommendation.trade_bias, "neutral").replace(/_/g, " ")}`,
@@ -725,8 +725,31 @@ function decisionBlockerDisplay(view) {
     : "No listed analysis blockers; execution checks still required" };
 }
 
+function consistentDecisionView(current, cached = {}) {
+  const ref = current.decision_ref || {};
+  const same = (value) => value && value.decision_id === ref.decision_id &&
+    value.snapshot_sha256 === ref.snapshot_sha256 && value.outcome_sha256 === ref.outcome_sha256;
+  const view = { ...(same(cached.decision_ref) ? cached : {}), ...current };
+  const mismatches = [];
+  if (current.decision_id) {
+    for (const name of ["decision_analysis", "decision_trace", "context_snapshot", "decision_explanation", "timing_discipline", "higher_timeframe"]) {
+      if (view[name] && Object.keys(view[name]).length && !same(view[name].decision_ref)) {
+        delete view[name]; mismatches.push(name);
+      }
+    }
+    if (!view.current_execution || view.current_execution.decision_id !== current.decision_id) mismatches.push("current_execution");
+  }
+  view.consistency_warnings = mismatches;
+  return view;
+}
+
 function decisionExecutionDisplay(view) {
   const analysis = (view || {}).decision_analysis || {};
+  if (view.decision_id && (!analysis.decision_ref || analysis.decision_ref.decision_id !== view.decision_id ||
+      analysis.decision_ref.snapshot_sha256 !== (view.decision_ref || {}).snapshot_sha256 ||
+      analysis.decision_ref.outcome_sha256 !== (view.decision_ref || {}).outcome_sha256)) {
+    return { action: "WAIT \u2014 decision evidence mismatch", execution: "not confirmed; refresh required", timing: "not confirmed", analysisRecommendation: "Evidence unavailable for this decision" };
+  }
   const rawRecommendation = String(analysis.recommended_action || "hold");
   const entryTimeframe = String((view || {}).timeframe || ((view || {}).timing_discipline || {}).observed?.entry_timeframe || "entry timeframe").toUpperCase();
   const recommendation = rawRecommendation.replace(/^wait_for_m1_confirmation_(buy|sell)$/i,
@@ -1043,7 +1066,7 @@ function resolveDisplayModeMeta(executionState, askAtlasDebug) {
 }
 
 function mergedExecutionState(status, runtime) {
-  const statusExec = (((status || {}).execution) || {});
+  const statusExec = (((status || {}).automation_state) || ((status || {}).execution) || {});
   const exec = {
     ...statusExec,
     ...(((runtime || {}).execution) || {}),
@@ -2769,7 +2792,7 @@ function renderStatus(s, runtime) {
       s.chosen)
   );
   if (hasRichPayload) lastRichStatus = s;
-  const view = hasRichPayload ? s : { ...lastRichStatus, ...s };
+  const view = consistentDecisionView(s, hasRichPayload ? {} : lastRichStatus);
   const topDown = (view || {}).higher_timeframe || {};
   const smc = (view || {}).smc_composite || {};
   const smcPolicy = document.getElementById("smc-context-policy");
@@ -2788,7 +2811,7 @@ function renderStatus(s, runtime) {
   const topDownState = document.getElementById("top-down-state");
   const topDownDetails = document.getElementById("top-down-details");
   if (topDownState) topDownState.textContent = topDown.enabled
-    ? `M5 entries: ${topDown.aligned ? String(topDown.bias).toUpperCase() + " confluence" : "Waiting for higher timeframe agreement"}`
+    ? `M5 entries: H1 direction ${String(topDown.bias || "unknown").toUpperCase()} (D1/H4/M15 are context)`
     : "Top-down policy is inactive";
   if (topDownDetails) topDownDetails.textContent = topDown.enabled
     ? ["D1", "H4", "H1", "M15"].map(tf => `${tf}: ${((topDown.details || {})[tf] || "unknown").toUpperCase()}`).join(" | ") + " | Closed candles only. Entry still requires all trading gates."
@@ -2984,6 +3007,12 @@ function renderStatus(s, runtime) {
     const rows = sortedSignals.map((x) => `<div class="signal-item"><strong title="${x.strategy}">${x.strategy}</strong>Side: ${x.side} | Confidence: ${fmt(x.confidence, 3)}</div>`);
     signals.innerHTML = rows.join("") || "No signals yet.";
   }
+  if (updated && view.decision_id) {
+    const snapshot = view.decision_snapshot || {};
+    const candle = (snapshot.candles || {})[view.timeframe] || {};
+    updated.textContent += ` | Decision ${view.decision_id} | as of ${snapshot.as_of_utc || "unavailable"} | ${view.timeframe} closed ${candle.last_close_utc || "unavailable"} | entry result: ${(view.current_execution || {}).state || "unknown"}`;
+    if (view.consistency_warnings.length) updated.textContent += ` | Evidence mismatch: ${view.consistency_warnings.join(", ")}`;
+  }
   renderDecisionAnalysis(view);
 }
 
@@ -3025,7 +3054,9 @@ function renderEvents(items) {
     const shadowDetail = shadow.recommendation
       ? `<div class="event-detail">SHADOW: ${escapeHtml(String(shadow.recommendation))} | anomalies=${escapeHtml(String((shadow.anomaly_flags || []).join(", ") || "none"))}</div>`
       : "";
-    return `<div class="event"><strong>${escapeHtml(x.type)}</strong> ${escapeHtml(x.message)}${detail}${warningDetail}${contextDetail}${shadowDetail}<br><span class="muted">${escapeHtml(x.time)}</span></div>`;
+    const meta = x.meta || {};
+    const identity = meta.decision_id ? ` | Decision ${meta.decision_id} | entry result: ${(meta.current_execution || {}).state || "unknown"}` : " | Historical event (no scan ID)";
+    return `<div class="event"><strong>${escapeHtml(x.type)}</strong> ${escapeHtml(x.message)}${detail}${warningDetail}${contextDetail}${shadowDetail}<br><span class="muted">${escapeHtml(x.time)}${escapeHtml(identity)}</span></div>`;
   });
   events.innerHTML = rows.join("") || "No events yet.";
 }

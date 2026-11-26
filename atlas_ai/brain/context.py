@@ -28,6 +28,8 @@ def evidence_receipt(status, runtime, events, learning_state, comparison=None):
     if not identity['updated_at']: identity['unversioned_status'] = fingerprint(status)
     return {'schema': 'atlas_reasoning_evidence_v1', 'decision_key': fingerprint(identity)[:24],
             'backend_decision_id': identity['decision_id'],
+            'decision_ref': deepcopy(status.get('decision_ref') or {}),
+            'current_execution': deepcopy(status.get('current_execution') or {}),
             'status_updated_at': status.get('updated_at'),
             'status_fingerprint': fingerprint(status), 'runtime_fingerprint': fingerprint(runtime),
             'events_fingerprint': fingerprint(events), 'learning_fingerprint': fingerprint(learning_state),

@@ -1128,7 +1128,7 @@ class AtlasTrader:
             if str(self.settings.timeframe).upper() != "M5":
                 raise ValueError("Top-down confluence requires M5 entries")
             from atlas_ai.data.top_down import collect
-            return collect(self.feed,datetime.now(timezone.utc),
+            return collect(self.feed,getattr(self, "_decision_as_of", None) or datetime.now(timezone.utc),
                 broker_timezone=str(getattr(self.settings,"mt5_server_timezone","") or "UTC"))
         if str(getattr(self.settings, "timeframe", "") or "").upper() == "M1":
             configured = (str(getattr(self.settings, "m1_htf_alignment_timeframe", "M5") or "M5").upper(),)
@@ -4851,6 +4851,10 @@ class AtlasTrader:
         chosen = dict(status.get("chosen", {}) or {})
         risk = dict(status.get("risk", {}) or {})
         compact: dict[str, Any] = {
+            "decision_id": status.get("decision_id"),
+            "decision_ref": dict(status.get("decision_ref", {}) or {}),
+            "decision_snapshot": dict(status.get("decision_snapshot", {}) or {}),
+            "current_execution": dict(status.get("current_execution", {}) or {}),
             "symbol": status.get("symbol"),
             "timeframe": status.get("timeframe"),
             "action": status.get("action"),
@@ -4946,6 +4950,8 @@ class AtlasTrader:
         meta_model: dict[str, Any],
         execution: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        from atlas_ai.decision_record import bind_record
+        bind_record(status, getattr(self, "_decision_cycle", None))
         chart_features = dict(status.get("chart_features", {}) or {})
         visual = dict(status.get("visual_chart_read", {}) or {})
         analysis = dict(status.get("decision_analysis", {}) or {})
@@ -4981,6 +4987,9 @@ class AtlasTrader:
             or self._volatility_bucket(volatility_pct)
         ).strip().lower() or "unknown"
         payload = {
+            "decision_ref": dict(status.get("decision_ref", {}) or {}),
+            "decision_snapshot": dict(status.get("decision_snapshot", {}) or {}),
+            "current_execution": dict(status.get("current_execution", {}) or {}),
             "schema": "atlas_decision_sample_v2",
             "decision_id": decision_id,
             "strategy": chosen.strategy,
@@ -5049,6 +5058,8 @@ class AtlasTrader:
     def _augment_status_layers(self, status: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(status, dict):
             return status
+        from atlas_ai.decision_record import bind_record
+        bind_record(status, getattr(self, "_decision_cycle", None))
         status["intraday_exit"] = dict(getattr(self, "_intraday_exit_status", {}) or {})
         generation = getattr(self, "_signal_generation_diagnostics", None)
         if generation is not None:
@@ -5173,6 +5184,7 @@ class AtlasTrader:
                 runtime=runtime_flags,
                 mandate=self._load_autonomous_trader_mandate(),
             )
+        bind_record(status, getattr(self, "_decision_cycle", None))
         return status
 
     def _load_autonomous_trader_mandate(self) -> dict[str, Any]:
@@ -5325,6 +5337,8 @@ class AtlasTrader:
 
     def step(self) -> dict[str, Any]:
         cycle_started_at = datetime.now(timezone.utc)
+        self._decision_cycle = {"decision_id": uuid4().hex, "started_at_utc": cycle_started_at.isoformat(),
+                                "as_of_utc": None, "candles": {}, "evidence_status": "not_collected"}
         cycle_started_mono = time.perf_counter()
         self._current_cycle_timing = {
             "cycle_started_at": cycle_started_at.isoformat(),
@@ -5368,7 +5382,7 @@ class AtlasTrader:
                 {"stale_seconds": heartbeat_check.get("stale_seconds"), "reason": stale_reason},
             )
             self.voice.speak("Attention. Trading blocked. System heartbeat is stale.")
-            return {
+            status = {
                 "symbol": self.settings.symbol,
                 "timeframe": self.settings.timeframe,
                 "action": "blocked",
@@ -5377,6 +5391,9 @@ class AtlasTrader:
                 "gemini_influence_enabled": gemini_influence_enabled,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
+            self._log_status_event("risk", status)
+            self._publish_status(status)
+            return status
 
         self._maybe_refresh_external_macro_context()
 
@@ -5385,12 +5402,19 @@ class AtlasTrader:
         self._maybe_emit_drift_alert(loss_memory, runtime_flags)
         drift = self._drift_state(loss_memory)
 
+        self._decision_as_of = datetime.now(timezone.utc)
+        self._decision_cycle["as_of_utc"] = self._decision_as_of.isoformat()
         top_down = bool(getattr(self.settings,"top_down_confluence_enabled",False))
         higher_tf_context = self._higher_tf_context() if top_down else None
         df = self.feed.get_rates(1200)
         if top_down:
             from atlas_ai.data.top_down import closed_bars
-            df = closed_bars(df,"M5",datetime.now(timezone.utc))
+            df = closed_bars(df,"M5",self._decision_as_of)
+        from atlas_ai.decision_record import candle_manifest
+        if top_down:
+            self._decision_cycle["candles"] = {tf: dict(e["candle_manifest"]) for tf, e in higher_tf_context.get("evidence", {}).items() if e.get("candle_manifest")}
+            self._decision_cycle["candles"]["M5"] = candle_manifest(df, "M5")
+            self._decision_cycle["evidence_status"] = "closed_candles_pinned"
         ingest_ended_at = datetime.now(timezone.utc)
         self._current_cycle_timing["ingest_completed_at"] = ingest_ended_at.isoformat()
         self._current_cycle_timing["ingest_duration_ms"] = round((ingest_ended_at - cycle_started_at).total_seconds() * 1000.0, 2)
@@ -5403,7 +5427,7 @@ class AtlasTrader:
         snapshot = self._risk_snapshot(runtime_flags)
         recent = df.tail(60)
         recent_closes = [float(x) for x in recent["close"].tolist()]
-        recent_times = [str(x) for x in recent["time"].tolist()]
+        recent_times = [datetime.fromisoformat(str(x)).replace(tzinfo=timezone.utc).isoformat() for x in recent["time"].tolist()]
         regime = self._market_regime(recent_closes)
         higher_tf_context = higher_tf_context if top_down else self._higher_tf_context()
         smc_observation = self._smc_composite_observation(df,higher_tf_context)
@@ -6242,7 +6266,7 @@ class AtlasTrader:
         structured_analysis = build_structured_decision_analysis(status=status, runtime=runtime_flags)
         status["decision_analysis"] = structured_analysis
         status["pre_trade_memo"] = dict(structured_analysis.get("pre_trade_memo", {}) or {})
-        decision_id = uuid4().hex[:8]
+        decision_id = self._decision_cycle["decision_id"]
 
         if not execute_trades:
             status["action"] = "paper"
@@ -6339,6 +6363,8 @@ class AtlasTrader:
         # Demo/live-like execution must route through ExecutionGate only.
         gate_env = "demo" if bool(execute_trades) else "paper"
         setup_family = self._strategy_to_setup_family(str(chosen.strategy))
+        from atlas_ai.decision_record import bind_record
+        bind_record(status, self._decision_cycle)
         self.execution_gate.set_execution_environment(gate_env)
         req = self.execution_gate.create_request(
             environment=gate_env,
@@ -6348,7 +6374,9 @@ class AtlasTrader:
                 f"strategy={chosen.strategy} side={chosen.side} size={format(Decimal(str(volume)), 'f')} "
                 f"confidence={float(chosen.confidence):.3f} stop_loss_points={float(chosen.stop_loss_points):.2f} "
                 f"take_profit_points={float(chosen.take_profit_points):.2f} data_source=broker_runtime "
-                f"environment_mode={gate_env} decision_id={decision_id}"
+                f"environment_mode={gate_env} decision_id={decision_id} "
+                f"decision_snapshot_sha256={status.get('decision_ref', {}).get('snapshot_sha256', '')} "
+                f"decision_as_of_utc={self._decision_cycle.get('as_of_utc', '')}"
             ),
             requested_by="trader",
             dry_run=False,
@@ -6411,6 +6439,37 @@ class AtlasTrader:
                 "broker_order_id": broker_order_id,
             },
         )()
+
+        gate_block_reasons = {"approval_missing", "live_requires_explicit_confirmation"}
+        gate_request = dict(gate_out.get("request", {}) or {})
+        execution_blocked = (not bool(result.success)) and (
+            str(result.comment) in gate_block_reasons
+            or str(gate_request.get("execution_status", "")) in {"pending", "blocked"}
+            or str(result.comment) == "request_not_created"
+        )
+        status["action"] = "execute" if result.success else ("blocked" if execution_blocked else "failed")
+        status["volume"] = volume
+        status["execution"] = {
+            "success": result.success,
+            "retcode": result.retcode,
+            "comment": result.comment,
+            "decision_id": decision_id,
+            "request_id": req_id,
+            "order_id": int(result.order_id),
+            "deal_id": int(result.deal_id),
+            "broker_order_id": str(result.broker_order_id),
+            "broker_status": str(gate_result.get("status", "") or ""),
+            "filled_quantity": gate_result.get("fill_qty", 0.0),
+        }
+        status["message"] = (
+            f"Executed {chosen.side} via {chosen.strategy}"
+            if result.success
+            else (
+                f"Execution blocked for {chosen.side} via {chosen.strategy}: {result.comment}"
+                if execution_blocked
+                else f"Execution failed for {chosen.side} via {chosen.strategy}: {result.comment}"
+            )
+        )
         self.store.log_event(
             "decision_sample",
             "Captured live decision sample.",
@@ -6438,35 +6497,6 @@ class AtlasTrader:
             ),
         )
 
-        gate_block_reasons = {"approval_missing", "live_requires_explicit_confirmation"}
-        gate_request = dict(gate_out.get("request", {}) or {})
-        execution_blocked = (not bool(result.success)) and (
-            str(result.comment) in gate_block_reasons
-            or str(gate_request.get("execution_status", "")) in {"pending", "blocked"}
-            or str(result.comment) == "request_not_created"
-        )
-        status["action"] = "execute" if result.success else ("blocked" if execution_blocked else "failed")
-        status["volume"] = volume
-        status["execution"] = {
-            "success": result.success,
-            "retcode": result.retcode,
-            "comment": result.comment,
-            "decision_id": decision_id,
-            "order_id": int(result.order_id),
-            "deal_id": int(result.deal_id),
-            "broker_order_id": str(result.broker_order_id),
-            "broker_status": str(gate_result.get("status", "") or ""),
-            "filled_quantity": gate_result.get("fill_qty", 0.0),
-        }
-        status["message"] = (
-            f"Executed {chosen.side} via {chosen.strategy}"
-            if result.success
-            else (
-                f"Execution blocked for {chosen.side} via {chosen.strategy}: {result.comment}"
-                if execution_blocked
-                else f"Execution failed for {chosen.side} via {chosen.strategy}: {result.comment}"
-            )
-        )
         status["journal"] = {
             "strategy": chosen.strategy,
             "side": chosen.side,

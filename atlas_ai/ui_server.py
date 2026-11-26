@@ -1,4 +1,5 @@
 from __future__ import annotations
+from atlas_ai.decision_record import historical_execution, validate_record
 
 import contextlib
 import json
@@ -156,7 +157,7 @@ def _automation_truth_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
 def _compact_event_for_ui(event: dict[str, Any]) -> dict[str, Any]:
     row = dict(event or {})
     meta = dict(row.get("meta", {}) or {})
-    compact_meta: dict[str, Any] = {}
+    compact_meta: dict[str, Any] = {k: meta[k] for k in ("decision_id", "decision_ref", "current_execution", "decision_snapshot") if k in meta}
     for key in ("decision_explanation", "system_health", "context_snapshot", "shadow_advice"):
         value = meta.get(key)
         if isinstance(value, dict):
@@ -751,6 +752,8 @@ def _build_compact_status_payload(
     if bool(automation_payload.get("mismatch_detected", False)) and "broker_reconciliation_mismatch" not in warnings:
         warnings.append("broker_reconciliation_mismatch")
     compact_market = {
+        "decision_id": market.get("decision_id"),
+        "decision_ref": dict(market.get("decision_ref", {}) or {}),
         "recent_close": list(market.get("recent_close", []) or [])[-80:],
         "recent_time": list(market.get("recent_time", []) or [])[-80:],
         "chart_error": str(market.get("chart_error", "") or ""),
@@ -796,6 +799,14 @@ def _build_compact_status_payload(
             f"{int(dict(backend_health).get('seconds_since_heartbeat', 0) or 0)} seconds ago."
         )
     return {
+        "decision_consistency": validate_record(status_payload),
+        "decision_id": status_payload.get("decision_id"),
+        "decision_ref": dict(status_payload.get("decision_ref", {}) or {}),
+        "decision_snapshot": dict(status_payload.get("decision_snapshot", {}) or {}),
+        "current_execution": dict(status_payload.get("current_execution", {}) or {}),
+        "higher_timeframe": dict(status_payload.get("higher_timeframe", {}) or {}),
+        "context_snapshot": dict(status_payload.get("context_snapshot", {}) or {}),
+        "historical_execution": historical_execution(automation_payload),
         "compact": True,
         "updated_at": str(status_payload.get("updated_at", "") or ""),
         "action": str(status_payload.get("action", "") or ""),
@@ -873,6 +884,8 @@ def _build_compact_status_payload(
         "signal_summary": dict(status_payload.get("signal_summary", {}) or {}),
         "same_side_support": dict(status_payload.get("same_side_support", {}) or {}),
         "decision_analysis": {
+            "decision_id": decision_analysis.get("decision_id"),
+            "decision_ref": dict(decision_analysis.get("decision_ref", {}) or {}),
             "account_profile": dict(decision_analysis.get("account_profile", {}) or {}),
             "confidence_score": decision_analysis.get("confidence_score"),
             "confidence_level": decision_analysis.get("confidence_level"),
@@ -912,6 +925,9 @@ def _build_compact_status_payload(
         },
         "decision_explanation": dict(status_payload.get("decision_explanation", {}) or {}),
         "decision_trace": {
+            "decision_id": decision_trace.get("decision_id"),
+            "decision_ref": dict(decision_trace.get("decision_ref", {}) or {}),
+            "current_execution": dict(decision_trace.get("current_execution", {}) or {}),
             "schema": str(decision_trace.get("schema", "") or ""),
             "symbol": str(decision_trace.get("symbol", status_payload.get("symbol", "")) or ""),
             "timeframe": str(decision_trace.get("timeframe", status_payload.get("timeframe", "")) or ""),
@@ -944,8 +960,8 @@ def _build_compact_status_payload(
         "daily_profit_objective": dict(status_payload.get("daily_profit_objective", {}) or {}),
         "timing_discipline": {
             key: dict(status_payload.get("timing_discipline", {}) or {}).get(key)
-            for key in ("hard_block", "missing", "passed", "detail", "observed", "evidence_alignment")
-        },
+            for key in ("decision_id", "decision_ref", "hard_block", "missing", "passed", "detail", "observed", "evidence_alignment")
+        } if status_payload.get("timing_discipline") else {},
         "system_health": {
             "effective_mode": effective_mode,
             "effective_mode_label": effective_mode_label,
@@ -966,7 +982,8 @@ def _build_compact_status_payload(
         "automation_truth": automation_truth,
         "operator_readiness": operator_readiness,
         "execution_readiness": execution_readiness,
-        "execution": {
+        "execution": dict(status_payload.get("execution", {}) or {}),
+        "automation_state": {
             "session_control": session_control,
             "automation_enabled": bool(automation_truth.get("automation_enabled", False)),
             "automation_paused": bool(automation_truth.get("automation_paused", False)),
@@ -2876,6 +2893,7 @@ def create_ui_app(
     @app.get("/api/status")
     def status():
         payload = dict(source.load_status() or {})
+        payload["decision_consistency"] = validate_record(payload)
         flags = dict(source.load_runtime_flags() or {})
         settings = load_settings()
         desktop_window = _reconcile_desktop_window_state(dict(flags.get("ui_desktop_window", {}) or {}), store)
@@ -2890,8 +2908,9 @@ def create_ui_app(
         payload["near_setup_learning"] = _load_near_setup_learning_summary(store)
         automation_payload = _load_automation_payload(store)
         execution_snapshot = dict(automation_payload)
-        payload["execution"] = execution_snapshot
-        payload["execution_truth"] = dict(execution_snapshot.get("execution_truth", {}) or execution_snapshot.get("last_execution_truth", {}) or {})
+        payload["automation_state"] = execution_snapshot
+        payload["historical_execution"] = historical_execution(execution_snapshot)
+        payload["execution_truth"] = dict(payload.get("current_execution", {}) or {})
         payload["automation_truth"] = _automation_truth_from_payload(automation_payload)
         payload["structured_blocker"] = _build_structured_blocker(payload, automation_payload)
         payload["loss_learning_review"] = _build_loss_learning_review(payload, store)
@@ -2932,6 +2951,7 @@ def create_ui_app(
     @app.get("/api/status/full")
     def status_full():
         payload = dict(source.load_status() or {})
+        payload["decision_consistency"] = validate_record(payload)
         payload["research_progress"] = load_research_progress(store.base)
         flags = dict(source.load_runtime_flags() or {})
         settings = load_settings()
@@ -2952,8 +2972,9 @@ def create_ui_app(
         except Exception:
             pass
         execution_snapshot = assistant.execution_snapshot()
-        payload["execution"] = execution_snapshot
-        payload["execution_truth"] = dict(execution_snapshot.get("execution_truth", {}) or execution_snapshot.get("last_execution_truth", {}) or {})
+        payload["automation_state"] = execution_snapshot
+        payload["historical_execution"] = historical_execution(execution_snapshot)
+        payload["execution_truth"] = dict(payload.get("current_execution", {}) or {})
         payload["automation_truth"] = {
             "automation_enabled": bool(execution_snapshot.get("automation_enabled", False)),
             "automation_paused": bool(execution_snapshot.get("automation_paused", False)),
