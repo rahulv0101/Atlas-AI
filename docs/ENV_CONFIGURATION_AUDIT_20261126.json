@@ -1,0 +1,62 @@
+{
+  "checked_at_utc": "2026-11-26T10:23:32.948595+00:00",
+  "scope": "Read-only audit; no configuration, credential, strategy or risk-policy changes.",
+  "parsing": {
+    "settings_loaded": true,
+    "duplicate_keys_found": false,
+    "old_User_account_paths_found": false,
+    "configured_terminal_path_exists": true
+  },
+  "findings": [
+    {
+      "setting": "BACKTEST_INITIAL_BALANCE",
+      "explicit_in_env": false,
+      "effective": 10000.0,
+      "effect": "Default R10000 virtual capital explained the earlier minimum-lot sizing rejections. Matching-capital reruns already corrected the research comparison; this is not the live funded balance."
+    },
+    {
+      "setting": "HIGHER_TIMEFRAME_CONFIRM",
+      "env_value": "M15",
+      "active_policy": "top_down_h1_direction_m5_entry_v3",
+      "active_confirm_tf": "H1",
+      "effect": "M15 is an inactive fallback while top-down H1/M5 policy is enabled; live H1 direction is confirmed."
+    },
+    {
+      "setting": "GEMINI_API_KEY",
+      "file_state": "empty",
+      "effective_key_present": true,
+      "live_gemini_enabled": true,
+      "veto_authority": false,
+      "effect": "The key is supplied by inherited process environment, which intentionally takes precedence over .env. No credential value was recorded; API validity was not tested."
+    },
+    {
+      "setting": "trade_limits",
+      "env_daily": 12,
+      "runtime_daily": 6,
+      "env_consecutive_losses": 3,
+      "runtime_consecutive_losses": 2,
+      "pilot_lot_cap": 0.01,
+      "effect": "Runtime session/pilot limits further restrict execution; the file is not the only control source."
+    },
+    {
+      "setting": "research_modes",
+      "learning_mode": false,
+      "evolution_enabled": true,
+      "research_only": true,
+      "effect": "Aggressive learning trading profile is off; independent research remains enabled and cannot auto-activate models."
+    }
+  ],
+  "latest_scan": {
+    "updated_at": "2026-11-26T10:22:41.160224+00:00",
+    "action": "blocked",
+    "volatility_pct": 0.0716,
+    "code_threshold_pct": 0.07,
+    "volatility_action": "block_new_entries",
+    "threshold_location": "atlas_ai/trader.py:_volatility_safety_state",
+    "threshold_source": "Code, not .env"
+  },
+  "conclusion": "Configuration explains simulated-capital restrictions and layered execution limits. This audit does not establish that .env caused historical losses. Latest saved execution block is volatility protection.",
+  "env_changed": false,
+  "runtime_controls_changed": false,
+  "orders_sent": 0
+}
