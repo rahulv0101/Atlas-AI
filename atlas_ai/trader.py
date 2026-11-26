@@ -1358,6 +1358,8 @@ class AtlasTrader:
 
     def _attach_candidate_evidence_review(self, status, df, chosen, regime):
         """Read-only distance review and closed-candle preview, outside selection."""
+        from atlas_ai.decision_record import bind_record
+        bind_record(status, getattr(self, "_decision_cycle", None))
         from pandas import to_datetime
         from atlas_ai.strategies.indicators import atr
         from atlas_ai.strategies.distance_units import distance_unit_review
@@ -1387,6 +1389,8 @@ class AtlasTrader:
     def _attach_visual_chart_read(self, status: dict[str, Any]) -> None:
         # Advisory-only visual read. This adds inspectable evidence without
         # changing strategy, risk, gates, or execution policy.
+        from atlas_ai.decision_record import bind_record
+        bind_record(status, getattr(self, "_decision_cycle", None))
         try:
             image_path: str | None = None
             capture: dict[str, Any] = {

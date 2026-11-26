@@ -57,6 +57,22 @@ def test_missing_feature_packets_produce_unknown_evidence_without_breaking_statu
     assert a["momentum_relation"]=="missing" and a["screen_bar_matches_current"] is None
 
 
+def test_pinned_closed_m5_input_wins_over_forming_native_feed_clock():
+    s = status()
+    s.update(timeframe='M5', decision_id='current', decision_snapshot={
+        'decision_id': 'current', 'as_of_utc': '2026-11-26T12:08:00+00:00',
+        'candles': {'M5': {'last_open_utc': '2026-11-26T12:00:00+00:00',
+                           'last_close_utc': '2026-11-26T12:05:00+00:00'}}})
+    s['market_data_clock'].update(latest_bar_utc='2026-11-26T12:05:00+00:00', ended_at='2026-11-26T12:08:01+00:00')
+    result = candle_evidence(s)
+    assert result['bar_utc'] == '2026-11-26T12:00:00+00:00'
+    assert result['bar_closed_at_evaluation'] is True
+    assert result['evaluated_at'] == s['decision_snapshot']['as_of_utc']
+    assert 'forming candle' not in build_evidence_alignment(s, observation())['summary']
+    s['decision_snapshot']['decision_id'] = 'other'
+    assert candle_evidence(s)['bar_utc'] is None
+
+
 def test_closed_bar_shadow_excludes_forming_bar_without_mutating_selection(monkeypatch):
     closes=[1000+i*.5 for i in range(120)]
     frame=pd.DataFrame({"time":pd.date_range("2026-11-10T10:00",periods=120,freq="min"),

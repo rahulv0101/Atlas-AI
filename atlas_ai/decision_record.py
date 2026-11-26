@@ -17,8 +17,9 @@ def candle_manifest(frame, timeframe, *, broker_timezone="UTC"):
     else:
         end = start + pd.Timedelta(minutes={"M1": 1, "M5": 5, "M15": 15, "H1": 60, "H4": 240}[timeframe])
     fields = [k for k in ("open", "high", "low", "close", "tick_volume", "spread", "real_volume") if k in frame]
-    rows = [{"open_utc": at.isoformat(), **{k: float(frame.iloc[i][k]) for k in fields}}
-            for i, at in enumerate(times)]
+    # Extract columns once; per-cell iloc made a 1,200-bar live snapshot costly.
+    values = frame[fields].astype(float).to_dict(orient="records")
+    rows = [{"open_utc": at.isoformat(), **row} for at, row in zip(times, values)]
     return {"timeframe": timeframe, "last_open_utc": start.isoformat(), "last_close_utc": end.isoformat(),
             "bars": len(rows), "fields": fields, "candles_sha256": digest(rows), "timestamp_basis": "UTC"}
 
@@ -123,6 +124,11 @@ def validate_record(status):
             start, end = pd.Timestamp(candle["last_open_utc"]), pd.Timestamp(candle["last_close_utc"])
             if start.tzinfo is None or end.tzinfo is None or not start < end <= as_of:
                 errors.append(tf + "_not_closed_at_cutoff")
+        entry = snapshot.get("candles", {}).get(status.get("timeframe"), {})
+        indicator = status.get("indicator_evidence") or {}
+        if indicator and entry and (pd.Timestamp(indicator.get("bar_utc")) != pd.Timestamp(entry["last_open_utc"])
+                                   or indicator.get("bar_closed_at_evaluation") is not True):
+            errors.append("indicator_candle_mismatch")
     except (KeyError, ValueError, TypeError):
         errors.append("evaluation_time_unavailable")
     return {"verified": not errors, "decision_id": decision_id, "errors": errors,

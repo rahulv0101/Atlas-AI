@@ -15,13 +15,22 @@ def candle_evidence(status, now=None):
     clock=clock if isinstance(clock,dict) else {}
     bar=aware_time(clock.get("latest_bar_utc")) if clock.get("timestamp_basis")=="UTC" else None
     timeframe=str((status or {}).get("timeframe", ""))
+    snapshot = status.get("decision_snapshot") or {}
+    pinned = bool(status.get("decision_id") and snapshot.get("decision_id") == status.get("decision_id"))
+    candle = (snapshot.get("candles") or {}).get(timeframe, {}) if pinned else {}
+    # Feed freshness includes the forming native row. It is not the candle used
+    # by a scan whose indicators were calculated from a closed-candle snapshot.
+    if snapshot:
+        bar = aware_time(candle.get("last_open_utc"))
     minutes={"M1":1,"M5":5,"M15":15,"M30":30,"H1":60,"H4":240}.get(timeframe.upper())
-    evaluated=now or aware_time(clock.get("ended_at")) or aware_time((status or {}).get("updated_at")) or datetime.now(timezone.utc)
-    closed=(bar+timedelta(minutes=minutes) <= evaluated) if bar and minutes else None
+    evaluated=now or (aware_time(snapshot.get("as_of_utc")) if pinned else None) or aware_time(clock.get("ended_at")) or aware_time((status or {}).get("updated_at")) or datetime.now(timezone.utc)
+    end = aware_time(candle.get("last_close_utc")) or (bar+timedelta(minutes=minutes) if bar and minutes else None)
+    closed=(end <= evaluated) if end else None
     return {"bar_utc":bar.isoformat() if bar else None,"bar_closed_at_evaluation":closed,
         "evaluated_at":evaluated.isoformat(),
         "timeframe":timeframe,"timestamp_basis":"UTC" if bar else "unverified",
-        "momentum_method":"eight_candle_changes_and_latest_body_ratio"}
+        "momentum_method":"eight_candle_changes_and_latest_body_ratio",
+        "evidence_basis": "decision_closed_candle_snapshot" if candle else "legacy_feed_clock_unpinned"}
 
 
 def build_evidence_alignment(status, visual, indicator_momentum=None):

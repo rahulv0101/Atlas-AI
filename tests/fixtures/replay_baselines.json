@@ -17,7 +17,7 @@
       "success": false,
       "retcode": 0,
       "comment": "Enable EXECUTE_TRADES=true in .env for live order execution",
-      "decision_id": "",
+      "decision_id": "deadbeefcafebabe",
       "order_id": 0,
       "deal_id": 0
     },
@@ -87,7 +87,7 @@
       "success": true,
       "retcode": 10009,
       "comment": "filled",
-      "decision_id": "deadbeef",
+      "decision_id": "deadbeefcafebabe",
       "order_id": 321,
       "deal_id": 654
     },

@@ -57,6 +57,9 @@ def test_mismatches_and_future_candles_are_detected():
     s = record()
     s["current_execution"]["state"] = "filled"
     assert "outcome_mismatch" in validate_record(s)["errors"]
+    s = record()
+    s['indicator_evidence'] = {'bar_utc': '2026-11-26T12:15:00Z', 'bar_closed_at_evaluation': False}
+    assert 'indicator_candle_mismatch' in validate_record(s)['errors']
 
 
 def test_prices_change_manifest_even_with_identical_candle_timestamps():
@@ -65,6 +68,18 @@ def test_prices_change_manifest_even_with_identical_candle_timestamps():
     a = candle_manifest(f, "M5")
     f.loc[0, "close"] = 11.
     assert a["candles_sha256"] != candle_manifest(f, "M5")["candles_sha256"]
+
+
+def test_vectorized_manifest_preserves_original_canonical_hash():
+    from atlas_ai.decision_record import digest
+    f = pd.DataFrame({'time': ['2026-11-26T12:00:00Z', '2026-11-26T12:05:00Z'],
+                      'open': [10, 11], 'high': [11, 12], 'low': [9, 10], 'close': [10.5, 11.5],
+                      'tick_volume': [1, 2]})
+    times = pd.to_datetime(f.time, utc=True)
+    fields = ['open', 'high', 'low', 'close', 'tick_volume']
+    original = [{'open_utc': at.isoformat(), **{k: float(f.iloc[i][k]) for k in fields}}
+                for i, at in enumerate(times)]
+    assert candle_manifest(f, 'M5')['candles_sha256'] == digest(original)
 
 
 def test_legacy_records_are_not_relabelled_as_verified():

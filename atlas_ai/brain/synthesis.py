@@ -80,6 +80,13 @@ def _format_structured_block(stage: dict[str, Any]) -> tuple[str, str, str]:
     detail = str(source.get("reason", "") or source.get("detail", "") or reason)
     values = dict(source.get("condition_values", {}) or {})
     observed = dict(values.get("observed", {}) or {})
+    if timing_discipline and not gate_decision and timing_discipline.get("passed") is False:
+        stage_name = "entry_timing"
+        entry_tf = str(observed.get("entry_timeframe") or dict(timing_discipline.get("observed", {}) or {}).get("entry_timeframe", "")).upper()
+        if entry_tf and entry_tf != "M1":
+            # Legacy internal reason codes remain stable for stored research.
+            # Operator-facing wording follows the actual entry timeframe.
+            code = code.replace("M1", entry_tf).replace("m1", entry_tf.lower())
     bits: list[str] = []
     for key in ("location", "momentum", "session"):
         value = str(observed.get(key, "") or "").strip()

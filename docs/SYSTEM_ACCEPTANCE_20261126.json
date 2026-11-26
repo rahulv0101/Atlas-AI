@@ -1,0 +1,136 @@
+{
+  "schema": "atlas_system_acceptance_v1",
+  "checked_at_utc": "2026-11-26T19:20:16.752971+00:00",
+  "verdict": "Runtime operational; complete trading-performance acceptance remains pending.",
+  "repairs": [
+    "Use recorded Windows LastBootUpTime to avoid uptime-estimate drift, retaining strict receipt matching.",
+    "Use pinned indicator candle and cutoff rather than forming feed timestamp for visual/indicator evidence reporting.",
+    "Report entry timing and actual M5 display codes while retaining original internal research codes.",
+    "Vectorize candle hash extraction; regression verifies byte-identical canonical hashes.",
+    "Update exactly two replay ID expectations to the shared scan-ID contract; trade behavior unchanged."
+  ],
+  "tests": {
+    "full_initial_run": {
+      "passed": 2962,
+      "failed": 2,
+      "duration_seconds": 1012.75,
+      "failures": [
+        "Replay paper execution ID previously expected empty",
+        "Replay live execution ID previously expected truncated"
+      ],
+      "source_evidence": "storage/system_acceptance_20261126/tests.xml"
+    },
+    "integration_delta": {
+      "passed": 176,
+      "failed": 0,
+      "source_evidence": "storage/system_acceptance_delta_20261126/tests.xml"
+    },
+    "corrected_replay_and_evidence_regression": {
+      "passed": 43,
+      "failed": 0
+    },
+    "note": "Full-suite failures were investigated and corrected, then relevant tests rerun. Original failed-run evidence is preserved. Counts overlap. No native crash recurred in this run."
+  },
+  "runtime": {
+    "decision_id": "e80836a3e7eb472b92ba4e83963040f5",
+    "updated_at": "2026-11-26T19:19:29.482293+00:00",
+    "action": "blocked",
+    "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+    "decision_consistency": {
+      "verified": true,
+      "decision_id": "e80836a3e7eb472b92ba4e83963040f5",
+      "errors": [],
+      "scope": "scan provenance only; separate runtime controls and historical evidence are not atomic"
+    },
+    "indicator_evidence": {
+      "bar_utc": "2026-11-26T19:10:00+00:00",
+      "bar_closed_at_evaluation": true,
+      "evaluated_at": "2026-11-26T19:19:23.624917+00:00",
+      "timeframe": "M5",
+      "timestamp_basis": "UTC",
+      "momentum_method": "eight_candle_changes_and_latest_body_ratio",
+      "evidence_basis": "decision_closed_candle_snapshot"
+    },
+    "current_execution": {
+      "decision_id": "e80836a3e7eb472b92ba4e83963040f5",
+      "state": "not_submitted",
+      "action": "blocked",
+      "reason": "H1 direction required for M5 sell; H1=buy; required evidence unavailable or not confirming",
+      "submitted_to_gate": false,
+      "request_id": null,
+      "success": null,
+      "retcode": null,
+      "order_id": null,
+      "deal_id": null,
+      "broker_order_id": null,
+      "scope": "scan_entry_result_only; position management and closure are separate linked events"
+    },
+    "ai_influence_mode": "observer_only",
+    "demo_environment": "demo"
+  },
+  "startup_receipt": {
+    "state": "post_reboot_startup_verified",
+    "verified": true,
+    "receipt": {
+      "schema": "atlas_startup_receipt_v1",
+      "started_at": "2026-11-23T15:30:30.130525+00:00",
+      "finished_at": "2026-11-23T15:33:58.984749+00:00",
+      "exit_code": 0,
+      "boot_time": 1795421699.366534,
+      "startup_folder_invocation": true,
+      "health": {
+        "checked_at": "2026-11-23T15:33:29.371765+00:00",
+        "overall_result": "SUCCESS",
+        "overall_reason": "backend_healthy_desktop_ready"
+      }
+    },
+    "boot_clock_source": "windows_last_boot_up_time",
+    "scope": "Saved sign-in run on this boot; not a reboot test of subsequent code changes."
+  },
+  "providers": [
+    {
+      "provider": "gemini",
+      "state": "responded",
+      "seconds": 1.44,
+      "expected_response": true
+    },
+    {
+      "provider": "openai",
+      "state": "failed",
+      "error_kind": "authentication_failed",
+      "exception_type": "AuthenticationError",
+      "seconds": 1.72
+    }
+  ],
+  "provider_configuration": "Gemini key is configured in the persistent Windows user environment; it matches the process key. No credentials are included in this report. OpenAI fallback choice is pending.",
+  "forward_observation": {
+    "first_stage_cases": 30,
+    "validation_stage_cases": 10,
+    "required_per_stage": 30,
+    "paper_review_ready": false,
+    "historical_natural_cycle_verified": true,
+    "entry_forecast_state": "waiting_for_fresh_demo_bars",
+    "forecasts": {
+      "unchanged_retest": 1,
+      "sweep_reclaim": 0
+    },
+    "orders_sent": 0,
+    "original_deadline": "2026-12-10T10:08:19.968097+00:00"
+  },
+  "not_yet_proven": [
+    "Positive cost-aware out-of-sample edge of a replacement strategy.",
+    "Naturally selected entry, protection, management and exit attributed to this deployed build.",
+    "Measured costs including exits; native stop/target exits can lack dispatch quotes.",
+    "Root cause of the earlier native crash; successful tests only establish no recurrence in this run.",
+    "Real spoken microphone-to-answer behavior and reboot of this exact build were not retested in this audit."
+  ],
+  "policy": "No strategy thresholds, risk limits, broker authority or automatic promotion rules were relaxed. No order was forced. There is no guaranteed daily trading frequency, daily profit, or zero-failure claim.",
+  "source_hashes": {
+    "atlas_ai/startup_verification.py": "f134921989ece6df29a7eb9555c9cc171203c92ad5c1a87516688d01d5eadd3f",
+    "atlas_ai/decision_record.py": "2eb0a7b069180f32f46ebca36e0e5c85393465bf2091f492dc40ee982c290fed",
+    "atlas_ai/vision/evidence_alignment.py": "df46eaeeaf577a1773bc77cfaff4a4306487e8f8682eb68dd2cca990172e4ff0",
+    "atlas_ai/brain/synthesis.py": "55257ac7e31beb13e355153b78acc9b360108bb8d76764382bee0cdd56456999",
+    "atlas_ai/ui/ask_atlas.py": "3bc2a1577f34fa3cf5f17bf27f538efc2309aab8299415f4f0e4a06cdacb4c8e",
+    "atlas_ai/trader.py": "bd5fc1bf86253e3c0805b4396bd5c4de6104377cc7ef1e8346433b9554088ee0"
+  }
+}

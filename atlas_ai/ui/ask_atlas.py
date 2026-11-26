@@ -1161,6 +1161,9 @@ class AskAtlasService:
         timing_detail = str(timing_result.get("detail", "") or "").strip()
         timing_values = dict(timing_result.get("condition_values", {}) or {})
         timing_observed = dict(timing_values.get("observed", {}) or {})
+        entry_tf = str(timing_observed.get("entry_timeframe") or dict(timing_discipline.get("observed", {}) or {}).get("entry_timeframe") or status.get("timeframe") or "").upper()
+        if entry_tf and entry_tf != "M1":
+            timing_code = timing_code.replace("M1", entry_tf).replace("m1", entry_tf.lower())
         timing_bits = []
         for key in ("location", "momentum", "session"):
             value = str(timing_observed.get(key, "") or "").strip()

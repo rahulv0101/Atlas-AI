@@ -10,6 +10,19 @@ from atlas_ai.ui.ask_atlas import AskAtlasService
 from atlas_ai.ui_server import create_ui_app
 
 
+def test_timing_explanation_uses_actual_timeframe_and_gate_name_without_changing_codes():
+    from copy import deepcopy
+    from atlas_ai.brain.synthesis import _format_structured_block
+    stage = {'stage': 'conservative_filter', 'reason': 'Timing failed', 'data': {'timing_discipline': {
+        'passed': False, 'reason_code': 'AWAITING_M1_MOMENTUM_CONFIRMATION',
+        'detail': 'Waiting for closed M5 momentum', 'condition_values': {'observed': {'entry_timeframe': 'M5'}}}}}
+    before = deepcopy(stage)
+    name, code, detail = _format_structured_block(stage)
+    assert name == 'entry_timing'
+    assert code == 'AWAITING_M5_MOMENTUM_CONFIRMATION'
+    assert 'M5' in detail and stage == before
+
+
 class _Source:
     def load_status(self) -> dict:
         return {
@@ -198,7 +211,7 @@ def test_ask_atlas_why_trading_prefers_structured_timing_discipline_block(tmp_pa
         out = AskAtlasService(_StoreSource(store)).answer(query)
         result = str(out.get("result", ""))
         assert out["intent"] in {"blocker", "explanation_request"}
-        assert "Blocked at conservative filter" in result or "Blocked by timing discipline" in result
+        assert "Blocked at entry timing" in result or "Blocked by timing discipline" in result
         assert "AWAITING_TRADABLE_LOCATION" in result
         assert "location=mid_range" in result
         assert "momentum=mixed" in result
