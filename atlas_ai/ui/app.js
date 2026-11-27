@@ -1243,6 +1243,8 @@ function readinessBlockerSummary(status) {
     return { headline: "Volatility protection", detail: reading + "New entries are paused until volatility eases. Normal entry and risk checks still apply." };
   }
   const names = {
+    broker_market_closed: "Scheduled broker market close",
+    broker_close_no_new_trades: "Broker early-close buffer",
     stale_market_data: "Market data needs refreshing",
     stale_decision: "Decision needs refreshing",
     invalid_decision_time: "Decision clock needs review",
@@ -1500,7 +1502,9 @@ function renderResearchProgress(status) {
   if (Object.keys(cohort.models || {}).length) {
     const models = Object.entries(cohort.models).map(([name, row]) =>
       `${name.replace(/^smc_/, "").replaceAll("_", " ")}: ${row.paper_trades ?? 0} diagnostic paper cases${row.pending ? " + pending" : ""} (${String(row.data_state || row.state || "unknown").replaceAll("_", " ")})`);
-    setText("research-next", `${cohort.stale ? "Last known: " : ""}SMC comparison: ${models.join("; ")}. Historical screens passed: ${(cohort.historically_qualified || []).length}. These are simulated cases, not broker trades. No automatic activation.`);
+    const longReview = progress.smc_long_history || {};
+    const longText = longReview.stale === false ? ` Full historical review: ${String(longReview.state || "unknown").replaceAll("_", " ")} (${(longReview.progress || {}).model || "preparing"}, bar ${(longReview.progress || {}).bar ?? "unknown"}).` : "";
+    setText("research-next", `${cohort.stale ? "Last known: " : ""}SMC comparison: ${models.join("; ")}. Historical screens passed: ${(cohort.historically_qualified || []).length}. These are simulated cases, not broker trades. No automatic activation.${longText}`);
   }
 }
 

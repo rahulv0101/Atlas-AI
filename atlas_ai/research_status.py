@@ -289,12 +289,33 @@ def load_research_progress(storage, *, now=None):
                     model_views[name]['data_state']='waiting_for_fresh_broker_data'
                 elif not observation and not latest.get('pending') and (latest.get('counts') or {}).get('session_risk_or_daily_limit',0):
                     model_views[name]['data_state']='waiting_for_session_or_paper_risk_window'
+                elif observation.get('reason')=='M5_input_gap':
+                    model_views[name]['data_state']='waiting_for_contiguous_M5_history'
         result['h1_smc_diagnostics']={'state':observed.get('state'),'models':model_views,
             'stale':age is None or age>180,'historically_qualified':study.get('historically_qualified',[]),
             'comparison_state':study.get('state','running'),'broker_eligible':False,'orders_sent':0,
             'note':'Model-only diagnostic paper. Independent trading edge, full live-gate parity and broker lifecycle remain unproven.'}
     except (OSError,ValueError,KeyError,TypeError,AttributeError):
         result['h1_smc_diagnostics']={'state':'unavailable_or_review_required','stale':True,'broker_eligible':False}
+    try:
+        registration=_read(storage/'smc_long_review_active.json',signed=True)
+        if registration.get('broker_eligible') is not False or registration.get('auto_promotion') is not False:
+            raise ValueError('unexpected_historical_authority')
+        directory=Path(registration['directory']).resolve();directory.relative_to(storage.resolve())
+        if hashlib.sha256((directory/'protocol.json').read_bytes()).hexdigest()!=registration['protocol_sha256']:
+            raise ValueError('historical_protocol_changed')
+        supervision=_read(storage/'acceptance_plan.status.json');observed=supervision.get('smc_long_review') or {}
+        progress=_read(directory/'progress.json') if (directory/'progress.json').exists() else {}
+        age=_age(supervision.get('checked_at'),now)
+        value={'state':observed.get('state','waiting_for_supervisor'),'stale':age is None or age>180,
+               'progress':progress,'broker_eligible':False,'orders_sent':0}
+        if (directory/'report.json').exists():
+            report=_read(directory/'report.json',signed=True)
+            if report['protocol_sha256']!=registration['protocol_sha256']:raise ValueError('historical_report_changed')
+            value.update(state='completed_research_only',stale=False,historically_qualified=report['historically_qualified'])
+        result['smc_long_history']=value
+    except (OSError,ValueError,KeyError,TypeError,AttributeError):
+        result['smc_long_history']={'state':'unavailable_or_review_required','stale':True,'broker_eligible':False}
     return result
 
 
@@ -309,6 +330,8 @@ def research_answer(progress, query, *, voice=False):
         if not voice:
             text+=' '+ '; '.join(f"{name}: {row.get('paper_trades',0)} simulated cases" for name,row in cohort.get('models',{}).items())+'.'
             text+=' Historical screens passed: '+str(len(cohort.get('historically_qualified',[])))+'. Full trading-gate parity and an independent edge remain unproven.'
+            long=progress.get('smc_long_history') or {}
+            if long.get('stale') is False:text+=' Full historical review: '+str(long.get('state','unknown')).replace('_',' ')+'.'
         return text
     if 'entry comparison' in q or 'entry forecasts' in q:
         observed=progress.get('entry_forecasts') or {}

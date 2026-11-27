@@ -2162,10 +2162,19 @@ class AtlasTrader:
                 [str(x) for x in recent["time"].tolist()], limit=80)
         except Exception as exc:
             market["chart_error"] = type(exc).__name__
+        hours = dict(exit_status.get('broker_market_hours') or {})
+        message = ("Session cutoff: Atlas exposure is broker-confirmed flat."
+                   if exit_status.get('flat_verified') else "Intraday exit pending: broker confirmation or operator attention required.")
+        if hours.get('applicable'):
+            close = str(hours.get('close_south_africa',''))[11:16]
+            message = ((f"Scheduled HFM XAUUSD early close at {close} SAST. " if hours.get('market_closed') else
+                        f"HFM XAUUSD early-close buffer before {close} SAST. ") +
+                       ("Atlas exposure is broker-confirmed flat; waiting for the next eligible session and fresh data."
+                        if exit_status.get('flat_verified') else "Intraday exit pending: broker confirmation or operator attention required."))
         return {"symbol": self.settings.symbol, "timeframe": self.settings.timeframe,
             "action": "hold" if exit_status.get("flat_verified") else "blocked",
-            "message": ("Session cutoff: Atlas exposure is broker-confirmed flat."
-                if exit_status.get("flat_verified") else "Intraday exit pending: broker confirmation or operator attention required."),
+            "message": message,
+            "broker_market_hours": hours,
             "intraday_exit": exit_status, "execute_trades": execute_trades,
             "gemini_enabled": bool(self.gemini.enabled), "gemini_influence_enabled": gemini_influence_enabled,
             "health": {"broker": self._broker_status_snapshot(), "llm": self.gemini.health_summary()},

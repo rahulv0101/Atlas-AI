@@ -20,6 +20,12 @@ class MT5BrokerAdapter(BrokerAdapter):
         self._executor = executor
         self._cost_evidence_role = cost_evidence_role
 
+    def market_calendar_identity(self):
+        settings=self._executor.settings
+        server=str(getattr(settings,'hfm_server','')).lower()
+        return {'broker':'HFM' if server.startswith(('hfmarkets','hfm')) else '',
+                'symbol':str(getattr(settings,'symbol',''))}
+
     def submit_order(self, *, idempotency_key: str, request: dict[str, Any]) -> BrokerOrderResponse:
         """Translate ExecutionGate request into TradeExecutor call."""
         payload = dict(request or {})

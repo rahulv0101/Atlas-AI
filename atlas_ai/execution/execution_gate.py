@@ -1197,6 +1197,8 @@ class ExecutionGate:
             return self.snapshot()
         self.refresh_critical_controls_from_persisted_state()
         self._broker_adapter = adapter
+        identity = dict(adapter.market_calendar_identity() or {}) if callable(getattr(adapter,'market_calendar_identity',None)) else {}
+        self._session_control.bind_broker_calendar(identity.get('broker',''), identity.get('symbol',''))
         self._reconciler = OrderReconciliation(self._broker_adapter, self._order_tracker)
         self._audit.append("broker_adapter_set", "", {"adapter_type": self._adapter_type()})
         if self._adapter_type() != "InMemoryBrokerAdapter":
@@ -2262,7 +2264,7 @@ class ExecutionGate:
         sync = self.refresh_critical_controls_from_persisted_state()
         decision = self._session_control.check(now=now, runtime_flags=runtime_flags, opening_new_trade=False)
         calendar = self._session_control._detect_session(now)
-        cutoff = calendar.reason in {"near_session_close_no_new_trades", "early_close_no_new_trades", "outside_active_session", "market_closed_holiday"} or decision.forced_flat_required
+        cutoff = calendar.reason in {"near_session_close_no_new_trades", "early_close_no_new_trades", "outside_active_session", "market_closed_holiday", "broker_close_no_new_trades", "broker_market_closed"} or decision.forced_flat_required
         def allowed():
             fresh = self.refresh_critical_controls_from_persisted_state()
             return bool(fresh.get("ok") and self._execution_environment == "demo"
@@ -2270,13 +2272,21 @@ class ExecutionGate:
                 and not self._kill_switch.status().active and not self._sleep_mode_active)
         result = self._intraday_exit_manager().run(self._broker_adapter, cutoff_required=cutoff,
             actions_allowed=allowed, reason=decision.reason or "active_session", now=now)
-        result.update(session=calendar.current_session,minutes_to_close=calendar.minutes_to_close,session_window_local=calendar.session_window_local)
+        result.update(session=calendar.current_session,minutes_to_close=calendar.minutes_to_close,session_window_local=calendar.session_window_local,
+                      broker_market_hours=self._session_control.broker_market_hours(now))
         self._audit.append("intraday_exit_check", "", dict(result))
         return result
 
     def _preflight_gate(self, req: dict[str, Any], *, runtime_flags: dict[str, Any] | None, risk_policy: dict[str, Any] | None) -> dict[str, Any]:
         self._current_gate_request_id = str(req.get("id", "") or "")
         flags = dict(runtime_flags or {})
+        calendar_now = datetime.now(timezone.utc)
+        hours = self._session_control.broker_market_hours(calendar_now)
+        reduces_risk = str(req.get('action_type','place_trade')) in {'close_position','close_trade','cancel_order','cancel_pending_order','modify_protection'}
+        if self._is_live_like_environment(str(req.get('environment','paper'))) and hours.get('applicable') and not reduces_risk:
+            calendar = self._session_control._detect_session(calendar_now)
+            if calendar.reason in {'broker_market_closed','broker_close_no_new_trades'}:
+                return self._gate_block(calendar.reason, gate='broker_market_hours', detail=hours)
         counter=dict(getattr(self,'_closed_outcome_counter',{}) or {})
         if self._is_live_like_environment(str(req.get('environment','paper'))):
             if flags.get('closed_outcome_accounting_verified') is False or (counter and

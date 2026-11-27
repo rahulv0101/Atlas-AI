@@ -305,7 +305,9 @@ def load_settings() -> Settings:
         base_lot=float(os.getenv("BASE_LOT", "0.01")),
         magic_number=int(os.getenv("MAGIC_NUMBER", "20260330")),
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
-        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        openai_api_key=(os.getenv("OPENAI_API_KEY", "")
+                        if os.getenv("OPENAI_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+                        else ""),
         openai_model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
         gemini_influence_enabled=os.getenv("GEMINI_INFLUENCE_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"},
         gemini_max_confidence_boost=float(os.getenv("GEMINI_MAX_CONFIDENCE_BOOST", "0.08")),

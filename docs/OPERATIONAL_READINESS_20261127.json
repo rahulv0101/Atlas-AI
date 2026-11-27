@@ -1,0 +1,89 @@
+{
+  "schema": "atlas_operational_readiness_repair_v1",
+  "checked_at_utc": "2026-11-27T04:02:33.678323+00:00",
+  "broker_calendar": {
+    "source": "https://www.hfm.com/int/ar/trading-instruments/trading-hours",
+    "published_timezone": "GMT+2",
+    "covered_dates": {
+      "2026-11-26": "21:30",
+      "2026-11-27": "21:45"
+    },
+    "symbol": "XAUUSD",
+    "broker": "HFM",
+    "today": {
+      "applicable": true,
+      "broker": "HFM",
+      "symbol": "XAUUSD",
+      "calendar_status": "published_broker_early_close",
+      "market_closed": false,
+      "close_utc": "2026-11-27T19:45:00+00:00",
+      "close_south_africa": "2026-11-27T21:45:00+02:00",
+      "minutes_to_broker_close": 942,
+      "source": "https://www.hfm.com/int/ar/trading-instruments/trading-hours",
+      "verified_at": "2026-11-26",
+      "reopening_time_verified": false,
+      "note": "Published GMT+2 close exception only; normal sessions and fresh data are still required."
+    },
+    "changes": "Only cap existing session windows by the published close. Keep existing close buffers, risk controls, kill switch and sleep restrictions. Reduce Atlas-owned exposure through the existing exit coordinator; never grant market opening or bypass freshness."
+  },
+  "provider_configuration": {
+    "OPENAI_ENABLED": false,
+    "Gemini": "Live connectivity check passed; current enabled provider is Gemini only.",
+    "stored_credentials_unchanged": true,
+    "trade_strategy_risk_execution_settings_unchanged": true,
+    "note": "Invalid optional OpenAI fallback disabled explicitly; replace its stored key and set OPENAI_ENABLED=true to use it again."
+  },
+  "long_historical_review": {
+    "registration_sha256": "e89aaef44e4cdf51a4e0f6a054905b2d80ea7f27e78a0bd846cf546ffa98ab2e",
+    "source": "storage/smc_h1_full_history_20261127",
+    "status": {
+      "state": "running_historical_research",
+      "checked_at": "2026-11-27T03:55:32.261474+00:00",
+      "orders_sent": 0
+    },
+    "progress": {
+      "period": "development",
+      "lane": "base",
+      "model": "smc_event_retest_v5",
+      "bar": 5300,
+      "total": 35699,
+      "cases": 2,
+      "at": "2026-06-12T17:00:00+00:00"
+    },
+    "models_unchanged": true,
+    "results_pending": true,
+    "broker_eligible": false,
+    "orders_sent": 0,
+    "recovery": "A bounded supervisor restarts an interrupted offline run against exactly the frozen inputs and sources. It can recompute unfinished work; it never backfills prospective cases."
+  },
+  "validation": {
+    "calendar_intraday_session_execution_ui_tests_passed": 181,
+    "provider_session_safety_tests_passed": 93,
+    "integrated_research_calendar_ui_tests_passed": 221,
+    "final_calendar_provider_ui_tests_passed": 132,
+    "counts_overlap": true,
+    "native_broker_mutations_blocked_in_tests": true
+  },
+  "repaired_reporting": [
+    "Scheduled closure can explain expected stale quotes without masking a disconnected broker or safety veto.",
+    "Headline primary blocker now agrees with the existing safety-first readiness text.",
+    "Research observer health is distinct from required contiguous M5 history; no missing bars are invented."
+  ],
+  "limitations": [
+    "Published exceptions cover only these two HFM XAUUSD dates; future unverified closures still rely on existing sessions and fresh-data gates.",
+    "Historical and prospective strategy qualification, a current-build natural broker cycle, and full live-gate parity remain unproven.",
+    "Earlier native crash cause is unresolved. This audit did not reboot Windows or perform a controlled spoken microphone test."
+  ],
+  "live_verification": {
+    "verified": true,
+    "checked_at_utc": "2026-11-27T04:03:21.826645+00:00",
+    "decision_id": "3ad3113ef63b4e968ce4e2562a13723f",
+    "api_views": [
+      "status/compact",
+      "status",
+      "status/full"
+    ],
+    "matching_journal_events": 1,
+    "errors": []
+  }
+}

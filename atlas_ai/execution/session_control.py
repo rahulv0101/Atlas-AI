@@ -155,7 +155,21 @@ class DayTradingSessionControl:
             next_session_local=next_s,
         )
 
+    def bind_broker_calendar(self, broker='', symbol=''):
+        self._broker_calendar_binding = (broker, symbol)
+
+    def broker_market_hours(self, now=None):
+        from atlas_ai.data.broker_calendar import market_hours
+        broker, symbol = getattr(self, '_broker_calendar_binding', ('', ''))
+        return market_hours(broker, symbol, now or datetime.now(timezone.utc))
+
     def _detect_session(self, now_utc: datetime) -> SessionDecision:
+        from atlas_ai.data.broker_calendar import restrict_session
+        base = self._detect_session_base(now_utc)
+        buffer = next((s.no_trade_buffer_minutes for s in self._sessions if s.name == base.current_session), 0)
+        return restrict_session(base, self.broker_market_hours(now_utc), close_buffer_minutes=max(0, buffer))
+
+    def _detect_session_base(self, now_utc: datetime) -> SessionDecision:
         if not self._sessions:
             return self._closed_decision(reason="session_calendar_unknown", now_utc=now_utc, calendar_status="missing_session_config")
 
@@ -311,7 +325,7 @@ class DayTradingSessionControl:
             return base
         if not base.allowed:
             self.block_reason = base.reason or "outside_active_session"
-            base.forced_flat_required = open_positions > 0 and base.reason in {"near_session_close_no_new_trades", "early_close_no_new_trades"}
+            base.forced_flat_required = open_positions > 0 and base.reason in {"near_session_close_no_new_trades", "early_close_no_new_trades", "broker_close_no_new_trades", "broker_market_closed"}
             return base
         if opening_new_trade and base.minutes_to_close <= 1:
             self.block_reason = "insufficient_time_to_close"
@@ -335,6 +349,7 @@ class DayTradingSessionControl:
         flags = dict(runtime_flags or {})
         decision = self.check(runtime_flags=flags, opening_new_trade=False)
         return {
+            "broker_market_hours": self.broker_market_hours(),
             "current_session": decision.current_session,
             "session_active": decision.session_active,
             "minutes_to_session_close": decision.minutes_to_close,

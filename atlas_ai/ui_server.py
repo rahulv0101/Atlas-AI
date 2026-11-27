@@ -2171,6 +2171,8 @@ def _blocker_code(reason: str) -> str:
     text = str(reason or "").strip().lower()
     if not text:
         return "none"
+    if 'scheduled hfm' in text or 'early-close buffer' in text:
+        return 'broker_market_closed' if 'scheduled hfm' in text else 'broker_close_no_new_trades'
     if "volatility protection active" in text:
         return "volatility_protection"
     if ":" in text and re.match(r"^[a-z0-9_:-]+$", text):
@@ -2397,8 +2399,14 @@ def _build_execution_readiness(
     timing_ready = not bool(timing.get("hard_block", False))
 
     blockers: list[dict[str, Any]] = []
+    hours=dict(dict(automation_payload.get('session_control',{}) or {}).get('broker_market_hours',{})
+               or status_payload.get('broker_market_hours',{}) or {})
+    scheduled_closed=hours.get('applicable') is True and hours.get('market_closed') is True
+    if scheduled_closed:
+        blockers.append({'lane':'session','code':'broker_market_closed',
+            'detail':f"Scheduled HFM XAUUSD early close at {str(hours.get('close_south_africa',''))[11:16]} SAST. Wait for an eligible session and fresh broker data."})
     clock = status_payload.get("market_data_clock")
-    if clock and execution_freshness(status_age_ms=0, market_fetch=clock)["is_stale"]:
+    if clock and execution_freshness(status_age_ms=0, market_fetch=clock)["is_stale"] and not scheduled_closed:
         blockers.append({"lane": "runtime", "code": "stale_market_data", "detail": "Market ticks or bars are stale, future-dated, or unavailable; execution must wait for fresh data."})
     updated_at = str(status_payload.get("updated_at", "") or "")
     if updated_at:
@@ -2469,7 +2477,7 @@ def _build_execution_readiness(
         "ready_for_execution_attempt": not blockers,
         "display": {"state": display_state, "label": display_state.upper(), "detail": display_detail},
         "checked_at": str(status_payload.get("updated_at", "") or ""),
-        "primary_blocker": blockers[0] if blockers else {},
+        "primary_blocker": (system_blockers or blockers or [{}])[0],
         "blocker_chain": blockers,
         "state": {
             "execute_trades": execute_trades,
